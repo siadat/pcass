@@ -5,6 +5,9 @@ import yaml
 from kaitaistruct import KaitaiStruct
 import sstable
 
+def blahblah():
+    return 1
+
 class YamlDumper(yaml.Dumper):
     def represent_binary(self, data):
         value = ' '.join(data[i:i+1].hex() for i in range(0, len(data), 1))

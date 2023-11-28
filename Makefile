@@ -2,11 +2,14 @@ parse_all: generate_parser parse
 
 parse:
 	@for dir in cassandra_data_history/* ; do \
+		./hexdump.bash $$dir/sina_test/*/me-1-big-Data.db > $$dir/bytes.txt ; \
 		bash parse.bash $$dir | tee $$dir/result.txt ; \
 	done
 
-generate_parser: vlq_base128_le.ksy
-	kaitai-struct-compiler --target python sstable-data-2.0.ksy
+generate_parser: vlq_base128_le.ksy vlq_base128_be.ksy
+	kaitai-struct-compiler --target python --opaque-types=true sstable-data-2.0.ksy
+
+all: generate_data parse_all
 
 .PHONY: generate_data
 generate_data: clean cass_zig
@@ -22,6 +25,9 @@ generate_data: clean cass_zig
 
 vlq_base128_le.ksy:
 	wget https://raw.githubusercontent.com/kaitai-io/kaitai_struct_formats/master/common/vlq_base128_le.ksy
+
+vlq_base128_be.ksy:
+	wget https://raw.githubusercontent.com/kaitai-io/kaitai_struct_formats/master/common/vlq_base128_be.ksy
 
 .PHONY: cass_zig
 cass_zig:
