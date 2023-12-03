@@ -1,4 +1,7 @@
+import tempfile
 import textwrap
+import subprocess
+import atexit
 
 def bin(number):
     """
@@ -15,14 +18,40 @@ def bin(number):
     return ' '.join(padded_binary_str[i:i+8] for i in range(0, len(padded_binary_str), 8))
 
 
+def byte_repr(byte):
+    if 32 <= byte <= 126:
+        s = bytes([byte])
+        s = repr(s.decode("utf-8"))
+    else:
+        s = '───'
+    binary = format(byte, '08b')
+    return f"0x{byte:02x}\tb{binary}\t{byte:>3}\t{s}"
+
+
+assertion_count = 0
 def assert_equal(want, got):
+    global assertion_count
     try:
         assert want == got
-    except AssertionError as e:
+        assertion_count += 1
+    except AssertionError:
+        if isinstance(want, bytes) and isinstance(got, bytes):
+            with tempfile.TemporaryDirectory() as dir:
+                with open(f"{dir}/want", "w") as f:
+                    for byt in want:
+                        f.write(byte_repr(byt) + "\n")
+                with open(f"{dir}/got", "w") as f:
+                    for byt in got:
+                        f.write(byte_repr(byt) + "\n")
+                subprocess.run(["git", "--no-pager", "diff", "--no-index", "--color", f"{dir}/want", f"{dir}/got"])
         message = textwrap.dedent(f"""
-        Error: {e}
-        Want:  {want}
-        Got:   {got}
+        -   Want:  {want}
+        +   Got:   {got}
         """)
         raise AssertionError(message) from None
 
+def print_test_stats():
+    global assertion_count
+    print(f"{assertion_count} successful assertions completed")
+
+atexit.register(print_test_stats)
