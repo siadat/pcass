@@ -60,7 +60,7 @@ partition = construct.Struct(
     # "unfiltered" / unfiltered, # construct.GreedyRange(unfiltered),
     "unfiltered" / construct.RepeatUntil(lambda x, lst, ctx: (x.row_flags & 0x01) == 0x01, unfiltered),
 )
-format = construct.Struct(construct.GreedyRange(partition))
+format = construct.Struct("partitions" / construct.GreedyRange(partition))
 
 assert partition_header.build({
         "key_len": 4,
