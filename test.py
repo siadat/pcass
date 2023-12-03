@@ -15,3 +15,4 @@ def test(db_filepath):
 
 
 test("test_data/simple-3-rows-me-1-big-Data.db")
+utils.print_test_stats()

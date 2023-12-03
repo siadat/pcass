@@ -1,7 +1,6 @@
 import tempfile
 import textwrap
 import subprocess
-import atexit
 
 def bin(number):
     """
@@ -53,5 +52,3 @@ def assert_equal(want, got):
 def print_test_stats():
     global assertion_count
     print(f"{assertion_count} successful assertions completed")
-
-atexit.register(print_test_stats)
