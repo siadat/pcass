@@ -1,18 +1,25 @@
-parse_all: generate_parser parse
+new_parse_all: parse
+
+old_parse_all: generate_parser parse
 
 parse:
+	bash parse_parallel.bash
+
+parse_multi_in_makefile:
+	# bash parse_parallel.bash
 	@for dir in cassandra_data_history/* ; do \
 		./hexdump.bash $$dir/sina_test/*/me-1-big-Data.db > $$dir/bytes.txt ; \
 		bash parse.bash $$dir | tee $$dir/result.txt ; \
 	done
 
+
 generate_parser: vlq_base128_le.ksy vlq_base128_be.ksy
 	kaitai-struct-compiler --target python --opaque-types=true sstable-data-2.0.ksy
 
-all: generate_data parse_all
+all: populate_db old_parse_all
 
-.PHONY: generate_data
-generate_data: clean cass_zig
+.PHONY: populate_db
+populate_db: clean cass_zig
 	make populate_rows
 	docker stop cass_zig
 
