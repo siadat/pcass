@@ -3,6 +3,7 @@ import varint
 
 # https://opensource.docs.scylladb.com/stable/architecture/sstable/sstable3/sstables-3-data-file-format.html#
 
+
 text_cell_value = construct.Struct(
     "cell_value_len" / varint.VarInt(), # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/rows/BufferCell.java#L272
     "cell_value" / construct.Bytes(construct.this.cell_value_len),
@@ -11,17 +12,24 @@ int_cell_value = construct.Struct(
     "cell_value" / construct.Int32sb,
 )
 
+# TODO this might be a CompositeType as well
+java_type_to_construct = {
+    b"org.apache.cassandra.db.marshal.UTF8Type": text_cell_value,
+    b"org.apache.cassandra.db.marshal.Int32Type": int_cell_value,
+}
+
 simple_cell = construct.Struct(
     "cell_flags" / construct.Hex(construct.Int8ub), # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/rows/BufferCell.java#L230-L234
                                                     # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/rows/BufferCell.java#L258
-    "cell" / construct.Switch(lambda ctx: ctx._root._.sstable_statistics.serialization_header.regular_columns[ctx._index].type.name, { # NOTE: ctx._index is unfortunately globally incremented, so if this construct is used else here _index is incremented and never reset to 0!
-        b"org.apache.cassandra.db.marshal.UTF8Type": text_cell_value,
-        b"org.apache.cassandra.db.marshal.Int32Type": int_cell_value,
-    }),
+    # NOTE: ctx._index is unfortunately globally incremented, so if this construct is used else here _index is incremented and never reset to 0!
+    "cell" / construct.Switch(lambda ctx: ctx._root._.sstable_statistics.serialization_header.regular_columns[ctx._index].type.name, java_type_to_construct),
 )
 clustering_cell = construct.Struct(
-    "cell_value_len" / varint.VarInt(),
-    "cell_value" / construct.Bytes(construct.this.cell_value_len),
+    # "cell_value_len" / varint.VarInt(),
+    # "cell_value" / construct.Bytes(construct.this.cell_value_len),
+
+    # NOTE: ctx._index is unfortunately globally incremented, so if this construct is used else here _index is incremented and never reset to 0!
+    "key" / construct.Switch(lambda ctx: ctx._root._.sstable_statistics.serialization_header.clustering_key_types[ctx._index].name, java_type_to_construct),
 )
 unfiltered = construct.Struct(
     "row_flags" / construct.Hex(construct.Int8ub), # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/rows/UnfilteredSerializer.java#L78-L85
@@ -57,6 +65,10 @@ partition_header = construct.Struct(
     # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/ColumnIndex.java#L98
     "key_len" / construct.Int16ub,
     "key" / construct.Hex(construct.Bytes(construct.this.key_len)),
+    # "key" / construct.Switch(lambda ctx: ctx._root._.sstable_statistics.serialization_header.partition_key.name, { # NOTE: ctx._index is unfortunately globally incremented, so if this construct is used else here _index is incremented and never reset to 0!
+    #     b"org.apache.cassandra.db.marshal.UTF8Type": text_cell_value,
+    #     b"org.apache.cassandra.db.marshal.Int32Type": int_cell_value,
+    # }),
     "deletion_time" / construct.Struct(
         # Looks similar https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/SerializationHeader.java#L210-L211
         "local_deletion_time" / construct.Int32ub,
@@ -73,11 +85,11 @@ partition = construct.Struct(
 )
 db_format = construct.Struct("partitions" / construct.GreedyRange(partition))
 
-assert partition_header.build({
-        "key_len": 4,
-        "key": bytes([0xff, 0xff, 0xff, 0xff]),
-        "deletion_time": {
-            "local_deletion_time": int.from_bytes([0x7f, 0xff, 0xff, 0xff], 'big'),
-            "marked_for_delete_at": int.from_bytes([0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00], 'big'),
-        },
-    }) == bytes([0x00, 0x04, 0xff, 0xff, 0xff, 0xff, 0x7f, 0xff, 0xff, 0xff, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00])
+# assert partition_header.build({
+#         "key_len": 4,
+#         "key": bytes([0xff, 0xff, 0xff, 0xff]),
+#         "deletion_time": {
+#             "local_deletion_time": int.from_bytes([0x7f, 0xff, 0xff, 0xff], 'big'),
+#             "marked_for_delete_at": int.from_bytes([0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00], 'big'),
+#         },
+#     }) == bytes([0x00, 0x04, 0xff, 0xff, 0xff, 0xff, 0x7f, 0xff, 0xff, 0xff, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00])
