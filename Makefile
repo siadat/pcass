@@ -12,6 +12,8 @@ parse_multi_in_makefile:
 		bash parse.bash $$dir | tee $$dir/result.txt ; \
 	done
 
+test:
+	poetry run python test.py
 
 generate_parser: vlq_base128_le.ksy vlq_base128_be.ksy
 	kaitai-struct-compiler --target python --opaque-types=true sstable-data-2.0.ksy

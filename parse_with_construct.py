@@ -1,37 +1,54 @@
 import io
+import os
 import argparse 
 import traceback
 
 import construct
 
-import sstable_construct
+import sstable_db
+import sstable_statistics
 import positioned_construct
+
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('file', type=str)
+    parser.add_argument('dir', type=str)
     args = parser.parse_args()
 
+    statistics_file = os.path.join(args.dir, "me-1-big-Statistics.db")
     positioned_construct.init()
-
-    last_pos = 0
-    with open(args.file, "rb") as f:
+    with open(statistics_file, "rb") as f:
         err = None
         err_pos = None
         err_traceback = None
 
         try:
-            parsed = sstable_construct.format.parse_stream(f)
+            parsed = sstable_statistics.statistics_format.parse_stream(f)
             print(parsed)
         except Exception as e:
             err = e
             err_pos = f.tell()
             err_traceback = traceback.format_exc()
-        # import pdb; pdb.set_trace()
-        last_pos = f.tell()
 
-    string_buffer = io.StringIO()
-    positioned_construct.pretty_hexdump(args.file, last_pos, string_buffer, err, err_pos, err_traceback)
-    print(string_buffer.getvalue(), end="")
+        last_pos = f.tell()
+        positioned_construct.pretty_hexdump(statistics_file, last_pos, os.sys.stdout, err, err_pos, err_traceback, index=False)
+
+    data_file = os.path.join(args.dir, "me-1-big-Data.db")
+    positioned_construct.init()
+    with open(data_file, "rb") as f:
+        err = None
+        err_pos = None
+        err_traceback = None
+
+        try:
+            parsed = sstable_db.db_format.parse_stream(f)
+            print(parsed)
+        except Exception as e:
+            err = e
+            err_pos = f.tell()
+            err_traceback = traceback.format_exc()
+
+        last_pos = f.tell()
+        positioned_construct.pretty_hexdump(data_file, last_pos, os.sys.stdout, err, err_pos, err_traceback)
 
 main()

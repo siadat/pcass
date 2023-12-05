@@ -1,3 +1,5 @@
 cassandra_data/
 cassandra_data_history/
 __pycache__/
+
+drafts/

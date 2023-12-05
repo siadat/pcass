@@ -1,6 +1,7 @@
 import construct
 import varint
 
+# https://opensource.docs.scylladb.com/stable/architecture/sstable/sstable3/sstables-3-data-file-format.html#
 
 simple_cell = construct.Struct(
     "cell_flags" / construct.Hex(construct.Int8ub), # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/rows/BufferCell.java#L230-L234
@@ -60,7 +61,7 @@ partition = construct.Struct(
     # "unfiltered" / unfiltered, # construct.GreedyRange(unfiltered),
     "unfiltered" / construct.RepeatUntil(lambda x, lst, ctx: (x.row_flags & 0x01) == 0x01, unfiltered),
 )
-format = construct.Struct("partitions" / construct.GreedyRange(partition))
+db_format = construct.Struct("partitions" / construct.GreedyRange(partition))
 
 assert partition_header.build({
         "key_len": 4,
