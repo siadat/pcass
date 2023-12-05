@@ -48,7 +48,7 @@ unfiltered = construct.Struct(
             # > https://opensource.docs.scylladb.com/stable/architecture/sstable/sstable3/sstables-3-data-file-format.html#:~:text=Note%20that%20we%20don%E2%80%99t%20store%20the%20number%20of%20clustering%20cells%20as%20we%20take%20this%20information%20from%20table%20schema.
             "clustering_block" / construct.Struct(
                 "clustering_block_header" / construct.Int8ub, # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/ClusteringPrefix.java#L305
-                "clustering_cells" / clustering_cell, # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/ClusteringPrefix.java#L310
+                "clustering_cells" / construct.RepeatUntil(lambda x, lst, ctx: ctx._root._.sstable_statistics.serialization_header.clustering_key_count, clustering_cell), # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/ClusteringPrefix.java#L310
             ),
 
             "serialized_row_body_size" / varint.VarInt(), # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/rows/UnfilteredSerializer.java#L169
@@ -80,8 +80,8 @@ partition = construct.Struct(
     # Similar? https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/partitions/PartitionUpdate.java#L685-L685
     # Even though this has a guard against sstable, it looks similar: https://github.com/apache/cassandra/blob/trunk/src/java/org/apache/cassandra/db/rows/UnfilteredRowIteratorSerializer.java#L110
     "partition_header" / partition_header,
-    # "unfiltered" / unfiltered, # construct.GreedyRange(unfiltered),
-    "unfiltered" / construct.RepeatUntil(lambda x, lst, ctx: (x.row_flags & 0x01) == 0x01, unfiltered),
+    # "unfiltereds" / unfiltered, # construct.GreedyRange(unfiltered),
+    "unfiltereds" / construct.RepeatUntil(lambda x, lst, ctx: (x.row_flags & 0x01) == 0x01, unfiltered),
 )
 db_format = construct.Struct("partitions" / construct.GreedyRange(partition))
 
