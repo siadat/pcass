@@ -64,11 +64,11 @@ unfiltered = construct.Struct(
 partition_header = construct.Struct(
     # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/ColumnIndex.java#L98
     "key_len" / construct.Int16ub,
-    "key" / construct.Hex(construct.Bytes(construct.this.key_len)),
-    # "key" / construct.Switch(lambda ctx: ctx._root._.sstable_statistics.serialization_header.partition_key.name, { # NOTE: ctx._index is unfortunately globally incremented, so if this construct is used else here _index is incremented and never reset to 0!
-    #     b"org.apache.cassandra.db.marshal.UTF8Type": text_cell_value,
-    #     b"org.apache.cassandra.db.marshal.Int32Type": int_cell_value,
-    # }),
+    # "key" / construct.Bytes(construct.this.key_len),
+    "key" / construct.Switch(lambda ctx: ctx._root._.sstable_statistics.serialization_header.partition_key.name, {
+        b"org.apache.cassandra.db.marshal.UTF8Type": text_cell_value,
+        b"org.apache.cassandra.db.marshal.Int32Type": int_cell_value,
+    }),
     "deletion_time" / construct.Struct(
         # Looks similar https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/SerializationHeader.java#L210-L211
         "local_deletion_time" / construct.Int32ub,

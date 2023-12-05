@@ -1,6 +1,6 @@
 import io
 import os
-import argparse 
+import argparse
 import traceback
 
 import construct
