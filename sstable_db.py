@@ -3,11 +3,21 @@ import varint
 
 # https://opensource.docs.scylladb.com/stable/architecture/sstable/sstable3/sstables-3-data-file-format.html#
 
-simple_cell = construct.Struct(
-    "cell_flags" / construct.Hex(construct.Int8ub), # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/rows/BufferCell.java#L230-L234
-                                                     # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/rows/BufferCell.java#L258
+text_cell_value = construct.Struct(
     "cell_value_len" / varint.VarInt(), # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/rows/BufferCell.java#L272
     "cell_value" / construct.Bytes(construct.this.cell_value_len),
+)
+int_cell_value = construct.Struct(
+    "cell_value" / construct.Int32sb,
+)
+
+simple_cell = construct.Struct(
+    "cell_flags" / construct.Hex(construct.Int8ub), # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/rows/BufferCell.java#L230-L234
+                                                    # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/rows/BufferCell.java#L258
+    "cell" / construct.Switch(lambda ctx: ctx._root._.sstable_statistics.serialization_header.regular_columns[ctx._index].type.name, { # NOTE: ctx._index is unfortunately globally incremented, so if this construct is used else here _index is incremented and never reset to 0!
+        b"org.apache.cassandra.db.marshal.UTF8Type": text_cell_value,
+        b"org.apache.cassandra.db.marshal.Int32Type": int_cell_value,
+    }),
 )
 clustering_cell = construct.Struct(
     "cell_value_len" / varint.VarInt(),

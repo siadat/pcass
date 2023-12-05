@@ -16,7 +16,7 @@ modified_utf8 = construct.Struct(
 )
 bucket = construct.Struct(
     "prev_bucket_offset" / construct.Int64ub,
-    "value" / construct.Int64ub,
+    "name" / construct.Int64ub,
 )
 
 estimated_histogram = construct.Struct(
@@ -41,7 +41,7 @@ commit_log_interval = construct.Struct(
 
 clustering_column = construct.Struct(
     "length" / construct.Int16ub,
-    "value" / construct.Bytes(construct.this.length),
+    "name" / construct.Bytes(construct.this.length),
 )
 clustering_bound = construct.Struct(
     "length" / construct.Int32ub,
@@ -51,7 +51,7 @@ clustering_bound = construct.Struct(
 typ = construct.Struct(
     # "length" / construct.Int32ub,
     "length" / varint.VarInt(),
-    "value" / construct.Bytes(construct.this.length),
+    "name" / construct.Bytes(construct.this.length),
 )
 
 column = construct.Struct(

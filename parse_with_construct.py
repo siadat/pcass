@@ -14,6 +14,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('dir', type=str)
     args = parser.parse_args()
+    parsed_statistics = None
 
     statistics_file = os.path.join(args.dir, "me-1-big-Statistics.db")
     positioned_construct.init()
@@ -23,8 +24,8 @@ def main():
         err_traceback = None
 
         try:
-            parsed = sstable_statistics.statistics_format.parse_stream(f)
-            print(parsed)
+            parsed_statistics = sstable_statistics.statistics_format.parse_stream(f)
+            print(parsed_statistics)
         except Exception as e:
             err = e
             err_pos = f.tell()
@@ -41,7 +42,7 @@ def main():
         err_traceback = None
 
         try:
-            parsed = sstable_db.db_format.parse_stream(f)
+            parsed = sstable_db.db_format.parse_stream(f, sstable_statistics=parsed_statistics)
             print(parsed)
         except Exception as e:
             err = e
