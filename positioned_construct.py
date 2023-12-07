@@ -4,6 +4,7 @@ import utils
 import construct
 
 global_position_map = {}
+all_keys = []
 
 def wrap_func(cls):
     original_read = cls._parse
@@ -19,16 +20,29 @@ def wrap_func(cls):
     cls._parse = new_parse
 
 
-def get_matches_for_pos(pos):
+def global_position_map_keys():
     global global_position_map
+    global all_keys
+
+    if all_keys:
+        return all_keys
     # this will sort them by (+start position) and (-end position):
     all_keys = sorted(global_position_map.keys(), key=lambda key: (key[0], -key[1]))
+    return all_keys
 
+
+def get_matches_for_pos(pos):
+    global global_position_map
     result = []
-    for (start, end) in all_keys:
+    for (start, end) in global_position_map_keys():
+        if pos > end:
+            continue
+        if pos < start:
+            continue
         # The reason for "< end" instead of "<= end" is that the end pos is recorded after a _read is returned, so pos is one ahead.
         if start <= pos < end:
             result.append(global_position_map[(start, end)])
+
     if result:
         return result[-1]
     else:
@@ -62,6 +76,8 @@ def pretty_hexdump(filepath, last_parsed_pos, output_stream, err=None, err_pos=N
 # structs and check the output of pretty_hexdump.
 def init():
     global global_position_map
+    global all_keys
     global_position_map.clear()
+    all_keys.clear()
     for cls in construct.Construct.__subclasses__():
         wrap_func(cls)
