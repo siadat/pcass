@@ -18,8 +18,8 @@ def test_encode_and_decode():
     # Data.db
     with open("test_data/simple-3-rows-me-1-big-Data.db", "rb") as f:
         db_bytes = f.read()
-    data_parsed = sstable_data.db_format.parse(db_bytes, sstable_statistics=statistics_parsed)
-    data_bytes_got = sstable_data.db_format.build(data_parsed, sstable_statistics=statistics_parsed)
+    data_parsed = sstable_data.data_format.parse(db_bytes, sstable_statistics=statistics_parsed)
+    data_bytes_got = sstable_data.data_format.build(data_parsed, sstable_statistics=statistics_parsed)
     utils.assert_equal(db_bytes, data_bytes_got)
 
 

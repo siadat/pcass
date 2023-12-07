@@ -113,4 +113,4 @@ partition = construct.Struct(
     # "unfiltereds" / unfiltered, # construct.GreedyRange(unfiltered),
     "unfiltereds" / construct.RepeatUntil(lambda obj, lst, ctx: (obj.row_flags & 0x01) == 0x01, unfiltered),
 )
-db_format = construct.Struct("partitions" / construct.GreedyRange(partition))
+data_format = construct.Struct("partitions" / construct.GreedyRange(partition))

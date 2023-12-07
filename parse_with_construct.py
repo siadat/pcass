@@ -41,7 +41,7 @@ def parse_data_db(data_file, parsed_statistics):
         err_traceback = None
 
         try:
-            parsed = sstable_data.db_format.parse_stream(f, sstable_statistics=parsed_statistics)
+            parsed = sstable_data.data_format.parse_stream(f, sstable_statistics=parsed_statistics)
             print("# Parsed Data.db:")
             print(parsed)
         except Exception as e:

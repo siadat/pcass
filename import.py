@@ -40,7 +40,7 @@ def main():
 
     print("Statistics.db:\t", statistics_bytes)
 
-    data_bytes = sstable_data.db_format.build({
+    data_bytes = sstable_data.data_format.build({
             "partitions": [
                 {
                     "partition_header": {
@@ -68,7 +68,7 @@ def main():
         # We also need to box statistics_dict because it is used like an object, not like a dict.
         sstable_statistics=box.Box(statistics_dict),
     )
-    data_got = sstable_data.db_format.parse(data_bytes, sstable_statistics=statistics_got)
+    data_got = sstable_data.data_format.parse(data_bytes, sstable_statistics=statistics_got)
     utils.assert_equal(2, data_got.partitions[0].partition_header.key_len)
 
     print("Data.db:\t", data_bytes)
