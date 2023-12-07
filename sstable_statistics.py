@@ -60,21 +60,32 @@ column = construct.Struct(
     "name" / construct.PascalString(construct.Int8ub, "ascii"),
     "type" / typ,
 )
+
+VALIDATION_METADATA = 0
+COMPACTION_METADATA = 1
+STATISTICS_METADATA = 2
+SERIALIZATION_METADATA = 3
+
+def metadata_exists(typ):
+    def fn(ctx):
+        return typ in [x.type for x in ctx.toc]
+    return fn
+
 statistics_format = construct.Struct(
     "metadata_count" / construct.Int32ub,
     "toc" / construct.Array(construct.this.metadata_count, construct.Struct(
         "type" / construct.Int32ub,
         "offset" / construct.Int32ub,
     )),
-    "validation_metadata" / construct.Struct(
+    "validation_metadata" / construct.If(metadata_exists(VALIDATION_METADATA), construct.Struct(
         "partition_name" / modified_utf8,
         "bloom_filter_fp_chance" / construct.Float64b,
-    ),
-    "compaction_metadata" / construct.Struct(
+    )),
+    "compaction_metadata" / construct.If(metadata_exists(COMPACTION_METADATA), construct.Struct(
         "length" / construct.Int32ub,
         "bytes" / construct.Bytes(construct.this.length),
-    ),
-    "statistics_metadata" / construct.Struct(
+    )),
+    "statistics_metadata" / construct.If(metadata_exists(STATISTICS_METADATA), construct.Struct(
         "parition_sizes" / estimated_histogram,
         "column_counts" / estimated_histogram,
         "commit_log_upper_bound" / commit_log_position,
@@ -104,21 +115,26 @@ statistics_format = construct.Struct(
 
         "TODO_WHY_IS_THIS_NEEDED" / construct.Bytes(1),
         "host_id" / uuid,
-    ),
-    "serialization_header" / construct.Struct(
+    )),
+    # "serialization_header_start" / construct.Tell,
+    "serialization_header" / construct.If(metadata_exists(SERIALIZATION_METADATA), construct.Struct(
+        # https://github.com/scylladb/scylladb/blob/scylla-5.4.0/sstables/types.hh#L400
         # "min_timestamp" / construct.Int64ub,
         # "min_local_deletion_time" / construct.Int32ub,
         # "min_ttl" / construct.Int32ub,
-        # "partition_key" / typ,
+        # "partition_key_type" / typ,
         "min_timestamp" / varint.VarInt(),
         "min_local_deletion_time" / varint.VarInt(),
         "min_ttl" / varint.VarInt(),
-        "partition_key" / typ,
+        "partition_key_type" / typ,
+
         "clustering_key_count" / varint.VarInt(),
         "clustering_key_types" / construct.Array(construct.this.clustering_key_count, typ),
+
         "static_column_count" / varint.VarInt(),
         "static_columns" / construct.Array(construct.this.static_column_count, column),
+
         "regular_column_count" / varint.VarInt(),
         "regular_columns" / construct.Array(construct.this.regular_column_count, column),
-    ),
+    )),
 )

@@ -23,16 +23,16 @@ def main():
     regular_column_names = [column.name for column in parsed_statistics.serialization_header.regular_columns]
 
     writer = csv.writer(os.sys.stdout)
-    writer.writerow([f"partition_key"] + list(clustering_column_names) + list(regular_column_names))
+    writer.writerow([f"partition_key_type"] + list(clustering_column_names) + list(regular_column_names))
 
     for partition in parsed_data.partitions:
-        partition_key = partition.partition_header.key.cell_value
+        partition_key_type = partition.partition_header.key.cell_value
         for unfiltered in partition.unfiltereds:
             if unfiltered.row_flags & 0x01:
                 continue
             clustering_column_values = map(lambda cell: cell.key.cell_value, unfiltered.row.clustering_block.clustering_cells)
             regular_column_values = map(lambda cell: cell.cell.cell_value, unfiltered.row.cells)
-            writer.writerow([partition_key] + list(clustering_column_values) + list(regular_column_values))
+            writer.writerow([partition_key_type] + list(clustering_column_values) + list(regular_column_values))
     # print(parsed_statistics)
 
 main()
