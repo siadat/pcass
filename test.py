@@ -7,7 +7,7 @@ import sstable_statistics
 import positioned_construct
 
 
-def test():
+def test_encode_and_decode():
     # Statistics.db
     with open("test_data/simple-3-rows-me-1-big-Statistics.db", "rb") as f:
         statistics_bytes = f.read()
@@ -23,5 +23,6 @@ def test():
     utils.assert_equal(db_bytes, data_bytes_got)
 
 
-test()
+test_encode_and_decode()
+
 utils.print_test_stats()

@@ -1,22 +1,54 @@
-import construct
+import utils
 import varint
+
+import construct
 
 # https://opensource.docs.scylladb.com/stable/architecture/sstable/sstable3/sstables-3-data-file-format.html#
 
 
 text_cell_value = construct.Struct(
-    # "cell_value_len" / varint.VarInt(), # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/rows/BufferCell.java#L272
+    # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/rows/BufferCell.java#L272
+    # "cell_value_len" / varint.VarInt(),
     # "cell_value" / construct.Bytes(construct.this.cell_value_len),
     "cell_value" / construct.PascalString(varint.VarInt(), "utf-8"),
 )
+utils.assert_equal(b"\x04\x61\x62\x63\x64", text_cell_value.build({"cell_value": "abcd"}))
+
 int_cell_value = construct.Struct(
     "cell_value" / construct.Int32sb,
 )
+utils.assert_equal(b"\x00\x00\x00\x04", int_cell_value.build({"cell_value": 4}))
+
+# Not tested with Cassnadra:
+float_cell_value = construct.Struct(
+    "cell_value" / construct.Float32b,
+)
+utils.assert_equal(b"\x00\x00\x00\x00", float_cell_value.build({"cell_value": 0}))
+
+# Not tested with Cassnadra:
+ascii_cell_value = construct.Struct(
+    "cell_value" / construct.PascalString(varint.VarInt(), "ascii"),
+)
+utils.assert_equal(b"\x04\x61\x62\x63\x64", ascii_cell_value.build({"cell_value": "abcd"}))
+
+# Not tested with Cassnadra:
+boolean_cell_value = construct.Struct(
+    "cell_value" / construct.OneOf(construct.Byte, [0, 1]),
+)
+utils.assert_equal(b"\x00", boolean_cell_value.build({"cell_value": False}))
+utils.assert_equal(False, boolean_cell_value.parse(b"\x00").cell_value)
+
 
 # TODO this might be a CompositeType as well
 java_type_to_construct = {
+    # Sources:
+    # - https://sourcegraph.com/github.com/apache/cassandra@cassandra-3.0.29/-/tree/src/java/org/apache/cassandra/db/marshal
+    # - https://cassandra.apache.org/doc/stable/cassandra/cql/types.html
     b"org.apache.cassandra.db.marshal.UTF8Type": text_cell_value,
     b"org.apache.cassandra.db.marshal.Int32Type": int_cell_value,
+    b"org.apache.cassandra.db.marshal.AsciiType": ascii_cell_value,
+    b"org.apache.cassandra.db.marshal.BooleanType": boolean_cell_value,
+    b"org.apache.cassandra.db.marshal.FloatType": boolean_cell_value,
 }
 
 simple_cell = construct.Struct(
@@ -82,12 +114,3 @@ partition = construct.Struct(
     "unfiltereds" / construct.RepeatUntil(lambda obj, lst, ctx: (obj.row_flags & 0x01) == 0x01, unfiltered),
 )
 db_format = construct.Struct("partitions" / construct.GreedyRange(partition))
-
-# assert partition_header.build({
-#         "key_len": 4,
-#         "key": bytes([0xff, 0xff, 0xff, 0xff]),
-#         "deletion_time": {
-#             "local_deletion_time": int.from_bytes([0x7f, 0xff, 0xff, 0xff], 'big'),
-#             "marked_for_delete_at": int.from_bytes([0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00], 'big'),
-#         },
-#     }) == bytes([0x00, 0x04, 0xff, 0xff, 0xff, 0xff, 0x7f, 0xff, 0xff, 0xff, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00])
