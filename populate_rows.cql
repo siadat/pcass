@@ -1,5 +1,8 @@
 -- https://sourcegraph.com/github.com/apache/cassandra@cassandra-3.0.0/-/blob/pylib/cqlshlib/test/test_keyspace_init.cql
 
+CREATE KEYSPACE IF NOT EXISTS sina_test WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1};
+USE sina_test;
+
 CREATE TABLE has_all_types (
     num int PRIMARY KEY,
     intcol int,
@@ -17,7 +20,7 @@ CREATE TABLE has_all_types (
     uuidcol uuid,
     varcharcol varchar,
     varintcol varint
-) WITH compression = {'sstable_compression':'LZ4Compressor'};
+) WITH compression = {'sstable_compression':''};
 
 INSERT INTO has_all_types (num, intcol, asciicol, bigintcol, blobcol, booleancol,
                            decimalcol, doublecol, floatcol, smallintcol, textcol,

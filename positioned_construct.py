@@ -1,3 +1,4 @@
+import os
 import utils
 
 import construct
@@ -46,8 +47,10 @@ def pretty_hexdump(filepath, last_parsed_pos, output_stream, err=None, err_pos=N
                 output_stream.write(str(i) + "\t")
             output_stream.write(f"{utils.byte_repr(byte)} {get_matches_for_pos(i)}\n")
         if err:
-            output_stream.write(f"Error while trying to parse position {err_pos}: {err}\n")
-        output_stream.write("# Successfully parsed to here.\n")
+            output_stream.write(f"\nError at position {err_pos}: {err}\n")
+            output_stream.write(f"\nTrace: {err_traceback}\n")
+            output_stream.write(f"\n")
+        output_stream.write(f"# Successfully parsed {os.path.basename(filepath)} to here.\n")
         for i, byte in enumerate(byts[last_parsed_pos:]):
             if index or err:
                 output_stream.write(str(i+last_parsed_pos) + "\t")

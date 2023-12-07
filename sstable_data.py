@@ -5,6 +5,21 @@ import construct
 
 # https://opensource.docs.scylladb.com/stable/architecture/sstable/sstable3/sstables-3-data-file-format.html#
 
+class WithIndex(construct.Adapter):
+    def __init__(self, subcon):
+        super(WithIndex, self).__init__(subcon)
+        self.index = 0
+
+    def _decode(self, obj, context, path):
+        result = (self.index, obj)
+        self.index += 1
+        return result
+
+def get_clustering_key_count_func(ctx):
+    return ctx._root._.sstable_statistics.serialization_header.clustering_key_count
+
+def get_clustering_key_type_func(ctx):
+    return ctx._root._.sstable_statistics.serialization_header.clustering_key_types[ctx._index].name
 
 text_cell_value = construct.Struct(
     # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/rows/BufferCell.java#L272
@@ -62,7 +77,8 @@ clustering_cell = construct.Struct(
     # "cell_value" / construct.Bytes(construct.this.cell_value_len),
 
     # NOTE: ctx._index is unfortunately globally incremented, so if this construct is used else here _index is incremented and never reset to 0!
-    "key" / construct.Switch(lambda ctx: ctx._root._.sstable_statistics.serialization_header.clustering_key_types[ctx._index].name, java_type_to_construct),
+    # "key" / construct.Switch(lambda ctx: ctx._root._.sstable_statistics.serialization_header.clustering_key_types[ctx._index].name, java_type_to_construct),
+    "key" / construct.Switch(get_clustering_key_type_func, java_type_to_construct),
 )
 unfiltered = construct.Struct(
     "row_flags" / construct.Hex(construct.Int8ub), # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/rows/UnfilteredSerializer.java#L78-L85
@@ -81,7 +97,7 @@ unfiltered = construct.Struct(
             # > https://opensource.docs.scylladb.com/stable/architecture/sstable/sstable3/sstables-3-data-file-format.html#:~:text=Note%20that%20we%20don%E2%80%99t%20store%20the%20number%20of%20clustering%20cells%20as%20we%20take%20this%20information%20from%20table%20schema.
             "clustering_block" / construct.Struct(
                 "clustering_block_header" / construct.Int8ub, # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/ClusteringPrefix.java#L305
-                "clustering_cells" / construct.RepeatUntil(lambda obj, lst, ctx: ctx._root._.sstable_statistics.serialization_header.clustering_key_count, clustering_cell), # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/ClusteringPrefix.java#L310
+                "clustering_cells" / construct.Array(get_clustering_key_count_func, clustering_cell), # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/ClusteringPrefix.java#L310
             ),
 
             "serialized_row_body_size" / varint.VarInt(), # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/rows/UnfilteredSerializer.java#L169
@@ -90,7 +106,7 @@ unfiltered = construct.Struct(
             "timestamp_diff" / varint.VarInt(), # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/rows/UnfilteredSerializer.java#L174
                                                 # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/SerializationHeader.java#L195
             # cells are repeated until the row body size is serialized_row_body_size
-            "cells" / construct.RepeatUntil(lambda obj, lst, ctx: ctx._io.tell()-ctx.row_body_start+1 >= ctx.serialized_row_body_size, simple_cell), # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/rows/BufferCell.java#L211
+            "cells" / construct.RepeatUntil(lambda obj, lst, ctx: ctx._io.tell()-ctx.row_body_start+1 >= ctx.serialized_row_body_size, WithIndex(simple_cell)), # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/rows/BufferCell.java#L211
         ),
     ),
 )
@@ -114,3 +130,4 @@ partition = construct.Struct(
     "unfiltereds" / construct.RepeatUntil(lambda obj, lst, ctx: (obj.row_flags & 0x01) == 0x01, unfiltered),
 )
 data_format = construct.Struct("partitions" / construct.GreedyRange(partition))
+# data_format = construct.Struct("partitions" / partition)
