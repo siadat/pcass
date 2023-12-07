@@ -5,8 +5,9 @@ import varint
 
 
 text_cell_value = construct.Struct(
-    "cell_value_len" / varint.VarInt(), # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/rows/BufferCell.java#L272
-    "cell_value" / construct.Bytes(construct.this.cell_value_len),
+    # "cell_value_len" / varint.VarInt(), # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/rows/BufferCell.java#L272
+    # "cell_value" / construct.Bytes(construct.this.cell_value_len),
+    "cell_value" / construct.PascalString(varint.VarInt(), "utf-8"),
 )
 int_cell_value = construct.Struct(
     "cell_value" / construct.Int32sb,

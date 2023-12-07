@@ -5,6 +5,11 @@ old_parse_all: generate_parser parse
 parse:
 	bash parse_parallel.bash
 
+apache-cassandra-3.0.29:
+	wget 'https://dlcdn.apache.org/cassandra/3.0.29/apache-cassandra-3.0.29-bin.tar.gz'
+	tar xvzf apache-cassandra-3.0.29-bin.tar.gz
+	rm apache-cassandra-3.0.29-bin.tar.gz
+
 parse_multi_in_makefile:
 	# bash parse_parallel.bash
 	@for dir in cassandra_data_history/* ; do \
