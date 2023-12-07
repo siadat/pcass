@@ -20,10 +20,13 @@ make parse
 - Open or compare the results
 
 ```
-nvim -d cassandra_data_history/*/result.txt
+nvim -d cassandra_data_history/*/sina_test/*/result.txt
 
 # or rename the dirs and compare specific version:
-nvim -d cassandra_data_history/*{-simple,-simple-many-rows,-with-age}/result.txt
+nvim -d cassandra_data_history/*{-simple,-simple-many-rows,-with-age}/sina_test/*/result.txt
+
+# or one specific datafile:
+nvim cassandra_data_history/2023-12-07_19-02-14-721636603-has-all-types/sina_test/*/result.txt
 ```
 
 Run tests:

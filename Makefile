@@ -10,13 +10,6 @@ apache-cassandra-3.0.29:
 	tar xvzf apache-cassandra-3.0.29-bin.tar.gz
 	rm apache-cassandra-3.0.29-bin.tar.gz
 
-parse_multi_in_makefile:
-	# bash parse_parallel.bash
-	@for dir in cassandra_data_history/* ; do \
-		./hexdump.bash $$dir/sina_test/*/me-1-big-Data.db > $$dir/bytes.txt ; \
-		bash parse.bash $$dir | tee $$dir/result.txt ; \
-	done
-
 test:
 	poetry run python test.py
 
