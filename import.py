@@ -23,8 +23,8 @@ def main():
             "min_local_deletion_time": 0,
             "min_ttl": 0,
             "partition_key_type": {
-                "length": 41,
-                "name": b"org.apache.cassandra.db.marshal.Int32Type",
+                # "length": 41,
+                "name": "org.apache.cassandra.db.marshal.Int32Type",
             },
             "clustering_key_count": 0,
             "clustering_key_types": [],

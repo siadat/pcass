@@ -44,11 +44,11 @@ java_type_to_construct = {
     # Sources:
     # - https://sourcegraph.com/github.com/apache/cassandra@cassandra-3.0.29/-/tree/src/java/org/apache/cassandra/db/marshal
     # - https://cassandra.apache.org/doc/stable/cassandra/cql/types.html
-    b"org.apache.cassandra.db.marshal.UTF8Type": text_cell_value,
-    b"org.apache.cassandra.db.marshal.Int32Type": int_cell_value,
-    b"org.apache.cassandra.db.marshal.AsciiType": ascii_cell_value,
-    b"org.apache.cassandra.db.marshal.BooleanType": boolean_cell_value,
-    b"org.apache.cassandra.db.marshal.FloatType": boolean_cell_value,
+    "org.apache.cassandra.db.marshal.UTF8Type": text_cell_value,
+    "org.apache.cassandra.db.marshal.Int32Type": int_cell_value,
+    "org.apache.cassandra.db.marshal.AsciiType": ascii_cell_value,
+    "org.apache.cassandra.db.marshal.BooleanType": boolean_cell_value,
+    "org.apache.cassandra.db.marshal.FloatType": boolean_cell_value,
 }
 
 simple_cell = construct.Struct(

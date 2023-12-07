@@ -39,7 +39,6 @@ def main():
     with open(os.path.join(args.dir, "me-1-big-Data.db"), "rb") as f:
         parsed_data = sstable_db.db_format.parse_stream(f, sstable_statistics=parsed_statistics)
 
-
     # header:
     clustering_column_names = [f"clustering_column_{i+1}" for i, typ in enumerate(parsed_statistics.serialization_header.clustering_key_types)]
     regular_column_names = [column.name for column in parsed_statistics.serialization_header.regular_columns]

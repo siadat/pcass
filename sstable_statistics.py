@@ -48,8 +48,7 @@ clustering_bound = construct.Struct(
     "column" / construct.Array(construct.this.length, clustering_column),
 )
 typ = construct.Struct(
-    "length" / varint.VarInt(),
-    "name" / construct.Bytes(construct.this.length),
+    "name" / construct.PascalString(varint.VarInt(), "ascii"),
 )
 column = construct.Struct(
     # my original:
