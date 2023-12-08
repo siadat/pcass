@@ -28,6 +28,7 @@ def parse_statistics_db(statistics_file):
         last_pos = f.tell()
 
     with open(statistics_file, "rb") as f:
+        print()
         print("# Hex Statistics.db")
         positioned_construct.pretty_hexdump(statistics_file, f, last_pos, os.sys.stdout, err, err_pos, err_traceback, index=False)
     return parsed
@@ -51,6 +52,7 @@ def parse_data_db(data_file, parsed_statistics):
         last_pos = f.tell()
 
     with open(data_file, "rb") as f:
+        print()
         print("# Hex Data.db")
         positioned_construct.pretty_hexdump(data_file, f, last_pos, os.sys.stdout, err, err_pos, err_traceback)
     return parsed
