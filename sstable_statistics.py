@@ -54,15 +54,11 @@ clustering_bound = construct.Struct(
 typ = construct.Struct(
     "name_length" / varint.VarInt(),
     "name" / string_encoded.StringEncoded(construct.Bytes(construct.this.name_length), "ascii"),
-    # "name" / construct.PascalString(varint.VarInt(), "ascii"),
 )
 column = construct.Struct(
-    # my original:
     "name_length" / construct.Int8ub,
     "name" / string_encoded.StringEncoded(construct.Bytes(construct.this.name_length), "ascii"),
 
-    # better alternative (returns a string instead of bytes):
-    # "name" / construct.PascalString(construct.Int8ub, "ascii"),
     "type" / typ,
 )
 

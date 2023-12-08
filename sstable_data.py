@@ -42,7 +42,6 @@ text_cell_value = construct.Struct(
     # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/rows/BufferCell.java#L272
     "cell_value_len" / varint.VarInt(),
     "cell_value" / string_encoded.StringEncoded(construct.Bytes(construct.this.cell_value_len), "utf-8"),
-    # "cell_value" / construct.PascalString(varint.VarInt(), "utf-8"),
 )
 # utils.assert_equal(b"\x04\x61\x62\x63\x64", text_cell_value.build({"cell_value": "abcd"}))
 
@@ -61,7 +60,6 @@ utils.assert_equal(b"\x00\x00\x00\x00", float_cell_value.build({"cell_value": 0}
 ascii_cell_value = construct.Struct(
     "length" / varint.VarInt(),
     "cell_value" / string_encoded.StringEncoded(construct.Bytes(construct.this.length), "ascii"),
-    # "cell_value" / construct.PascalString(varint.VarInt(), "ascii"),
 )
 # utils.assert_equal(b"\x04\x61\x62\x63\x64", ascii_cell_value.build({"cell_value": "abcd"}))
 

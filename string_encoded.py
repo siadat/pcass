@@ -6,6 +6,8 @@ import construct
 import varint
 import positioned_construct
 
+# We don't use PascalString or Prefixed etc, because we prefer to have a name
+# for every byte when debugging.
 class StringEncoded(construct.Adapter):
     def __init__(self, subcon, encoding):
         super().__init__(subcon)
