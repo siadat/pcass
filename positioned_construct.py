@@ -53,22 +53,22 @@ def get_matches_for_pos(pos):
 def parse(filepath):
     pass
 
-def pretty_hexdump(filepath, last_parsed_pos, output_stream, err=None, err_pos=None, err_traceback=None, index=False):
-    with open(filepath, "rb") as f:
-        byts = f.read()
-        for i, byte in enumerate(byts[:last_parsed_pos]):
-            if index or err:
-                output_stream.write(str(i) + "\t")
-            output_stream.write(f"{utils.byte_repr(byte)} {get_matches_for_pos(i)}\n")
-        if err:
-            output_stream.write(f"\nError at position {err_pos}: {err}\n")
-            output_stream.write(f"\nTrace: {err_traceback}\n")
-            output_stream.write(f"\n")
-        output_stream.write(f"# Successfully parsed {os.path.basename(filepath)} to here.\n")
-        for i, byte in enumerate(byts[last_parsed_pos:]):
-            if index or err:
-                output_stream.write(str(i+last_parsed_pos) + "\t")
-            output_stream.write(utils.byte_repr(byte) + "\n")
+def pretty_hexdump(filepath, input_stream, last_parsed_pos, output_stream, err=None, err_pos=None, err_traceback=None, index=False):
+    byts = input_stream.read()
+    print("last_parsed_pos", last_parsed_pos)
+    for i, byte in enumerate(byts[:last_parsed_pos]):
+        if index or err:
+            output_stream.write(str(i) + "\t")
+        output_stream.write(f"{utils.byte_repr(byte)} {get_matches_for_pos(i)}\n")
+    if err:
+        output_stream.write(f"\nError at position {err_pos}: {err}\n")
+        output_stream.write(f"\nTrace: {err_traceback}\n")
+        output_stream.write(f"\n")
+    output_stream.write(f"# Successfully parsed {os.path.basename(filepath)} to here.\n")
+    for i, byte in enumerate(byts[last_parsed_pos:]):
+        if index or err:
+            output_stream.write(str(i+last_parsed_pos) + "\t")
+        output_stream.write(utils.byte_repr(byte) + "\n")
 
 # Make sure init is called *after* you have imported or defined your Construct
 # format objects. Otherwise, your won't get nice positioned paths for them. You

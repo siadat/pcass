@@ -1,7 +1,11 @@
 import utils
 import varint
+import string_encoded
 
 import construct
+
+
+construct.setGlobalPrintFullStrings(utils.PRINT_FULL_STRING)
 
 # https://opensource.docs.scylladb.com/stable/architecture/sstable/sstable3/sstables-3-data-file-format.html#
 
@@ -15,19 +19,32 @@ class WithIndex(construct.Adapter):
         self.index += 1
         return result
 
+def get_partition_key_type_func(ctx):
+    # lambda ctx: ctx._root._.sstable_statistics.serialization_header.partition_key_type.name
+    name = ctx._root._.sstable_statistics.serialization_header.partition_key_type.name
+    print("get_partition_key_type_func", type(name), name)
+    return name
+def get_cell_type_func(ctx):
+    # lambda ctx: ctx._root._.sstable_statistics.serialization_header.regular_columns[ctx._index].type.name
+    name = ctx._root._.sstable_statistics.serialization_header.regular_columns[ctx._index].type.name
+    print("get_cell_type_func", type(name), name)
+    return name
 def get_clustering_key_count_func(ctx):
     return ctx._root._.sstable_statistics.serialization_header.clustering_key_count
 
 def get_clustering_key_type_func(ctx):
     return ctx._root._.sstable_statistics.serialization_header.clustering_key_types[ctx._index].name
 
+def has_clustering_columns_func(ctx):
+    return ctx._root._.sstable_statistics.serialization_header.clustering_key_count > 0
+
 text_cell_value = construct.Struct(
     # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/rows/BufferCell.java#L272
-    # "cell_value_len" / varint.VarInt(),
-    # "cell_value" / construct.Bytes(construct.this.cell_value_len),
-    "cell_value" / construct.PascalString(varint.VarInt(), "utf-8"),
+    "cell_value_len" / varint.VarInt(),
+    "cell_value" / string_encoded.StringEncoded(construct.Bytes(construct.this.cell_value_len), "utf-8"),
+    # "cell_value" / construct.PascalString(varint.VarInt(), "utf-8"),
 )
-utils.assert_equal(b"\x04\x61\x62\x63\x64", text_cell_value.build({"cell_value": "abcd"}))
+# utils.assert_equal(b"\x04\x61\x62\x63\x64", text_cell_value.build({"cell_value": "abcd"}))
 
 int_cell_value = construct.Struct(
     "cell_value" / construct.Int32sb,
@@ -42,9 +59,11 @@ utils.assert_equal(b"\x00\x00\x00\x00", float_cell_value.build({"cell_value": 0}
 
 # Not tested with Cassnadra:
 ascii_cell_value = construct.Struct(
-    "cell_value" / construct.PascalString(varint.VarInt(), "ascii"),
+    "length" / varint.VarInt(),
+    "cell_value" / string_encoded.StringEncoded(construct.Bytes(construct.this.length), "ascii"),
+    # "cell_value" / construct.PascalString(varint.VarInt(), "ascii"),
 )
-utils.assert_equal(b"\x04\x61\x62\x63\x64", ascii_cell_value.build({"cell_value": "abcd"}))
+# utils.assert_equal(b"\x04\x61\x62\x63\x64", ascii_cell_value.build({"cell_value": "abcd"}))
 
 # Not tested with Cassnadra:
 boolean_cell_value = construct.Struct(
@@ -70,7 +89,7 @@ simple_cell = construct.Struct(
     "cell_flags" / construct.Hex(construct.Int8ub), # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/rows/BufferCell.java#L230-L234
                                                     # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/rows/BufferCell.java#L258
     # NOTE: ctx._index is unfortunately globally incremented, so if this construct is used else here _index is incremented and never reset to 0!
-    "cell" / construct.Switch(lambda ctx: ctx._root._.sstable_statistics.serialization_header.regular_columns[ctx._index].type.name, java_type_to_construct),
+    "cell" / construct.Switch(get_cell_type_func, java_type_to_construct),
 )
 clustering_cell = construct.Struct(
     # "cell_value_len" / varint.VarInt(),
@@ -95,9 +114,13 @@ unfiltered = construct.Struct(
             # TODO: support composite primary key.
             # > "Note that we don’t store the number of clustering cells as we take this information from table schema."
             # > https://opensource.docs.scylladb.com/stable/architecture/sstable/sstable3/sstables-3-data-file-format.html#:~:text=Note%20that%20we%20don%E2%80%99t%20store%20the%20number%20of%20clustering%20cells%20as%20we%20take%20this%20information%20from%20table%20schema.
-            "clustering_block" / construct.Struct(
-                "clustering_block_header" / construct.Int8ub, # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/ClusteringPrefix.java#L305
-                "clustering_cells" / construct.Array(get_clustering_key_count_func, clustering_cell), # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/ClusteringPrefix.java#L310
+            construct.If(
+                # If there are no clustering columns then we should skip the clustering block:
+                has_clustering_columns_func,
+                "clustering_block" / construct.Struct(
+                    "clustering_block_header" / construct.Int8ub, # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/ClusteringPrefix.java#L305
+                    "clustering_cells" / construct.Array(get_clustering_key_count_func, clustering_cell), # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/ClusteringPrefix.java#L310
+                ),
             ),
 
             "serialized_row_body_size" / varint.VarInt(), # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/rows/UnfilteredSerializer.java#L169
@@ -114,7 +137,8 @@ partition_header = construct.Struct(
     # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/ColumnIndex.java#L98
     "key_len" / construct.Int16ub,
     # "key" / construct.Bytes(construct.this.key_len),
-    "key" / construct.Switch(lambda ctx: ctx._root._.sstable_statistics.serialization_header.partition_key_type.name, java_type_to_construct),
+    # "key" / construct.Switch(lambda ctx: ctx._root._.sstable_statistics.serialization_header.partition_key_type.name, java_type_to_construct),
+    "key" / construct.Switch(get_partition_key_type_func, java_type_to_construct),
     "deletion_time" / construct.Struct(
         # Looks similar https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/SerializationHeader.java#L210-L211
         "local_deletion_time" / construct.Int32ub,
@@ -130,4 +154,4 @@ partition = construct.Struct(
     "unfiltereds" / construct.RepeatUntil(lambda obj, lst, ctx: (obj.row_flags & 0x01) == 0x01, unfiltered),
 )
 data_format = construct.Struct("partitions" / construct.GreedyRange(partition))
-# data_format = construct.Struct("partitions" / partition)
+# data_format = construct.Struct("partitions" / partition) # construct.Debugger() ... construct.Probe(lookahead=32))

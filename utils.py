@@ -2,6 +2,8 @@ import tempfile
 import textwrap
 import subprocess
 
+PRINT_FULL_STRING = False
+
 def bin(number):
     """
     Converts a number to its binary representation, padding each byte with zeros and separating bytes with spaces.
