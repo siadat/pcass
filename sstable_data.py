@@ -83,14 +83,9 @@ decimal_cell_value = construct.Struct(
             "total_length" / varint.VarInt(),
             "scale" / construct.Int32ub, # scale as in (unscaled_big_int * 10**scale)
             "unscaled_big_int" / construct.BytesInteger(construct.this.total_length-4), # 4 is the length of Int32ub for scale
-            # TODO: we need cell_value for dump.py to work
         ),
     ),
 )
-# utils.assert_equal(b"\x05\x00\x00\x00\x0e\x01", decimal_cell_value.build({"total_length": 5, "scale": 14, "unscaled_big_int": 1}))
-# utils.assert_equal(b"\x05\x00\x00\x00\x0e\x01", decimal_cell_value.build(100000000000000))
-# utils.assert_equal(b"\x05\x00\x00\x00\x0e\x01", decimal_cell_value.build({"cell_value": 100000000000000}))
-utils.assert_equal(b"\x05\x00\x00\x00\x0e\x01", decimal_cell_value.build({"cell_value": 0.00000000000001}))
 
 # Not tested with Cassnadra:
 float_cell_value = construct.Struct(

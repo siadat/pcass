@@ -48,7 +48,7 @@ utils.assert_equal(14, get_scale(1e-14))
 
 class DecimalNumber(construct.Adapter):
     def _decode(self, obj, context, path):
-        return obj.unscaled_big_int * (10**obj.scale)
+        return obj.unscaled_big_int * (10**-obj.scale)
 
     def _encode(self, obj, context, path):
         scale = get_scale(obj)
@@ -72,3 +72,12 @@ test_cases = [
 
 for tc in test_cases:
     utils.assert_equal(tc["bytes"], to_byte_array(tc["number"]))
+
+test_struct = construct.Struct(
+    "total_length" / varint.VarInt(),
+    "scale" / construct.Int32ub,
+    "unscaled_big_int" / construct.BytesInteger(construct.this.total_length-4),
+)
+
+utils.assert_equal(b"\x05\x00\x00\x00\x0e\x01", DecimalNumber(test_struct).build(0.00000000000001))
+utils.assert_equal(0.00000000000001, DecimalNumber(test_struct).parse(b"\x05\x00\x00\x00\x0e\x01"))
