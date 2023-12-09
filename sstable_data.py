@@ -28,6 +28,8 @@ def get_cell_type_func(ctx):
     # lambda ctx: ctx._root._.sstable_statistics.serialization_header.regular_columns[ctx._index].type.name
     name = ctx._root._.sstable_statistics.serialization_header.regular_columns[ctx._index].type.name
     print("get_cell_type_func", type(name), name)
+    if name not in java_type_to_construct:
+        raise Exception(f"Unhandled type {name}, please add to java_type_to_construct")
     return name
 def get_clustering_key_count_func(ctx):
     return ctx._root._.sstable_statistics.serialization_header.clustering_key_count
@@ -43,12 +45,27 @@ text_cell_value = construct.Struct(
     "cell_value_len" / varint.VarInt(),
     "cell_value" / string_encoded.StringEncoded(construct.Bytes(construct.this.cell_value_len), "utf-8"),
 )
-# utils.assert_equal(b"\x04\x61\x62\x63\x64", text_cell_value.build({"cell_value": "abcd"}))
+utils.assert_equal(b"\x04\x61\x62\x63\x64", text_cell_value.build({"cell_value_len": 4, "cell_value": b"abcd"}))
 
 int_cell_value = construct.Struct(
     "cell_value" / construct.Int32sb,
 )
 utils.assert_equal(b"\x00\x00\x00\x04", int_cell_value.build({"cell_value": 4}))
+
+long_cell_value = construct.Struct(
+    "cell_value" / construct.Int64sb,
+)
+utils.assert_equal(b"\x00\x00\x00\x00\x00\x00\x00\x04", long_cell_value.build({"cell_value": 4}))
+
+# https://github.com/openjdk/jdk/blob/jdk8-b120/jdk/src/share/classes/java/math/BigInteger.java#L3697-L3726
+# https://sourcegraph.com/github.com/apache/cassandra@cassandra-3.0.0/-/blob/src/java/org/apache/cassandra/serializers/DecimalSerializer.java?L45-59
+# Note that this ^ serialize() method doesn't include the length of the value.
+decimal_cell_value = construct.Struct(
+    "total_length" / varint.VarInt(),
+    "scale" / construct.Int32ub, # scale as in (unscaled_big_int * 10**scale)
+    "unscaled_big_int" / construct.BytesInteger(construct.this.total_length-4), # 4 is the length of Int32ub for scale
+)
+utils.assert_equal(b"\x05\x00\x00\x00\x0e\x01", decimal_cell_value.build({"total_length": 5, "scale": 14, "unscaled_big_int": 1}))
 
 # Not tested with Cassnadra:
 float_cell_value = construct.Struct(
@@ -61,7 +78,13 @@ ascii_cell_value = construct.Struct(
     "length" / varint.VarInt(),
     "cell_value" / string_encoded.StringEncoded(construct.Bytes(construct.this.length), "ascii"),
 )
-# utils.assert_equal(b"\x04\x61\x62\x63\x64", ascii_cell_value.build({"cell_value": "abcd"}))
+utils.assert_equal(b"\x04\x61\x62\x63\x64", ascii_cell_value.build({"length": 4, "cell_value": b"abcd"}))
+
+byte_cell_value = construct.Struct(
+    "length" / varint.VarInt(),
+    "cell_value" / construct.Bytes(construct.this.length),
+)
+utils.assert_equal(b"\x04\x61\x62\x63\x64", byte_cell_value.build({"length": 4, "cell_value": b"abcd"}))
 
 # Not tested with Cassnadra:
 boolean_cell_value = construct.Struct(
@@ -78,7 +101,10 @@ java_type_to_construct = {
     # - https://cassandra.apache.org/doc/stable/cassandra/cql/types.html
     "org.apache.cassandra.db.marshal.UTF8Type": text_cell_value,
     "org.apache.cassandra.db.marshal.Int32Type": int_cell_value,
+    "org.apache.cassandra.db.marshal.LongType": long_cell_value,
+    "org.apache.cassandra.db.marshal.DecimalType": decimal_cell_value,
     "org.apache.cassandra.db.marshal.AsciiType": ascii_cell_value,
+    "org.apache.cassandra.db.marshal.BytesType": byte_cell_value,
     "org.apache.cassandra.db.marshal.BooleanType": boolean_cell_value,
     "org.apache.cassandra.db.marshal.FloatType": boolean_cell_value,
 }
@@ -151,5 +177,13 @@ partition = construct.Struct(
     # "unfiltereds" / unfiltered, # construct.GreedyRange(unfiltered),
     "unfiltereds" / construct.RepeatUntil(lambda obj, lst, ctx: (obj.row_flags & 0x01) == 0x01, unfiltered),
 )
-data_format = construct.Struct("partitions" / construct.GreedyRange(partition))
-# data_format = construct.Struct("partitions" / partition) # construct.Debugger() ... construct.Probe(lookahead=32))
+
+# Unfortunately, GreedyRange seems to be catching *all* exceptions. So, if the
+# grammar is incorrect, it will not produce any useful return value or partial
+# match or exceptions or error messages. Nothing. Therefore I need to remove
+# GreedyRange when writing the grammar.
+developing_grammar = False
+if developing_grammar:
+    data_format = construct.Struct("partitions" / partition)
+else:
+    data_format = construct.Struct("partitions" / construct.GreedyRange(partition))
