@@ -95,8 +95,9 @@ def main():
                 clustering_column_values = map(lambda cell: cell.key.cell_value, unfiltered.row.clustering_block.clustering_cells)
             else:
                 clustering_column_values = []
+
             # We check cell_flags to handle cells where the value is empty
-            regular_column_values = map(lambda cell: cell[1].cell.cell_value if not cell[1].cell_flags & 0x04 else None, unfiltered.row.cells)
+            regular_column_values = map(lambda cell: cell.cell.cell_value if not cell.cell_flags & 0x04 else None, unfiltered.row.cells)
             general_writer.write_row(partition_key_value, list(clustering_column_values), list(regular_column_values))
 
 main()

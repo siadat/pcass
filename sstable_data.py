@@ -11,16 +11,6 @@ construct.setGlobalPrintFullStrings(utils.PRINT_FULL_STRING)
 
 # https://opensource.docs.scylladb.com/stable/architecture/sstable/sstable3/sstables-3-data-file-format.html#
 
-class WithIndex(construct.Adapter):
-    def __init__(self, subcon):
-        super(WithIndex, self).__init__(subcon)
-        self.index = 0
-
-    def _decode(self, obj, context, path):
-        result = (self.index, obj)
-        self.index += 1
-        return result
-
 def get_partition_key_type_func(ctx):
     # lambda ctx: ctx._root._.sstable_statistics.serialization_header.partition_key_type.name
     name = ctx._root._.sstable_statistics.serialization_header.partition_key_type.name
@@ -201,7 +191,7 @@ unfiltered = construct.Struct(
             "timestamp_diff" / varint.VarInt(), # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/rows/UnfilteredSerializer.java#L174
                                                 # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/SerializationHeader.java#L195
             # cells are repeated until the row body size is serialized_row_body_size
-            "cells" / construct.RepeatUntil(lambda obj, lst, ctx: ctx._io.tell()-ctx.row_body_start+1 >= ctx.serialized_row_body_size, WithIndex(simple_cell)), # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/rows/BufferCell.java#L211
+            "cells" / construct.RepeatUntil(lambda obj, lst, ctx: ctx._io.tell()-ctx.row_body_start+1 >= ctx.serialized_row_body_size, simple_cell), # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/rows/BufferCell.java#L211
         ),
     ),
 )
@@ -232,6 +222,6 @@ partition = construct.Struct(
 # GreedyRange when writing the grammar.
 developing_grammar = False
 if developing_grammar:
-    data_format = construct.Struct("partitions" / construct.Array(4, partition))
+    data_format = construct.Struct("partitions" / construct.Array(1, partition))
 else:
     data_format = construct.Struct("partitions" / construct.GreedyRange(partition))
