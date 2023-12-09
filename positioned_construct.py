@@ -8,11 +8,25 @@ all_keys = []
 
 def wrap_func(cls):
     original_read = cls._parse
+    debug = False
     
     def new_parse(self, stream, context, path):
         start_pos = stream.tell()
+
+        if debug:
+            parent_depth = 0
+            if hasattr(context, "_"):
+                parent_depth = context._.depth
+            context.depth = parent_depth + 1
+            print("    " * context.depth, f"+ {self.__class__} start_pos={start_pos} {path}")
+
         ret = original_read(self, stream, context, path)
         end_pos = stream.tell()
+
+        if debug:
+            print("    " * context.depth, f"- {self.__class__} end_pos={end_pos} {path}")
+            context.depth -= 1
+
         global global_position_map
         global_position_map[(start_pos, end_pos)] = path
         return ret
@@ -55,7 +69,6 @@ def parse(filepath):
 
 def pretty_hexdump(filepath, input_stream, last_parsed_pos, output_stream, err=None, err_pos=None, err_traceback=None, index=False):
     byts = input_stream.read()
-    print("last_parsed_pos", last_parsed_pos)
     for i, byte in enumerate(byts[:last_parsed_pos]):
         if index or err:
             output_stream.write(str(i) + "\t")
