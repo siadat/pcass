@@ -47,7 +47,7 @@ text_cell_value = construct.Struct(
     "cell_value_len" / varint.VarInt(),
     "cell_value" / string_encoded.StringEncoded(construct.Bytes(construct.this.cell_value_len), "utf-8"),
 )
-utils.assert_equal(b"\x04\x61\x62\x63\x64", text_cell_value.build({"cell_value_len": 4, "cell_value": b"abcd"}))
+utils.assert_equal(b"\x04\x61\x62\x63\x64", text_cell_value.build({"cell_value_len": 4, "cell_value": "abcd"}))
 
 int_cell_value = construct.Struct(
     "cell_value" / construct.Int32sb,
@@ -109,7 +109,7 @@ ascii_cell_value = construct.Struct(
     "length" / varint.VarInt(),
     "cell_value" / string_encoded.StringEncoded(construct.Bytes(construct.this.length), "ascii"),
 )
-utils.assert_equal(b"\x04\x61\x62\x63\x64", ascii_cell_value.build({"length": 4, "cell_value": b"abcd"}))
+utils.assert_equal(b"\x04\x61\x62\x63\x64", ascii_cell_value.build({"length": 4, "cell_value": "abcd"}))
 
 bytes_cell_value = construct.Struct(
     "length" / varint.VarInt(),

@@ -3,6 +3,7 @@ import os
 
 import construct
 
+import utils
 import varint
 import positioned_construct
 
@@ -17,20 +18,8 @@ class StringEncoded(construct.Adapter):
         return obj.decode(self.encoding)
 
     def _encode(self, obj, context, path):
-        return obj
-        # return obj.encode()
+        return bytes(obj, self.encoding)
 
-# typ = construct.Struct(
-#     "name_length" / varint.VarInt(),
-#     "name" / construct.Bytes(construct.this.name_length),
-# )
-# column = construct.Struct(
-#     "name_length" / construct.Int8ub,
-#     "name" / StringEncoded(construct.Bytes(construct.this.name_length), "ascii"),
-#     "type" / typ,
-# )
-#
-# positioned_construct.init()
-# byts = column.build({"name_length": 3, "name": b"hii", "type": {"name_length": 5, "name": b"hello"}})
-# column.parse_stream(io.BytesIO(byts))
-# positioned_construct.pretty_hexdump("ok", io.BytesIO(byts), len(byts), os.sys.stdout, index=True)
+
+utils.assert_equal("abc", StringEncoded(construct.Bytes(3), "ascii").parse(b"abc"))
+utils.assert_equal(b"abc", StringEncoded(construct.Bytes(3), "ascii").build("abc"))
