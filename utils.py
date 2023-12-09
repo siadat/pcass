@@ -2,7 +2,17 @@ import tempfile
 import textwrap
 import subprocess
 
-PRINT_FULL_STRING = False
+PRINT_FULL_STRING = True
+
+def hex(number):
+    hex_str = format(number, 'x')
+
+    # Calculate padding using bit manipulation and pad the binary string
+    padding_length = (-len(hex_str)) % 2
+    padded_hex_str = '0' * padding_length + hex_str
+
+    # Split the string into chunks of 8 bits using list comprehension
+    return ' '.join(padded_hex_str[i:i+2] for i in range(0, len(padded_hex_str), 2))
 
 def bin(number):
     """
@@ -54,3 +64,10 @@ def assert_equal(want, got):
 def print_test_stats():
     global assertion_count
     print(f"{assertion_count} successful assertions completed")
+
+assert_equal("00", hex(0x00))
+assert_equal("01", hex(0x01))
+assert_equal("ff", hex(0xff))
+
+assert_equal("00000000", bin(0b00000000))
+assert_equal("00000001", bin(0b00000001))

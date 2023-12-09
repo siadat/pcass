@@ -1,9 +1,11 @@
 import utils
 import varint
-import string_encoded
 
 import construct
 
+import string_encoded
+import sstable_decimal
+import uuid
 
 construct.setGlobalPrintFullStrings(utils.PRINT_FULL_STRING)
 
@@ -22,12 +24,12 @@ class WithIndex(construct.Adapter):
 def get_partition_key_type_func(ctx):
     # lambda ctx: ctx._root._.sstable_statistics.serialization_header.partition_key_type.name
     name = ctx._root._.sstable_statistics.serialization_header.partition_key_type.name
-    print("get_partition_key_type_func", type(name), name)
+    # print("get_partition_key_type_func", type(name), name)
     return name
 def get_cell_type_func(ctx):
     # lambda ctx: ctx._root._.sstable_statistics.serialization_header.regular_columns[ctx._index].type.name
     name = ctx._root._.sstable_statistics.serialization_header.regular_columns[ctx._index].type.name
-    print("get_cell_type_func", type(name), name)
+    # print("get_cell_type_func", type(name), name)
     if name not in java_type_to_construct:
         raise Exception(f"Unhandled type {name}, please add to java_type_to_construct")
     return name
@@ -52,6 +54,22 @@ int_cell_value = construct.Struct(
 )
 utils.assert_equal(b"\x00\x00\x00\x04", int_cell_value.build({"cell_value": 4}))
 
+# The IntegerType is used for CQL varint type
+# It is a Java BigInteger https://sourcegraph.com/github.com/apache/cassandra@cassandra-3.0.0/-/blob/src/java/org/apache/cassandra/serializers/IntegerSerializer.java?L35
+integer_cell_value = construct.Struct(
+    "length" / varint.VarInt(),
+    "cell_value" / construct.BytesInteger(construct.this.length),
+)
+utils.assert_equal(b"\x01\x09", integer_cell_value.build({"length": 1, "cell_value": 9}))
+
+# https://sourcegraph.com/github.com/apache/cassandra@cassandra-3.0.0/-/blob/src/java/org/apache/cassandra/db/marshal/ShortType.java?L54
+# https://docs.oracle.com/javase/tutorial/java/nutsandbolts/datatypes.html
+short_cell_value = construct.Struct(
+    "length" / varint.VarInt(), # TODO: now sure why short needs a length? it should always be 2?
+    "cell_value" / construct.BytesInteger(construct.this.length), # I think this is probably always 2, i.e. construct.Int16sb
+)
+utils.assert_equal(b"\x02\x00\x04", short_cell_value.build({"length": 2, "cell_value": 4}))
+
 long_cell_value = construct.Struct(
     "cell_value" / construct.Int64sb,
 )
@@ -61,17 +79,30 @@ utils.assert_equal(b"\x00\x00\x00\x00\x00\x00\x00\x04", long_cell_value.build({"
 # https://sourcegraph.com/github.com/apache/cassandra@cassandra-3.0.0/-/blob/src/java/org/apache/cassandra/serializers/DecimalSerializer.java?L45-59
 # Note that this ^ serialize() method doesn't include the length of the value.
 decimal_cell_value = construct.Struct(
-    "total_length" / varint.VarInt(),
-    "scale" / construct.Int32ub, # scale as in (unscaled_big_int * 10**scale)
-    "unscaled_big_int" / construct.BytesInteger(construct.this.total_length-4), # 4 is the length of Int32ub for scale
+    "cell_value" / sstable_decimal.DecimalNumber(construct.Struct(
+            "total_length" / varint.VarInt(),
+            "scale" / construct.Int32ub, # scale as in (unscaled_big_int * 10**scale)
+            "unscaled_big_int" / construct.BytesInteger(construct.this.total_length-4), # 4 is the length of Int32ub for scale
+            # TODO: we need cell_value for export.py to work
+        ),
+    ),
 )
-utils.assert_equal(b"\x05\x00\x00\x00\x0e\x01", decimal_cell_value.build({"total_length": 5, "scale": 14, "unscaled_big_int": 1}))
+# utils.assert_equal(b"\x05\x00\x00\x00\x0e\x01", decimal_cell_value.build({"total_length": 5, "scale": 14, "unscaled_big_int": 1}))
+# utils.assert_equal(b"\x05\x00\x00\x00\x0e\x01", decimal_cell_value.build(100000000000000))
+# utils.assert_equal(b"\x05\x00\x00\x00\x0e\x01", decimal_cell_value.build({"cell_value": 100000000000000}))
+utils.assert_equal(b"\x05\x00\x00\x00\x0e\x01", decimal_cell_value.build({"cell_value": 0.00000000000001}))
 
 # Not tested with Cassnadra:
 float_cell_value = construct.Struct(
     "cell_value" / construct.Float32b,
 )
 utils.assert_equal(b"\x00\x00\x00\x00", float_cell_value.build({"cell_value": 0}))
+
+double_cell_value = construct.Struct(
+    "cell_value" / construct.Float64b,
+)
+utils.assert_equal(b"\x00\x00\x00\x00\x00\x00\x00\x00", double_cell_value.build({"cell_value": 0}))
+
 
 # Not tested with Cassnadra:
 ascii_cell_value = construct.Struct(
@@ -80,11 +111,17 @@ ascii_cell_value = construct.Struct(
 )
 utils.assert_equal(b"\x04\x61\x62\x63\x64", ascii_cell_value.build({"length": 4, "cell_value": b"abcd"}))
 
+bytes_cell_value = construct.Struct(
+    "length" / varint.VarInt(),
+    "cell_value" / construct.Bytes(construct.this.length),
+)
+utils.assert_equal(b"\x04\x61\x62\x63\x64", bytes_cell_value.build({"length": 4, "cell_value": b"abcd"}))
+
+# The ByteType seems to be used for tinyint AND it has a length! WTF :shrug:
 byte_cell_value = construct.Struct(
     "length" / varint.VarInt(),
     "cell_value" / construct.Bytes(construct.this.length),
 )
-utils.assert_equal(b"\x04\x61\x62\x63\x64", byte_cell_value.build({"length": 4, "cell_value": b"abcd"}))
 
 # Not tested with Cassnadra:
 boolean_cell_value = construct.Struct(
@@ -93,6 +130,17 @@ boolean_cell_value = construct.Struct(
 utils.assert_equal(b"\x00", boolean_cell_value.build({"cell_value": False}))
 utils.assert_equal(False, boolean_cell_value.parse(b"\x00").cell_value)
 
+# https://sourcegraph.com/github.com/apache/cassandra@cassandra-3.0.0/-/blob/src/java/org/apache/cassandra/serializers/TimestampSerializer.java?L122
+# Note that getTime() returns a Java `long` and it represents milliseconds
+timestamp_cell_value = construct.Struct(
+    "cell_value" / construct.Int64sb,
+)
+utils.assert_equal(b"\x00\x00\x00\x00\x00\x00\x00\x04", timestamp_cell_value.build({"cell_value": 4}))
+utils.assert_equal(4, timestamp_cell_value.parse(b"\x00\x00\x00\x00\x00\x00\x00\x04").cell_value)
+
+uuid_cell_value = construct.Struct(
+    "cell_value" / uuid.Uuid,
+)
 
 # TODO this might be a CompositeType as well
 java_type_to_construct = {
@@ -100,20 +148,30 @@ java_type_to_construct = {
     # - https://sourcegraph.com/github.com/apache/cassandra@cassandra-3.0.29/-/tree/src/java/org/apache/cassandra/db/marshal
     # - https://cassandra.apache.org/doc/stable/cassandra/cql/types.html
     "org.apache.cassandra.db.marshal.UTF8Type": text_cell_value,
+    "org.apache.cassandra.db.marshal.ShortType": short_cell_value,
+    "org.apache.cassandra.db.marshal.IntegerType": integer_cell_value,
     "org.apache.cassandra.db.marshal.Int32Type": int_cell_value,
     "org.apache.cassandra.db.marshal.LongType": long_cell_value,
     "org.apache.cassandra.db.marshal.DecimalType": decimal_cell_value,
     "org.apache.cassandra.db.marshal.AsciiType": ascii_cell_value,
-    "org.apache.cassandra.db.marshal.BytesType": byte_cell_value,
+    "org.apache.cassandra.db.marshal.ByteType": byte_cell_value,
+    "org.apache.cassandra.db.marshal.BytesType": bytes_cell_value,
     "org.apache.cassandra.db.marshal.BooleanType": boolean_cell_value,
-    "org.apache.cassandra.db.marshal.FloatType": boolean_cell_value,
+    "org.apache.cassandra.db.marshal.FloatType": float_cell_value,
+    "org.apache.cassandra.db.marshal.DoubleType": double_cell_value,
+    "org.apache.cassandra.db.marshal.TimestampType": timestamp_cell_value,
+    "org.apache.cassandra.db.marshal.UUIDType": uuid_cell_value,
 }
 
 simple_cell = construct.Struct(
     "cell_flags" / construct.Hex(construct.Int8ub), # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/rows/BufferCell.java#L230-L234
                                                     # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/rows/BufferCell.java#L258
     # NOTE: ctx._index is unfortunately globally incremented, so if this construct is used else here _index is incremented and never reset to 0!
-    "cell" / construct.Switch(get_cell_type_func, java_type_to_construct),
+    "cell" / construct.If(
+        # TODO: 0x04 means empty value, e.g. empty '' string (and probably usef for tombstones as well?)
+        construct.this.cell_flags & 0x04 != 0x4,
+        construct.Switch(get_cell_type_func, java_type_to_construct),
+    ),
 )
 clustering_cell = construct.Struct(
     # "cell_value_len" / varint.VarInt(),
@@ -184,6 +242,6 @@ partition = construct.Struct(
 # GreedyRange when writing the grammar.
 developing_grammar = False
 if developing_grammar:
-    data_format = construct.Struct("partitions" / partition)
+    data_format = construct.Struct("partitions" / construct.Array(4, partition))
 else:
     data_format = construct.Struct("partitions" / construct.GreedyRange(partition))

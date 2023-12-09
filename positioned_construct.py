@@ -28,7 +28,7 @@ def wrap_func(cls):
             context.depth -= 1
 
         global global_position_map
-        global_position_map[(start_pos, end_pos)] = path
+        global_position_map[(start_pos, end_pos)] = path # + " " + self.__class__.__name__
         return ret
     
     cls._parse = new_parse
@@ -77,7 +77,9 @@ def pretty_hexdump(filepath, input_stream, last_parsed_pos, output_stream, err=N
         output_stream.write(f"\nError at position {err_pos}: {err}\n")
         output_stream.write(f"\nTrace: {err_traceback}\n")
         output_stream.write(f"\n")
+    output_stream.write(f"\n")
     output_stream.write(f"# Successfully parsed {os.path.basename(filepath)} to here.\n")
+    output_stream.write(f"\n")
     for i, byte in enumerate(byts[last_parsed_pos:]):
         if index or err:
             output_stream.write(str(i+last_parsed_pos) + "\t")

@@ -1,15 +1,15 @@
 import utils
 import construct
+
 import varint
 import string_encoded
+import uuid
 
 construct.setGlobalPrintFullStrings(utils.PRINT_FULL_STRING)
 
 # https://opensource.docs.scylladb.com/stable/architecture/sstable/sstable3/sstables-3-statistics.html
 
 # vint == varint: https://sourcegraph.com/github.com/scylladb/scylladb@01e54f5b12e72a2976f973d23ae0c61ce19ba914/-/blob/vint-serialization.hh
-
-uuid = construct.Hex(construct.Bytes(16))
 
 # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/io/sstable/metadata/MetadataType.java#L28
 modified_utf8 = construct.Struct(
@@ -115,7 +115,7 @@ statistics_format = construct.Struct(
         "commit_log_intervals" / construct.Array(construct.this.commit_log_intervals_length, commit_log_interval),
 
         "TODO_WHY_IS_THIS_NEEDED" / construct.Bytes(1),
-        "host_id" / uuid,
+        "host_id" / uuid.Uuid,
     )),
     # "serialization_header_start" / construct.Tell,
     "serialization_header" / construct.If(metadata_exists(SERIALIZATION_METADATA), construct.Struct(
