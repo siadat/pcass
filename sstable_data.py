@@ -83,7 +83,7 @@ decimal_cell_value = construct.Struct(
             "total_length" / varint.VarInt(),
             "scale" / construct.Int32ub, # scale as in (unscaled_big_int * 10**scale)
             "unscaled_big_int" / construct.BytesInteger(construct.this.total_length-4), # 4 is the length of Int32ub for scale
-            # TODO: we need cell_value for export.py to work
+            # TODO: we need cell_value for dump.py to work
         ),
     ),
 )
