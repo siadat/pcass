@@ -79,12 +79,7 @@ utils.assert_equal(b"\x00\x00\x00\x00\x00\x00\x00\x04", long_cell_value.build({"
 # https://sourcegraph.com/github.com/apache/cassandra@cassandra-3.0.0/-/blob/src/java/org/apache/cassandra/serializers/DecimalSerializer.java?L45-59
 # Note that this ^ serialize() method doesn't include the length of the value.
 decimal_cell_value = construct.Struct(
-    "cell_value" / sstable_decimal.DecimalNumber(construct.Struct(
-            "total_length" / varint.VarInt(),
-            "scale" / construct.Int32ub, # scale as in (unscaled_big_int * 10**scale)
-            "unscaled_big_int" / construct.BytesInteger(construct.this.total_length-4), # 4 is the length of Int32ub for scale
-        ),
-    ),
+    "cell_value" / sstable_decimal.DecimalNumber,
 )
 
 # Not tested with Cassnadra:
