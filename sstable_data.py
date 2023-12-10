@@ -167,6 +167,15 @@ clustering_cell = construct.Struct(
     # "key" / construct.Switch(lambda ctx: ctx._root._.sstable_statistics.serialization_header.clustering_key_types[ctx._index].name, java_type_to_construct),
     "key" / construct.Switch(get_clustering_key_type_func, java_type_to_construct),
 )
+def row_body(serialized_row_body_size):
+    return construct.Struct(
+        "row_body_start" / construct.Tell,
+        "previous_unfiltered_size" / varint.VarInt(), # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/rows/UnfilteredSerializer.java#L170
+        "timestamp_diff" / varint.VarInt(), # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/rows/UnfilteredSerializer.java#L174
+                                            # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/SerializationHeader.java#L195
+        # cells are repeated until the row body size is serialized_row_body_size
+        "cells" / construct.RepeatUntil(lambda obj, lst, ctx: ctx._io.tell()-ctx.row_body_start+1 >= serialized_row_body_size, simple_cell), # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/rows/BufferCell.java#L211
+    )
 unfiltered = construct.Struct(
     "row_flags" / construct.Hex(construct.Int8ub), # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/rows/UnfilteredSerializer.java#L78-L85
     "row" / construct.If(
@@ -192,15 +201,11 @@ unfiltered = construct.Struct(
             ),
 
             "serialized_row_body_size" / varint.VarInt(), # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/rows/UnfilteredSerializer.java#L169
-            "row_body_start" / construct.Tell,
-            "previous_unfiltered_size" / varint.VarInt(), # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/rows/UnfilteredSerializer.java#L170
-            "timestamp_diff" / varint.VarInt(), # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/rows/UnfilteredSerializer.java#L174
-                                                # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/SerializationHeader.java#L195
-            # cells are repeated until the row body size is serialized_row_body_size
-            "cells" / construct.RepeatUntil(lambda obj, lst, ctx: ctx._io.tell()-ctx.row_body_start+1 >= ctx.serialized_row_body_size, simple_cell), # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/rows/BufferCell.java#L211
+            "row_body" / row_body(construct.this.serialized_row_body_size),
         ),
     ),
 )
+
 partition_header = construct.Struct(
     # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/ColumnIndex.java#L98
     "key_len" / construct.Int16ub,

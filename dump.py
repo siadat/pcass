@@ -19,16 +19,16 @@ class CustomJSONEncoder(json.JSONEncoder):
 
 
 class CsvWriter:
-    def __init__(self):
-        self.writer = csv.writer(os.sys.stdout)
+    def __init__(self, writer):
+        self.writer = csv.writer(writer)
     def write_header(self, clustering_column_names, regular_column_names):
         self.writer.writerow([f"partition_key_type"] + clustering_column_names + regular_column_names)
     def write_row(self, partition_key_value, clustering_column_values, regular_column_values):
         self.writer.writerow([partition_key_value] + clustering_column_values + regular_column_values)
 
 class JsonWriter:
-    def __init__(self):
-        pass
+    def __init__(self, writer):
+        self.writer = writer
     def write_header(self, clustering_column_names, regular_column_names):
         self.clustering_column_names = clustering_column_names
         self.regular_column_names = regular_column_names
@@ -61,7 +61,7 @@ class JsonWriter:
                 "value": regular_column_values[i],
             })
             # row[self.regular_column_names[i]] = regular_column_values[i]
-        print(json.dumps(row, cls=CustomJSONEncoder))
+        self.writer.write(json.dumps(row, cls=CustomJSONEncoder) + "\n")
 
 def dump(statistics_stream, data_stream, writer):
     parsed_statistics = sstable_statistics.statistics_format.parse_stream(statistics_stream)
@@ -84,7 +84,7 @@ def dump(statistics_stream, data_stream, writer):
                 clustering_column_values = []
 
             # We check cell_flags to handle cells where the value is empty
-            regular_column_values = map(lambda cell: cell.cell.cell_value if not cell.cell_flags & 0x04 else None, unfiltered.row.cells)
+            regular_column_values = map(lambda cell: cell.cell.cell_value if not cell.cell_flags & 0x04 else None, unfiltered.row.row_body.cells)
             writer.write_row(partition_key_value, list(clustering_column_values), list(regular_column_values))
 
 if __name__ == '__main__':
@@ -94,9 +94,9 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     if args.format == "csv":
-        writer = CsvWriter()
+        writer = CsvWriter(os.sys.stdout)
     else:
-        writer = JsonWriter()
+        writer = JsonWriter(os.sys.stdout)
     # dump(args.dir, writer)
     with open(os.path.join(args.dir, "me-1-big-Statistics.db"), "rb") as statistics_file:
         with open(os.path.join(args.dir, "me-1-big-Data.db"), "rb") as data_file:
