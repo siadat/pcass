@@ -1,6 +1,9 @@
+import io
+import os
 import box
 import utils
 
+import dump
 import sstable_data
 import sstable_statistics
 
@@ -23,7 +26,7 @@ def main():
             "min_local_deletion_time": 0,
             "min_ttl": 0,
             "partition_key_type": {
-                # "length": 41,
+                "name_length": 41,
                 "name": "org.apache.cassandra.db.marshal.Int32Type",
             },
             "clustering_key_count": 0,
@@ -72,5 +75,11 @@ def main():
     utils.assert_equal(2, data_got.partitions[0].partition_header.key_len)
 
     print("Data.db:\t", data_bytes)
+
+    dump.dump(
+        io.BytesIO(statistics_bytes),
+        io.BytesIO(data_bytes),
+        dump.JsonWriter(),
+    )
 
 main()

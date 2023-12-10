@@ -1,4 +1,5 @@
 import io
+import os
 import tempfile
 
 import utils
@@ -40,7 +41,9 @@ def test_encode_and_decode():
     mock_writer = MockWriter()
 
     # dump
-    dump.dump("test_data", mock_writer)
+    with open(os.path.join("test_data", "me-1-big-Statistics.db"), "rb") as statistics_file:
+        with open(os.path.join("test_data", "me-1-big-Data.db"), "rb") as data_file:
+            dump.dump(statistics_file, data_file,  mock_writer)
     utils.assert_equal(['clustering_column_1'], mock_writer.clustering_column_names)
     utils.assert_equal(['aboutme'], mock_writer.regular_column_names)
     utils.assert_equal([1, 2, 3], mock_writer.partition_key_value)

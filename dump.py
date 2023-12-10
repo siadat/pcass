@@ -32,7 +32,6 @@ class JsonWriter:
     def write_header(self, clustering_column_names, regular_column_names):
         self.clustering_column_names = clustering_column_names
         self.regular_column_names = regular_column_names
-        pass
     def write_row(self, partition_key_value, clustering_column_values, regular_column_values):
         # for value in regular_column_values:
         #     print(f"{type(value)} = {value}")
@@ -64,11 +63,9 @@ class JsonWriter:
             # row[self.regular_column_names[i]] = regular_column_values[i]
         print(json.dumps(row, cls=CustomJSONEncoder))
 
-def dump(sstable_dir, writer):
-    with open(os.path.join(sstable_dir, "me-1-big-Statistics.db"), "rb") as f:
-        parsed_statistics = sstable_statistics.statistics_format.parse_stream(f)
-    with open(os.path.join(sstable_dir, "me-1-big-Data.db"), "rb") as f:
-        parsed_data = sstable_data.data_format.parse_stream(f, sstable_statistics=parsed_statistics)
+def dump(statistics_stream, data_stream, writer):
+    parsed_statistics = sstable_statistics.statistics_format.parse_stream(statistics_stream)
+    parsed_data = sstable_data.data_format.parse_stream(data_stream, sstable_statistics=parsed_statistics)
 
     # header:
     clustering_column_names = [f"clustering_column_{i+1}" for i, typ in enumerate(parsed_statistics.serialization_header.clustering_key_types)]
@@ -100,4 +97,7 @@ if __name__ == '__main__':
         writer = CsvWriter()
     else:
         writer = JsonWriter()
-    dump(args.dir, writer)
+    # dump(args.dir, writer)
+    with open(os.path.join(args.dir, "me-1-big-Statistics.db"), "rb") as statistics_file:
+        with open(os.path.join(args.dir, "me-1-big-Data.db"), "rb") as data_file:
+            dump(statistics_file, data_file, writer)
