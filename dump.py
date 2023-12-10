@@ -64,27 +64,17 @@ class JsonWriter:
             # row[self.regular_column_names[i]] = regular_column_values[i]
         print(json.dumps(row, cls=CustomJSONEncoder))
 
-def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('dir', type=str)
-    parser.add_argument('--format', type=str, default="json")
-    args = parser.parse_args()
-
-    with open(os.path.join(args.dir, "me-1-big-Statistics.db"), "rb") as f:
+def dump(sstable_dir, writer):
+    with open(os.path.join(sstable_dir, "me-1-big-Statistics.db"), "rb") as f:
         parsed_statistics = sstable_statistics.statistics_format.parse_stream(f)
-    with open(os.path.join(args.dir, "me-1-big-Data.db"), "rb") as f:
+    with open(os.path.join(sstable_dir, "me-1-big-Data.db"), "rb") as f:
         parsed_data = sstable_data.data_format.parse_stream(f, sstable_statistics=parsed_statistics)
 
     # header:
     clustering_column_names = [f"clustering_column_{i+1}" for i, typ in enumerate(parsed_statistics.serialization_header.clustering_key_types)]
     regular_column_names = [column.name for column in parsed_statistics.serialization_header.regular_columns]
 
-    if args.format == "csv":
-        general_writer = CsvWriter()
-    else:
-        general_writer = JsonWriter()
-
-    general_writer.write_header(list(clustering_column_names), list(regular_column_names))
+    writer.write_header(list(clustering_column_names), list(regular_column_names))
 
     for partition in parsed_data.partitions:
         partition_key_value = partition.partition_header.key.cell_value
@@ -98,6 +88,16 @@ def main():
 
             # We check cell_flags to handle cells where the value is empty
             regular_column_values = map(lambda cell: cell.cell.cell_value if not cell.cell_flags & 0x04 else None, unfiltered.row.cells)
-            general_writer.write_row(partition_key_value, list(clustering_column_values), list(regular_column_values))
+            writer.write_row(partition_key_value, list(clustering_column_values), list(regular_column_values))
 
-main()
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('dir', type=str)
+    parser.add_argument('--format', type=str, default="json")
+    args = parser.parse_args()
+
+    if args.format == "csv":
+        writer = CsvWriter()
+    else:
+        writer = JsonWriter()
+    dump(args.dir, writer)
