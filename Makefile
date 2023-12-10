@@ -12,6 +12,8 @@ apache-cassandra-3.0.29:
 
 test:
 	poetry run python test.py
+	poetry run python dump.py cassandra_data_history/2023-12-02_17-37-59-558444736-with-age/sina_test/my_table-96482d20913911eea6386d2c86545d91/ | jq -s length 
+	poetry run python dump.py cassandra_data_history/2023-12-07_19-02-14-721636603-has-all-types/sina_test/has_all_types-305d5dc0953311eea6f06d2c86545d91/ | jq -s length
 
 generate_parser: vlq_base128_le.ksy vlq_base128_be.ksy
 	kaitai-struct-compiler --target python --opaque-types=true sstable-data-2.0.ksy

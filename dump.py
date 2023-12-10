@@ -91,7 +91,7 @@ def main():
         for unfiltered in partition.unfiltereds:
             if unfiltered.row_flags & 0x01:
                 continue
-            if hasattr(unfiltered.row, "clustering_block"):
+            if unfiltered.row.clustering_block:
                 clustering_column_values = map(lambda cell: cell.key.cell_value, unfiltered.row.clustering_block.clustering_cells)
             else:
                 clustering_column_values = []

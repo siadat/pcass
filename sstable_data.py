@@ -12,22 +12,28 @@ construct.setGlobalPrintFullStrings(utils.PRINT_FULL_STRING)
 # https://opensource.docs.scylladb.com/stable/architecture/sstable/sstable3/sstables-3-data-file-format.html#
 
 def get_partition_key_type_func(ctx):
-    # lambda ctx: ctx._root._.sstable_statistics.serialization_header.partition_key_type.name
     name = ctx._root._.sstable_statistics.serialization_header.partition_key_type.name
+    if name not in java_type_to_construct:
+        raise Exception(f"Unhandled type {name}, please add to java_type_to_construct")
     # print("get_partition_key_type_func", type(name), name)
     return name
+
 def get_cell_type_func(ctx):
-    # lambda ctx: ctx._root._.sstable_statistics.serialization_header.regular_columns[ctx._index].type.name
     name = ctx._root._.sstable_statistics.serialization_header.regular_columns[ctx._index].type.name
-    # print("get_cell_type_func", type(name), name)
+    # print("get_cell_type_func", ctx._index, type(name), name)
     if name not in java_type_to_construct:
         raise Exception(f"Unhandled type {name}, please add to java_type_to_construct")
     return name
+
 def get_clustering_key_count_func(ctx):
     return ctx._root._.sstable_statistics.serialization_header.clustering_key_count
 
 def get_clustering_key_type_func(ctx):
-    return ctx._root._.sstable_statistics.serialization_header.clustering_key_types[ctx._index].name
+    name = ctx._root._.sstable_statistics.serialization_header.clustering_key_types[ctx._index].name
+    # print(f"get_clustering_key_type_func", ctx._index, type(name), name)
+    if name not in java_type_to_construct:
+        raise Exception(f"Unhandled type {name}, please add to java_type_to_construct")
+    return name
 
 def has_clustering_columns_func(ctx):
     return ctx._root._.sstable_statistics.serialization_header.clustering_key_count > 0
@@ -146,7 +152,7 @@ java_type_to_construct = {
 simple_cell = construct.Struct(
     "cell_flags" / construct.Hex(construct.Int8ub), # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/rows/BufferCell.java#L230-L234
                                                     # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/rows/BufferCell.java#L258
-    # NOTE: ctx._index is unfortunately globally incremented, so if this construct is used else here _index is incremented and never reset to 0!
+    # NOTE: ctx._index seems ok, I used to think it incremented globally
     "cell" / construct.If(
         # TODO: 0x04 means empty value, e.g. empty '' string (and probably usef for tombstones as well?)
         construct.this.cell_flags & 0x04 != 0x4,
@@ -157,7 +163,7 @@ clustering_cell = construct.Struct(
     # "cell_value_len" / varint.VarInt(),
     # "cell_value" / construct.Bytes(construct.this.cell_value_len),
 
-    # NOTE: ctx._index is unfortunately globally incremented, so if this construct is used else here _index is incremented and never reset to 0!
+    # NOTE: ctx._index seems ok, I used to think it incremented globally
     # "key" / construct.Switch(lambda ctx: ctx._root._.sstable_statistics.serialization_header.clustering_key_types[ctx._index].name, java_type_to_construct),
     "key" / construct.Switch(get_clustering_key_type_func, java_type_to_construct),
 )
@@ -176,10 +182,10 @@ unfiltered = construct.Struct(
             # TODO: support composite primary key.
             # > "Note that we don’t store the number of clustering cells as we take this information from table schema."
             # > https://opensource.docs.scylladb.com/stable/architecture/sstable/sstable3/sstables-3-data-file-format.html#:~:text=Note%20that%20we%20don%E2%80%99t%20store%20the%20number%20of%20clustering%20cells%20as%20we%20take%20this%20information%20from%20table%20schema.
-            construct.If(
+            "clustering_block" / construct.If(
                 # If there are no clustering columns then we should skip the clustering block:
                 has_clustering_columns_func,
-                "clustering_block" / construct.Struct(
+                construct.Struct(
                     "clustering_block_header" / construct.Int8ub, # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/ClusteringPrefix.java#L305
                     "clustering_cells" / construct.Array(get_clustering_key_count_func, clustering_cell), # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/ClusteringPrefix.java#L310
                 ),
