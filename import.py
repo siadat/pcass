@@ -4,6 +4,7 @@ import box
 import utils
 
 import dump
+import construct
 import sstable_data
 import sstable_statistics
 
@@ -50,9 +51,8 @@ def main():
     statistics_got = sstable_statistics.statistics_format.parse(statistics_bytes)
     utils.assert_equal(1, statistics_got.metadata_count)
 
-    print("Statistics.db:\t", statistics_bytes)
+    # print("Statistics.db:\t", statistics_bytes)
 
-    row_body_format = sstable_data.row_body(0)
     row_body1 = {
         "row_body_start": 0,
         "previous_unfiltered_size": 0,
@@ -66,7 +66,29 @@ def main():
             },
         ],
     }
-    row_body1_size = len(row_body_format.build(row_body1, sstable_statistics=statistics_got))
+    row_body2 = {
+        "row_body_start": 0,
+        "previous_unfiltered_size": 0,
+        "timestamp_diff": 0,
+        "cells": [
+            {
+                "cell_flags": 0x08,
+                "cell": {
+                    "cell_value": 123,
+                },
+            },
+        ],
+    }
+    row_body1_size = len(sstable_data.unfiltered.row.thensubcon.row_body.build(
+        row_body1,
+        serialized_row_body_size=0,
+        sstable_statistics=statistics_got,
+    ))
+    row_body2_size = len(sstable_data.unfiltered.row.thensubcon.row_body.build(
+        row_body2,
+        serialized_row_body_size=0,
+        sstable_statistics=statistics_got,
+    ))
     data_bytes = sstable_data.data_format.build({
             "partitions": [
                 {
@@ -89,6 +111,14 @@ def main():
                                 "row_body": row_body1,
                             },
                         }),
+                        box.Box({
+                            "row_flags": 0x24,
+                            "row": {
+                                "clustering_block": None,
+                                "serialized_row_body_size": row_body2_size,
+                                "row_body": row_body2,
+                            },
+                        }),
                         # we need to box this, because the lambda in the
                         # construct's conditional structs references it like
                         # `.row_flags`, not like `["row_flags"]`
@@ -106,7 +136,7 @@ def main():
     data_got = sstable_data.data_format.parse(data_bytes, sstable_statistics=statistics_got)
     utils.assert_equal(2, data_got.partitions[0].partition_header.key_len)
 
-    print("Data.db:\t", data_bytes)
+    # print("Data.db:\t", data_bytes)
 
     dump.dump(
         io.BytesIO(statistics_bytes),
@@ -114,9 +144,9 @@ def main():
         dump.JsonWriter(os.sys.stdout),
     )
 
-    with open(f"out/me-1-big-Statistics.db", "wb") as f:
-        f.write(statistics_bytes)
-    with open(f"out/me-1-big-Data.db", "wb") as f:
-        f.write(data_bytes)
+    # with open(f"out/me-1-big-Statistics.db", "wb") as f:
+    #     f.write(statistics_bytes)
+    # with open(f"out/me-1-big-Data.db", "wb") as f:
+    #     f.write(data_bytes)
 
 main()

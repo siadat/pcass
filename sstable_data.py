@@ -3,6 +3,7 @@ import varint
 
 import construct
 
+import greedy_range
 import string_encoded
 import sstable_decimal
 import uuid
@@ -10,6 +11,10 @@ import uuid
 construct.setGlobalPrintFullStrings(utils.PRINT_FULL_STRING)
 
 # https://opensource.docs.scylladb.com/stable/architecture/sstable/sstable3/sstables-3-data-file-format.html#
+
+def get_serialized_row_body_size_fun(obj, lst, ctx): 
+    length_so_far = ctx._io.tell()-ctx.row_body_start+1
+    return length_so_far >= ctx._.serialized_row_body_size
 
 def get_partition_key_type_func(ctx):
     name = ctx._root._.sstable_statistics.serialization_header.partition_key_type.name
@@ -167,15 +172,15 @@ clustering_cell = construct.Struct(
     # "key" / construct.Switch(lambda ctx: ctx._root._.sstable_statistics.serialization_header.clustering_key_types[ctx._index].name, java_type_to_construct),
     "key" / construct.Switch(get_clustering_key_type_func, java_type_to_construct),
 )
-def row_body(serialized_row_body_size):
-    return construct.Struct(
-        "row_body_start" / construct.Tell,
-        "previous_unfiltered_size" / varint.VarInt(), # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/rows/UnfilteredSerializer.java#L170
-        "timestamp_diff" / varint.VarInt(), # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/rows/UnfilteredSerializer.java#L174
-                                            # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/SerializationHeader.java#L195
-        # cells are repeated until the row body size is serialized_row_body_size
-        "cells" / construct.RepeatUntil(lambda obj, lst, ctx: ctx._io.tell()-ctx.row_body_start+1 >= serialized_row_body_size, simple_cell), # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/rows/BufferCell.java#L211
-    )
+
+row_body_format = construct.Struct(
+  "row_body_start" / construct.Tell,
+  "previous_unfiltered_size" / varint.VarInt(), # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/rows/UnfilteredSerializer.java#L170
+  "timestamp_diff" / varint.VarInt(), # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/rows/UnfilteredSerializer.java#L174
+                                      # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/SerializationHeader.java#L195
+  # cells are repeated until the row body size is serialized_row_body_size
+  "cells" / construct.RepeatUntil(get_serialized_row_body_size_fun, simple_cell), # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/rows/BufferCell.java#L211
+)
 unfiltered = construct.Struct(
     "row_flags" / construct.Hex(construct.Int8ub), # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/rows/UnfilteredSerializer.java#L78-L85
     "row" / construct.If(
@@ -201,15 +206,7 @@ unfiltered = construct.Struct(
             ),
 
             "serialized_row_body_size" / varint.VarInt(), # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/rows/UnfilteredSerializer.java#L169
-            # "row_body" / row_body(ctx.serialized_row_body_size),
-            "row_body" / construct.Struct(
-              "row_body_start" / construct.Tell,
-              "previous_unfiltered_size" / varint.VarInt(), # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/rows/UnfilteredSerializer.java#L170
-              "timestamp_diff" / varint.VarInt(), # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/rows/UnfilteredSerializer.java#L174
-                                                  # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/SerializationHeader.java#L195
-              # cells are repeated until the row body size is serialized_row_body_size
-              "cells" / construct.RepeatUntil(lambda obj, lst, ctx: ctx._io.tell()-ctx.row_body_start+1 >= ctx._.serialized_row_body_size, simple_cell), # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/rows/BufferCell.java#L211
-            ),
+            "row_body" / row_body_format,
         ),
     ),
 )
@@ -235,29 +232,4 @@ partition = construct.Struct(
     "unfiltereds" / construct.RepeatUntil(lambda obj, lst, ctx: (obj.row_flags & 0x01) == 0x01, unfiltered),
 )
 
-# The original construct.GreedyRange._parse method catches *all* exceptionse as
-# no matches and it doesn't show any error messages, even when there's no
-# match. So, if the grammar is incorrect, it will not produce any useful return
-# value or partial match or exceptions or error messages. Nothing.
-# I Think it is here: https://sourcegraph.com/python/construct@v2.10.69/-/blob/construct/core.py?L2578-2579
-#
-# This behaviour is not useful when I am writing and debugging the schema/grammar.
-# Therefore I need to implement my own GreedyRange:
-class GreedyRangeWithExceptionHandling(construct.GreedyRange):
-    def _parse(self, stream, context, path):
-        items = []
-        while True:
-            try:
-                item = self.subcon._parse(stream, context, path)
-                items.append(item)
-            except construct.StreamError:
-                break  # EOF reached
-            except Exception as e:
-                print(f"Exception occurred at position {stream.tell()}: {e}")
-                # Decide how to handle the exception (skip, retry, etc.)
-                # Example: skip to the next byte
-                stream.seek(stream.tell() + 1)
-                continue
-        return items
-
-data_format = construct.Struct("partitions" / GreedyRangeWithExceptionHandling(partition))
+data_format = construct.Struct("partitions" / greedy_range.GreedyRangeWithExceptionHandling(partition))

@@ -1,4 +1,8 @@
-new_parse_all: parse
+test:
+	poetry run python test.py
+	poetry run python import.py | jq -s 'if length != 2 then error("Length is not 2") else "2 rows dumped" end'
+	poetry run python dump.py cassandra_data_history/2023-12-02_17-37-59-558444736-with-age/sina_test/my_table-96482d20913911eea6386d2c86545d91/ | jq -s 'if length != 3 then error("Length is not 3") else "3 rows dumped" end'
+	poetry run python dump.py cassandra_data_history/2023-12-07_19-02-14-721636603-has-all-types/sina_test/has_all_types-305d5dc0953311eea6f06d2c86545d91/ | jq -s 'if length != 7 then error("Length is not 7") else "7 rows dumped" end'
 
 old_parse_all: generate_parser parse
 
@@ -9,11 +13,6 @@ apache-cassandra-3.0.29:
 	wget 'https://dlcdn.apache.org/cassandra/3.0.29/apache-cassandra-3.0.29-bin.tar.gz'
 	tar xvzf apache-cassandra-3.0.29-bin.tar.gz
 	rm apache-cassandra-3.0.29-bin.tar.gz
-
-test:
-	poetry run python test.py
-	poetry run python import.py
-	poetry run python dump.py cassandra_data_history/2023-12-07_19-02-14-721636603-has-all-types/sina_test/has_all_types-305d5dc0953311eea6f06d2c86545d91/ | jq -s length
 
 generate_parser: vlq_base128_le.ksy vlq_base128_be.ksy
 	kaitai-struct-compiler --target python --opaque-types=true sstable-data-2.0.ksy
