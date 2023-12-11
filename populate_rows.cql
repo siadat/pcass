@@ -20,7 +20,7 @@ CREATE TABLE has_all_types (
     uuidcol uuid,
     varcharcol varchar,
     varintcol varint
-) WITH compression = {'sstable_compression':''};
+) WITH compression = {'enabled':'false'};
 
 INSERT INTO has_all_types (num, intcol, asciicol, bigintcol, blobcol, booleancol,
                            decimalcol, doublecol, floatcol, smallintcol, textcol,
@@ -64,7 +64,7 @@ VALUES (4, blobAsInt(0x), '', blobAsBigint(0x), 0x, blobAsBoolean(0x),
 CREATE TABLE empty_table (
     lonelykey float primary key,
     lonelycol text
-);
+)WITH compression = {'enabled':'false'};
 
 
 
@@ -86,7 +86,7 @@ INSERT INTO dynamic_columns (somekey, column1, value) VALUES (3, -0.0001, 'negat
 CREATE TABLE twenty_rows_table (
     a text primary key,
     b text
-);
+)WITH compression = {'enabled':'false'};
 
 INSERT INTO twenty_rows_table (a, b) VALUES ('1', '1');
 INSERT INTO twenty_rows_table (a, b) VALUES ('2', '2');
@@ -114,7 +114,7 @@ CREATE TABLE undefined_values_table (
     k text PRIMARY KEY,
     c text,
     notthere text
-);
+)WITH compression = {'enabled':'false'};
 
 INSERT INTO undefined_values_table (k, c) VALUES ('k1', 'c1');
 INSERT INTO undefined_values_table (k, c) VALUES ('k2', 'c2');
@@ -124,7 +124,7 @@ INSERT INTO undefined_values_table (k, c) VALUES ('k2', 'c2');
 CREATE TABLE ascii_with_special_chars (
     k int PRIMARY KEY,
     val ascii
-);
+)WITH compression = {'enabled':'false'};
 
 -- "newline:\n"
 INSERT INTO ascii_with_special_chars (k, val) VALUES (0, blobAsAscii(0x6e65776c696e653a0a));
@@ -140,7 +140,7 @@ INSERT INTO ascii_with_special_chars (k, val) VALUES (3, blobAsAscii(0x66616b652
 CREATE TABLE utf8_with_special_chars (
     k int PRIMARY KEY,
     val text
-);
+)WITH compression = {'enabled':'false'};
 
 INSERT INTO utf8_with_special_chars (k, val) VALUES (0, 'Normal string');
 INSERT INTO utf8_with_special_chars (k, val) VALUES (1, 'Text with
@@ -158,14 +158,14 @@ CREATE TABLE empty_composite_table (
     lonelycol text,
     lonelyval int,
     primary key (lonelykey, lonelycol)
-);
+)WITH compression = {'enabled':'false'};
 
 CREATE TABLE twenty_rows_composite_table (
     a text,
     b text,
     c text,
     primary key (a, b)
-);
+)WITH compression = {'enabled':'false'};
 
 -- all in the same storage engine row:
 
@@ -206,7 +206,7 @@ CREATE TABLE users (
     name text,
     addresses set<frozen<address>>,
     phone_numbers set<frozen<phone_number>>
-);
+)WITH compression = {'enabled':'false'};
 
 insert into users (login, name, addresses, phone_numbers)
 values ('jbellis',
@@ -239,7 +239,7 @@ CREATE TABLE songs (
     band text,
     info frozen<band_info_type>,
     tags frozen<tags>
-);
+)WITH compression = {'enabled':'false'};
 
 insert into songs (title, band, info, tags)
 values (
