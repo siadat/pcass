@@ -28,7 +28,9 @@ def wrap_func(cls):
             context.depth -= 1
 
         global global_position_map
-        global_position_map[(start_pos, end_pos)] = path # + " " + self.__class__.__name__
+        current = global_position_map.get((start_pos, end_pos), [])
+        current.append(path) # + " " + self.__class__.__name__
+        global_position_map[(start_pos, end_pos)] = current
         return ret
     
     cls._parse = new_parse
@@ -58,7 +60,7 @@ def get_matches_for_pos(pos):
             result.append(global_position_map[(start, end)])
 
     if result:
-        return result[-1]
+        return result[-1][0]
     else:
         return None
     # return " >> ".join(result)

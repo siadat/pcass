@@ -1,6 +1,8 @@
 #!/bin/bash
+set -e
+set -x
 
-for data_dir in cassandra_data_history/* ; do
+for data_dir in cassandra_data_history/*-with-age ; do
   cat "${data_dir}"/populate_rows.cql | grep -v '^$' | grep -v -P '^--' | nl > "$data_dir"/populate_rows.cql
   for table_dir in $data_dir/sina_test/* ; do
 
@@ -18,9 +20,9 @@ for data_dir in cassandra_data_history/* ; do
       echo "Parsing table ${data_db_file}"
       ./hexdump.bash $data_db_file > ${data_db_file}.txt
       {
-        poetry run python parse_with_construct.py "${table_dir}" >> "$table_dir"/result.txt
+        poetry run python parse_with_construct.py "${table_dir}" > "${data_db_file}-result.txt"
         echo "Done ${data_db_file}"
-      } &
+      } # &
     done
   done
 done

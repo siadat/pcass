@@ -114,4 +114,9 @@ def main():
         dump.JsonWriter(os.sys.stdout),
     )
 
+    with open(f"out/me-1-big-Statistics.db", "wb") as f:
+        f.write(statistics_bytes)
+    with open(f"out/me-1-big-Data.db", "wb") as f:
+        f.write(data_bytes)
+
 main()
