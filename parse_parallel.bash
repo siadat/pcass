@@ -3,6 +3,7 @@ set -e
 
 data_dir=./test_data/cassandra3_data_want
 keyspace_name=sina_test
+rm -rf ./test_data/parsed/
 for table_dir in $data_dir/${keyspace_name}/* ; do
   table_name=$(basename $table_dir | cut -d'-' -f1)
   table_parsed_dir=./test_data/parsed/$keyspace_name/$table_name
