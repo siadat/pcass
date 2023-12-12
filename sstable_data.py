@@ -18,6 +18,11 @@ def cell_empty_func(obj):
     return ret
 
 def get_cell_repeat_until_func(obj, lst, ctx): 
+    # print(f"get_cell_repeat_until_func {lst}")
+    if ctx.missing_columns:
+        raise Exception("TODO: handle missing columns please")
+    else:
+        return len(lst) >= len(ctx._root._.sstable_statistics.serialization_header.regular_columns)
     length_so_far = ctx._io.tell()-ctx.row_body_start+1
     cont = length_so_far >= ctx._.serialized_row_body_size
     # print(f"get_cell_repeat_until_func {ctx._index} {length_so_far} {ctx._.serialized_row_body_size} {cont}")
