@@ -3,6 +3,7 @@ import construct
 
 import varint
 import string_encoded
+import string_encoded
 import uuid
 
 construct.setGlobalPrintFullStrings(utils.PRINT_FULL_STRING)
@@ -15,7 +16,7 @@ construct.setGlobalPrintFullStrings(utils.PRINT_FULL_STRING)
 modified_utf8 = construct.Struct(
     "length" / construct.Int16ub,
 
-    "utf8_string" / construct.PaddedString(construct.this.length, "utf-8"),
+    "utf8_string" / string_encoded.StringEncoded(construct.Bytes(construct.this.length), "utf-8"),
     # "utf8_bytes" / construct.Bytes(construct.this.utf8_length),
 )
 bucket = construct.Struct(

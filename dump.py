@@ -74,7 +74,7 @@ def dump(statistics_stream, data_stream, writer):
     writer.write_header(list(clustering_column_names), list(regular_column_names))
 
     for partition in parsed_data.partitions:
-        partition_key_value = partition.partition_header.key.cell_value
+        partition_key_value = partition.partition_header.key
         for unfiltered in partition.unfiltereds:
             if unfiltered.row_flags & 0x01:
                 continue

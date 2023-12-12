@@ -15,9 +15,11 @@ class StringEncoded(construct.Adapter):
         self.encoding = encoding
 
     def _decode(self, obj, context, path):
+        # print(f"StringEncoded decoding {obj} to {self.encoding}")
         return obj.decode(self.encoding)
 
     def _encode(self, obj, context, path):
+        # print(f"StringEncoded encoding {obj} to {self.encoding}")
         return bytes(obj, self.encoding)
 
 

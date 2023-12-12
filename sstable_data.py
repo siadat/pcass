@@ -12,33 +12,44 @@ construct.setGlobalPrintFullStrings(utils.PRINT_FULL_STRING)
 
 # https://opensource.docs.scylladb.com/stable/architecture/sstable/sstable3/sstables-3-data-file-format.html#
 
-def get_serialized_row_body_size_fun(obj, lst, ctx): 
+def cell_empty_func(obj):
+    ret = obj.cell_flags & 0x04 != 0x4
+    # print(f"cell_empty_func {ret}")
+    return ret
+
+def get_cell_repeat_until_func(obj, lst, ctx): 
     length_so_far = ctx._io.tell()-ctx.row_body_start+1
-    return length_so_far >= ctx._.serialized_row_body_size
+    cont = length_so_far >= ctx._.serialized_row_body_size
+    # print(f"get_cell_repeat_until_func {ctx._index} {length_so_far} {ctx._.serialized_row_body_size} {cont}")
+    return cont
 
 def get_partition_key_type_func(ctx):
     name = ctx._root._.sstable_statistics.serialization_header.partition_key_type.name
+    # print("get_partition_key_type_func", name)
     if name not in java_type_to_construct:
         raise Exception(f"Unhandled type {name}, please add to java_type_to_construct")
-    # print("get_partition_key_type_func", type(name), name)
     return name
 
 def get_cell_type_func(ctx):
-    name = ctx._root._.sstable_statistics.serialization_header.regular_columns[ctx._index].type.name
-    # print("get_cell_type_func", ctx._index, type(name), name)
+    cols = ctx._root._.sstable_statistics.serialization_header.regular_columns
+    # print(f"get_cell_type_func index {ctx._index}/{len(cols)}: {cols}")
+    name = cols[ctx._index].type.name
+    # print("get_cell_type_func name", ctx._index, name)
+    if name not in java_type_to_construct:
+        raise Exception(f"Unhandled type {name}, please add to java_type_to_construct")
+    return name
+
+def get_clustering_key_type_func(ctx):
+    cols = ctx._root._.sstable_statistics.serialization_header.clustering_key_types
+    # print(f"get_clustering_key_type_func index {ctx._index}/{len(cols)}: {cols}")
+    name = cols[ctx._index].name
+    # print(f"get_clustering_key_type_func name", name)
     if name not in java_type_to_construct:
         raise Exception(f"Unhandled type {name}, please add to java_type_to_construct")
     return name
 
 def get_clustering_key_count_func(ctx):
     return ctx._root._.sstable_statistics.serialization_header.clustering_key_count
-
-def get_clustering_key_type_func(ctx):
-    name = ctx._root._.sstable_statistics.serialization_header.clustering_key_types[ctx._index].name
-    # print(f"get_clustering_key_type_func", ctx._index, type(name), name)
-    if name not in java_type_to_construct:
-        raise Exception(f"Unhandled type {name}, please add to java_type_to_construct")
-    return name
 
 def has_clustering_columns_func(ctx):
     return ctx._root._.sstable_statistics.serialization_header.clustering_key_count > 0
@@ -67,7 +78,7 @@ utils.assert_equal(b"\x01\x09", integer_cell_value.build({"length": 1, "cell_val
 # https://docs.oracle.com/javase/tutorial/java/nutsandbolts/datatypes.html
 short_cell_value = construct.Struct(
     "length" / varint.VarInt(), # TODO: now sure why short needs a length? it should always be 2?
-    "cell_value" / construct.BytesInteger(construct.this.length), # I think this is probably always 2, i.e. construct.Int16sb
+    "cell_value" / construct.BytesInteger(construct.this.length), # I think this is probably always 2 bytes, i.e. construct.Int16sb
 )
 utils.assert_equal(b"\x02\x00\x04", short_cell_value.build({"length": 2, "cell_value": 4}))
 
@@ -160,7 +171,7 @@ simple_cell = construct.Struct(
     # NOTE: ctx._index seems ok, I used to think it incremented globally
     "cell" / construct.If(
         # TODO: 0x04 means empty value, e.g. empty '' string (and probably usef for tombstones as well?)
-        construct.this.cell_flags & 0x04 != 0x4,
+        cell_empty_func,
         construct.Switch(get_cell_type_func, java_type_to_construct),
     ),
 )
@@ -172,14 +183,27 @@ clustering_cell = construct.Struct(
     # "key" / construct.Switch(lambda ctx: ctx._root._.sstable_statistics.serialization_header.clustering_key_types[ctx._index].name, java_type_to_construct),
     "key" / construct.Switch(get_clustering_key_type_func, java_type_to_construct),
 )
+def has_missing_columns_func(x):
+    if hasattr(x._, "overridden_row_flags"):
+        row_flags = x._.overridden_row_flags
+    else:
+        row_flags = x._._.row_flags
+    ret = row_flags & 0x20 == 0x00
+    # print(f"has_missing_columns_func {ret}")
+    return ret
 
 row_body_format = construct.Struct(
   "row_body_start" / construct.Tell,
   "previous_unfiltered_size" / varint.VarInt(), # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/rows/UnfilteredSerializer.java#L170
   "timestamp_diff" / varint.VarInt(), # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/rows/UnfilteredSerializer.java#L174
                                       # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/SerializationHeader.java#L195
+  # https://sourcegraph.com/github.com/scylladb/scylladb@scylla-5.4.0/-/blob/sstables/mx/writer.cc?L1150
+  "missing_columns" / construct.If(
+        has_missing_columns_func,
+        varint.VarInt(),
+  ),
   # cells are repeated until the row body size is serialized_row_body_size
-  "cells" / construct.RepeatUntil(get_serialized_row_body_size_fun, simple_cell), # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/rows/BufferCell.java#L211
+  "cells" / construct.RepeatUntil(get_cell_repeat_until_func, simple_cell), # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/rows/BufferCell.java#L211
 )
 unfiltered = construct.Struct(
     "row_flags" / construct.Hex(construct.Int8ub), # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/rows/UnfilteredSerializer.java#L78-L85
@@ -214,9 +238,7 @@ unfiltered = construct.Struct(
 partition_header = construct.Struct(
     # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/ColumnIndex.java#L98
     "key_len" / construct.Int16ub,
-    # "key" / construct.Bytes(construct.this.key_len),
-    # "key" / construct.Switch(lambda ctx: ctx._root._.sstable_statistics.serialization_header.partition_key_type.name, java_type_to_construct),
-    "key" / construct.Switch(get_partition_key_type_func, java_type_to_construct),
+    "key" / construct.Bytes(construct.this.key_len),
     "deletion_time" / construct.Struct(
         # Looks similar https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/SerializationHeader.java#L210-L211
         "local_deletion_time" / construct.Int32ub,

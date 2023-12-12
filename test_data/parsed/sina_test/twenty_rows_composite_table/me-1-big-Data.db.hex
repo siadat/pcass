@@ -947,49 +947,49 @@ Container:
 0xf1	b11110001	241	─── (parsing) -> toc -> offset
 0x00	b00000000	  0	─── (parsing) -> validation_metadata -> partition_name -> length
 0x2b	b00101011	 43	'+' (parsing) -> validation_metadata -> partition_name -> length
-0x6f	b01101111	111	'o' (parsing) -> validation_metadata -> partition_name
-0x72	b01110010	114	'r' (parsing) -> validation_metadata -> partition_name
-0x67	b01100111	103	'g' (parsing) -> validation_metadata -> partition_name
-0x2e	b00101110	 46	'.' (parsing) -> validation_metadata -> partition_name
-0x61	b01100001	 97	'a' (parsing) -> validation_metadata -> partition_name
-0x70	b01110000	112	'p' (parsing) -> validation_metadata -> partition_name
-0x61	b01100001	 97	'a' (parsing) -> validation_metadata -> partition_name
-0x63	b01100011	 99	'c' (parsing) -> validation_metadata -> partition_name
-0x68	b01101000	104	'h' (parsing) -> validation_metadata -> partition_name
-0x65	b01100101	101	'e' (parsing) -> validation_metadata -> partition_name
-0x2e	b00101110	 46	'.' (parsing) -> validation_metadata -> partition_name
-0x63	b01100011	 99	'c' (parsing) -> validation_metadata -> partition_name
-0x61	b01100001	 97	'a' (parsing) -> validation_metadata -> partition_name
-0x73	b01110011	115	's' (parsing) -> validation_metadata -> partition_name
-0x73	b01110011	115	's' (parsing) -> validation_metadata -> partition_name
-0x61	b01100001	 97	'a' (parsing) -> validation_metadata -> partition_name
-0x6e	b01101110	110	'n' (parsing) -> validation_metadata -> partition_name
-0x64	b01100100	100	'd' (parsing) -> validation_metadata -> partition_name
-0x72	b01110010	114	'r' (parsing) -> validation_metadata -> partition_name
-0x61	b01100001	 97	'a' (parsing) -> validation_metadata -> partition_name
-0x2e	b00101110	 46	'.' (parsing) -> validation_metadata -> partition_name
-0x64	b01100100	100	'd' (parsing) -> validation_metadata -> partition_name
-0x68	b01101000	104	'h' (parsing) -> validation_metadata -> partition_name
-0x74	b01110100	116	't' (parsing) -> validation_metadata -> partition_name
-0x2e	b00101110	 46	'.' (parsing) -> validation_metadata -> partition_name
-0x4d	b01001101	 77	'M' (parsing) -> validation_metadata -> partition_name
-0x75	b01110101	117	'u' (parsing) -> validation_metadata -> partition_name
-0x72	b01110010	114	'r' (parsing) -> validation_metadata -> partition_name
-0x6d	b01101101	109	'm' (parsing) -> validation_metadata -> partition_name
-0x75	b01110101	117	'u' (parsing) -> validation_metadata -> partition_name
-0x72	b01110010	114	'r' (parsing) -> validation_metadata -> partition_name
-0x33	b00110011	 51	'3' (parsing) -> validation_metadata -> partition_name
-0x50	b01010000	 80	'P' (parsing) -> validation_metadata -> partition_name
-0x61	b01100001	 97	'a' (parsing) -> validation_metadata -> partition_name
-0x72	b01110010	114	'r' (parsing) -> validation_metadata -> partition_name
-0x74	b01110100	116	't' (parsing) -> validation_metadata -> partition_name
-0x69	b01101001	105	'i' (parsing) -> validation_metadata -> partition_name
-0x74	b01110100	116	't' (parsing) -> validation_metadata -> partition_name
-0x69	b01101001	105	'i' (parsing) -> validation_metadata -> partition_name
-0x6f	b01101111	111	'o' (parsing) -> validation_metadata -> partition_name
-0x6e	b01101110	110	'n' (parsing) -> validation_metadata -> partition_name
-0x65	b01100101	101	'e' (parsing) -> validation_metadata -> partition_name
-0x72	b01110010	114	'r' (parsing) -> validation_metadata -> partition_name
+0x6f	b01101111	111	'o' (parsing) -> validation_metadata -> partition_name -> utf8_string
+0x72	b01110010	114	'r' (parsing) -> validation_metadata -> partition_name -> utf8_string
+0x67	b01100111	103	'g' (parsing) -> validation_metadata -> partition_name -> utf8_string
+0x2e	b00101110	 46	'.' (parsing) -> validation_metadata -> partition_name -> utf8_string
+0x61	b01100001	 97	'a' (parsing) -> validation_metadata -> partition_name -> utf8_string
+0x70	b01110000	112	'p' (parsing) -> validation_metadata -> partition_name -> utf8_string
+0x61	b01100001	 97	'a' (parsing) -> validation_metadata -> partition_name -> utf8_string
+0x63	b01100011	 99	'c' (parsing) -> validation_metadata -> partition_name -> utf8_string
+0x68	b01101000	104	'h' (parsing) -> validation_metadata -> partition_name -> utf8_string
+0x65	b01100101	101	'e' (parsing) -> validation_metadata -> partition_name -> utf8_string
+0x2e	b00101110	 46	'.' (parsing) -> validation_metadata -> partition_name -> utf8_string
+0x63	b01100011	 99	'c' (parsing) -> validation_metadata -> partition_name -> utf8_string
+0x61	b01100001	 97	'a' (parsing) -> validation_metadata -> partition_name -> utf8_string
+0x73	b01110011	115	's' (parsing) -> validation_metadata -> partition_name -> utf8_string
+0x73	b01110011	115	's' (parsing) -> validation_metadata -> partition_name -> utf8_string
+0x61	b01100001	 97	'a' (parsing) -> validation_metadata -> partition_name -> utf8_string
+0x6e	b01101110	110	'n' (parsing) -> validation_metadata -> partition_name -> utf8_string
+0x64	b01100100	100	'd' (parsing) -> validation_metadata -> partition_name -> utf8_string
+0x72	b01110010	114	'r' (parsing) -> validation_metadata -> partition_name -> utf8_string
+0x61	b01100001	 97	'a' (parsing) -> validation_metadata -> partition_name -> utf8_string
+0x2e	b00101110	 46	'.' (parsing) -> validation_metadata -> partition_name -> utf8_string
+0x64	b01100100	100	'd' (parsing) -> validation_metadata -> partition_name -> utf8_string
+0x68	b01101000	104	'h' (parsing) -> validation_metadata -> partition_name -> utf8_string
+0x74	b01110100	116	't' (parsing) -> validation_metadata -> partition_name -> utf8_string
+0x2e	b00101110	 46	'.' (parsing) -> validation_metadata -> partition_name -> utf8_string
+0x4d	b01001101	 77	'M' (parsing) -> validation_metadata -> partition_name -> utf8_string
+0x75	b01110101	117	'u' (parsing) -> validation_metadata -> partition_name -> utf8_string
+0x72	b01110010	114	'r' (parsing) -> validation_metadata -> partition_name -> utf8_string
+0x6d	b01101101	109	'm' (parsing) -> validation_metadata -> partition_name -> utf8_string
+0x75	b01110101	117	'u' (parsing) -> validation_metadata -> partition_name -> utf8_string
+0x72	b01110010	114	'r' (parsing) -> validation_metadata -> partition_name -> utf8_string
+0x33	b00110011	 51	'3' (parsing) -> validation_metadata -> partition_name -> utf8_string
+0x50	b01010000	 80	'P' (parsing) -> validation_metadata -> partition_name -> utf8_string
+0x61	b01100001	 97	'a' (parsing) -> validation_metadata -> partition_name -> utf8_string
+0x72	b01110010	114	'r' (parsing) -> validation_metadata -> partition_name -> utf8_string
+0x74	b01110100	116	't' (parsing) -> validation_metadata -> partition_name -> utf8_string
+0x69	b01101001	105	'i' (parsing) -> validation_metadata -> partition_name -> utf8_string
+0x74	b01110100	116	't' (parsing) -> validation_metadata -> partition_name -> utf8_string
+0x69	b01101001	105	'i' (parsing) -> validation_metadata -> partition_name -> utf8_string
+0x6f	b01101111	111	'o' (parsing) -> validation_metadata -> partition_name -> utf8_string
+0x6e	b01101110	110	'n' (parsing) -> validation_metadata -> partition_name -> utf8_string
+0x65	b01100101	101	'e' (parsing) -> validation_metadata -> partition_name -> utf8_string
+0x72	b01110010	114	'r' (parsing) -> validation_metadata -> partition_name -> utf8_string
 0x3f	b00111111	 63	'?' (parsing) -> validation_metadata -> bloom_filter_fp_chance
 0x84	b10000100	132	─── (parsing) -> validation_metadata -> bloom_filter_fp_chance
 0x7a	b01111010	122	'z' (parsing) -> validation_metadata -> bloom_filter_fp_chance
@@ -5643,262 +5643,258 @@ Container:
 # Successfully parsed me-1-big-Statistics.db to here.
 
 
-Exception occurred at position 68: 'utf-8' codec can't decode byte 0xff in position 1: invalid start byte
-Exception occurred at position 123: 'utf-8' codec can't decode byte 0xc0 in position 2: invalid start byte
-Exception occurred at position 176: 'utf-8' codec can't decode byte 0xc0 in position 3: invalid start byte
-Exception occurred at position 230: 'utf-8' codec can't decode byte 0xc0 in position 3: invalid start byte
 # Parsed Data.db:
 Container: 
-    partitions = [Container(partition_header=Container(key_len=62728, key=Container(cell_value_len=1, cell_value=u'6'), deletion_time=Container(local_deletion_time=603980087, marked_for_delete_at=507992290535932215)), unfiltereds=ListContainer([Container(row_flags=36, row=Container(clustering_block=Container(clustering_block_header=0, clustering_cells=ListContainer([Container(key=Container(cell_value_len=1, cell_value=u'8'))])), serialized_row_body_size=7, row_body=Container(row_body_start=252, previous_unfiltered_size=12, timestamp_diff=22551, cells=ListContainer([Container(cell_flags=8, cell=Container(cell_value_len=1, cell_value=u'8'))])))), Container(row_flags=36, row=Container(clustering_block=Container(clustering_block_header=0, clustering_cells=ListContainer([Container(key=Container(cell_value_len=1, cell_value=u'9'))])), serialized_row_body_size=7, row_body=Container(row_body_start=264, previous_unfiltered_size=12, timestamp_diff=25934, cells=ListContainer([Container(cell_flags=8, cell=Container(cell_value_len=1, cell_value=u'9'))])))), Container(row_flags=1, row=None)]))]
+    partitions = [Container(partition_header=Container(key_len=1, key=b'A', deletion_time=Container(local_deletion_time=2147483647, marked_for_delete_at=9223372036854775808)), unfiltereds=ListContainer([Container(row_flags=36, row=Container(clustering_block=Container(clustering_block_header=0, clustering_cells=ListContainer([Container(key=Container(cell_value_len=1, cell_value=u'1'))])), serialized_row_body_size=5, row_body=Container(row_body_start=20, previous_unfiltered_size=15, timestamp_diff=0, missing_columns=None, cells=ListContainer([Container(cell_flags=8, cell=Container(cell_value_len=1, cell_value=u'1'))])))), Container(row_flags=36, row=Container(clustering_block=Container(clustering_block_header=0, clustering_cells=ListContainer([Container(key=Container(cell_value_len=2, cell_value=u'10'))])), serialized_row_body_size=8, row_body=Container(row_body_start=31, previous_unfiltered_size=10, timestamp_diff=29115, missing_columns=None, cells=ListContainer([Container(cell_flags=8, cell=Container(cell_value_len=2, cell_value=u'10'))])))), Container(row_flags=36, row=Container(clustering_block=Container(clustering_block_header=0, clustering_cells=ListContainer([Container(key=Container(cell_value_len=2, cell_value=u'11'))])), serialized_row_body_size=8, row_body=Container(row_body_start=45, previous_unfiltered_size=14, timestamp_diff=32019, missing_columns=None, cells=ListContainer([Container(cell_flags=8, cell=Container(cell_value_len=2, cell_value=u'11'))])))), Container(row_flags=36, row=Container(clustering_block=Container(clustering_block_header=0, clustering_cells=ListContainer([Container(key=Container(cell_value_len=2, cell_value=u'12'))])), serialized_row_body_size=8, row_body=Container(row_body_start=59, previous_unfiltered_size=14, timestamp_diff=34772, missing_columns=None, cells=ListContainer([Container(cell_flags=8, cell=Container(cell_value_len=2, cell_value=u'12'))])))), Container(row_flags=36, row=Container(clustering_block=Container(clustering_block_header=0, clustering_cells=ListContainer([Container(key=Container(cell_value_len=2, cell_value=u'13'))])), serialized_row_body_size=8, row_body=Container(row_body_start=73, previous_unfiltered_size=14, timestamp_diff=37694, missing_columns=None, cells=ListContainer([Container(cell_flags=8, cell=Container(cell_value_len=2, cell_value=u'13'))])))), Container(row_flags=36, row=Container(clustering_block=Container(clustering_block_header=0, clustering_cells=ListContainer([Container(key=Container(cell_value_len=2, cell_value=u'14'))])), serialized_row_body_size=8, row_body=Container(row_body_start=87, previous_unfiltered_size=14, timestamp_diff=40062, missing_columns=None, cells=ListContainer([Container(cell_flags=8, cell=Container(cell_value_len=2, cell_value=u'14'))])))), Container(row_flags=36, row=Container(clustering_block=Container(clustering_block_header=0, clustering_cells=ListContainer([Container(key=Container(cell_value_len=2, cell_value=u'15'))])), serialized_row_body_size=8, row_body=Container(row_body_start=101, previous_unfiltered_size=14, timestamp_diff=43362, missing_columns=None, cells=ListContainer([Container(cell_flags=8, cell=Container(cell_value_len=2, cell_value=u'15'))])))), Container(row_flags=36, row=Container(clustering_block=Container(clustering_block_header=0, clustering_cells=ListContainer([Container(key=Container(cell_value_len=2, cell_value=u'16'))])), serialized_row_body_size=8, row_body=Container(row_body_start=115, previous_unfiltered_size=14, timestamp_diff=46273, missing_columns=None, cells=ListContainer([Container(cell_flags=8, cell=Container(cell_value_len=2, cell_value=u'16'))])))), Container(row_flags=36, row=Container(clustering_block=Container(clustering_block_header=0, clustering_cells=ListContainer([Container(key=Container(cell_value_len=2, cell_value=u'17'))])), serialized_row_body_size=8, row_body=Container(row_body_start=129, previous_unfiltered_size=14, timestamp_diff=49303, missing_columns=None, cells=ListContainer([Container(cell_flags=8, cell=Container(cell_value_len=2, cell_value=u'17'))])))), Container(row_flags=36, row=Container(clustering_block=Container(clustering_block_header=0, clustering_cells=ListContainer([Container(key=Container(cell_value_len=2, cell_value=u'18'))])), serialized_row_body_size=8, row_body=Container(row_body_start=143, previous_unfiltered_size=14, timestamp_diff=52282, missing_columns=None, cells=ListContainer([Container(cell_flags=8, cell=Container(cell_value_len=2, cell_value=u'18'))])))), Container(row_flags=36, row=Container(clustering_block=Container(clustering_block_header=0, clustering_cells=ListContainer([Container(key=Container(cell_value_len=2, cell_value=u'19'))])), serialized_row_body_size=8, row_body=Container(row_body_start=157, previous_unfiltered_size=14, timestamp_diff=55574, missing_columns=None, cells=ListContainer([Container(cell_flags=8, cell=Container(cell_value_len=2, cell_value=u'19'))])))), Container(row_flags=36, row=Container(clustering_block=Container(clustering_block_header=0, clustering_cells=ListContainer([Container(key=Container(cell_value_len=1, cell_value=u'2'))])), serialized_row_body_size=6, row_body=Container(row_body_start=170, previous_unfiltered_size=14, timestamp_diff=4147, missing_columns=None, cells=ListContainer([Container(cell_flags=8, cell=Container(cell_value_len=1, cell_value=u'2'))])))), Container(row_flags=36, row=Container(clustering_block=Container(clustering_block_header=0, clustering_cells=ListContainer([Container(key=Container(cell_value_len=2, cell_value=u'20'))])), serialized_row_body_size=8, row_body=Container(row_body_start=182, previous_unfiltered_size=11, timestamp_diff=58328, missing_columns=None, cells=ListContainer([Container(cell_flags=8, cell=Container(cell_value_len=2, cell_value=u'20'))])))), Container(row_flags=36, row=Container(clustering_block=Container(clustering_block_header=0, clustering_cells=ListContainer([Container(key=Container(cell_value_len=1, cell_value=u'3'))])), serialized_row_body_size=6, row_body=Container(row_body_start=195, previous_unfiltered_size=14, timestamp_diff=7661, missing_columns=None, cells=ListContainer([Container(cell_flags=8, cell=Container(cell_value_len=1, cell_value=u'3'))])))), Container(row_flags=36, row=Container(clustering_block=Container(clustering_block_header=0, clustering_cells=ListContainer([Container(key=Container(cell_value_len=1, cell_value=u'4'))])), serialized_row_body_size=6, row_body=Container(row_body_start=206, previous_unfiltered_size=11, timestamp_diff=10657, missing_columns=None, cells=ListContainer([Container(cell_flags=8, cell=Container(cell_value_len=1, cell_value=u'4'))])))), Container(row_flags=36, row=Container(clustering_block=Container(clustering_block_header=0, clustering_cells=ListContainer([Container(key=Container(cell_value_len=1, cell_value=u'5'))])), serialized_row_body_size=6, row_body=Container(row_body_start=217, previous_unfiltered_size=11, timestamp_diff=13710, missing_columns=None, cells=ListContainer([Container(cell_flags=8, cell=Container(cell_value_len=1, cell_value=u'5'))])))), Container(row_flags=36, row=Container(clustering_block=Container(clustering_block_header=0, clustering_cells=ListContainer([Container(key=Container(cell_value_len=1, cell_value=u'6'))])), serialized_row_body_size=7, row_body=Container(row_body_start=228, previous_unfiltered_size=11, timestamp_diff=16629, missing_columns=None, cells=ListContainer([Container(cell_flags=8, cell=Container(cell_value_len=1, cell_value=u'6'))])))), Container(row_flags=36, row=Container(clustering_block=Container(clustering_block_header=0, clustering_cells=ListContainer([Container(key=Container(cell_value_len=1, cell_value=u'7'))])), serialized_row_body_size=7, row_body=Container(row_body_start=240, previous_unfiltered_size=12, timestamp_diff=19450, missing_columns=None, cells=ListContainer([Container(cell_flags=8, cell=Container(cell_value_len=1, cell_value=u'7'))])))), Container(row_flags=36, row=Container(clustering_block=Container(clustering_block_header=0, clustering_cells=ListContainer([Container(key=Container(cell_value_len=1, cell_value=u'8'))])), serialized_row_body_size=7, row_body=Container(row_body_start=252, previous_unfiltered_size=12, timestamp_diff=22551, missing_columns=None, cells=ListContainer([Container(cell_flags=8, cell=Container(cell_value_len=1, cell_value=u'8'))])))), Container(row_flags=36, row=Container(clustering_block=Container(clustering_block_header=0, clustering_cells=ListContainer([Container(key=Container(cell_value_len=1, cell_value=u'9'))])), serialized_row_body_size=7, row_body=Container(row_body_start=264, previous_unfiltered_size=12, timestamp_diff=25934, missing_columns=None, cells=ListContainer([Container(cell_flags=8, cell=Container(cell_value_len=1, cell_value=u'9'))])))), Container(row_flags=1, row=None)]))]
 
 # Hex Data.db
 0x00	b00000000	  0	─── (parsing) -> partitions -> partition_header -> key_len
 0x01	b00000001	  1	─── (parsing) -> partitions -> partition_header -> key_len
-0x41	b01000001	 65	'A' (parsing) -> partitions -> partition_header -> key -> cell_value_len
-0x7f	b01111111	127	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0xff	b11111111	255	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0xff	b11111111	255	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0xff	b11111111	255	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x80	b10000000	128	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x00	b00000000	  0	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x00	b00000000	  0	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x00	b00000000	  0	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x00	b00000000	  0	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x00	b00000000	  0	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x00	b00000000	  0	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x00	b00000000	  0	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x24	b00100100	 36	'$' (parsing) -> partitions -> partition_header -> key -> cell_value
-0x00	b00000000	  0	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x01	b00000001	  1	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x31	b00110001	 49	'1' (parsing) -> partitions -> partition_header -> key -> cell_value
-0x05	b00000101	  5	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x0f	b00001111	 15	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x00	b00000000	  0	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x08	b00001000	  8	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x01	b00000001	  1	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x31	b00110001	 49	'1' (parsing) -> partitions -> partition_header -> key -> cell_value
-0x24	b00100100	 36	'$' (parsing) -> partitions -> partition_header -> key -> cell_value
-0x00	b00000000	  0	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x02	b00000010	  2	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x31	b00110001	 49	'1' (parsing) -> partitions -> partition_header -> key -> cell_value
-0x30	b00110000	 48	'0' (parsing) -> partitions -> partition_header -> key -> cell_value
-0x08	b00001000	  8	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x0a	b00001010	 10	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0xc0	b11000000	192	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x71	b01110001	113	'q' (parsing) -> partitions -> partition_header -> key -> cell_value
-0xbb	b10111011	187	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x08	b00001000	  8	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x02	b00000010	  2	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x31	b00110001	 49	'1' (parsing) -> partitions -> partition_header -> key -> cell_value
-0x30	b00110000	 48	'0' (parsing) -> partitions -> partition_header -> key -> cell_value
-0x24	b00100100	 36	'$' (parsing) -> partitions -> partition_header -> key -> cell_value
-0x00	b00000000	  0	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x02	b00000010	  2	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x31	b00110001	 49	'1' (parsing) -> partitions -> partition_header -> key -> cell_value
-0x31	b00110001	 49	'1' (parsing) -> partitions -> partition_header -> key -> cell_value
-0x08	b00001000	  8	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x0e	b00001110	 14	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0xc0	b11000000	192	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x7d	b01111101	125	'}' (parsing) -> partitions -> partition_header -> key -> cell_value
-0x13	b00010011	 19	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x08	b00001000	  8	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x02	b00000010	  2	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x31	b00110001	 49	'1' (parsing) -> partitions -> partition_header -> key -> cell_value
-0x31	b00110001	 49	'1' (parsing) -> partitions -> partition_header -> key -> cell_value
-0x24	b00100100	 36	'$' (parsing) -> partitions -> partition_header -> key -> cell_value
-0x00	b00000000	  0	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x02	b00000010	  2	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x31	b00110001	 49	'1' (parsing) -> partitions -> partition_header -> key -> cell_value
-0x32	b00110010	 50	'2' (parsing) -> partitions -> partition_header -> key -> cell_value
-0x08	b00001000	  8	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x0e	b00001110	 14	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0xc0	b11000000	192	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x87	b10000111	135	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0xd4	b11010100	212	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x08	b00001000	  8	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x02	b00000010	  2	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x31	b00110001	 49	'1' (parsing) -> partitions -> partition_header -> key -> cell_value
-0x32	b00110010	 50	'2' (parsing) -> partitions -> partition_header -> key -> cell_value
-0x24	b00100100	 36	'$' (parsing) -> partitions -> partition_header -> key -> cell_value
-0x00	b00000000	  0	─── (parsing)
-0x02	b00000010	  2	─── (parsing) -> partitions -> partition_header -> key_len
-0x31	b00110001	 49	'1' (parsing) -> partitions -> partition_header -> key_len
-0x33	b00110011	 51	'3' (parsing) -> partitions -> partition_header -> key -> cell_value_len
-0x08	b00001000	  8	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x0e	b00001110	 14	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0xc0	b11000000	192	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x93	b10010011	147	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x3e	b00111110	 62	'>' (parsing) -> partitions -> partition_header -> key -> cell_value
-0x08	b00001000	  8	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x02	b00000010	  2	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x31	b00110001	 49	'1' (parsing) -> partitions -> partition_header -> key -> cell_value
-0x33	b00110011	 51	'3' (parsing) -> partitions -> partition_header -> key -> cell_value
-0x24	b00100100	 36	'$' (parsing) -> partitions -> partition_header -> key -> cell_value
-0x00	b00000000	  0	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x02	b00000010	  2	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x31	b00110001	 49	'1' (parsing) -> partitions -> partition_header -> key -> cell_value
-0x34	b00110100	 52	'4' (parsing) -> partitions -> partition_header -> key -> cell_value
-0x08	b00001000	  8	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x0e	b00001110	 14	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0xc0	b11000000	192	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x9c	b10011100	156	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x7e	b01111110	126	'~' (parsing) -> partitions -> partition_header -> key -> cell_value
-0x08	b00001000	  8	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x02	b00000010	  2	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x31	b00110001	 49	'1' (parsing) -> partitions -> partition_header -> key -> cell_value
-0x34	b00110100	 52	'4' (parsing) -> partitions -> partition_header -> key -> cell_value
-0x24	b00100100	 36	'$' (parsing) -> partitions -> partition_header -> key -> cell_value
-0x00	b00000000	  0	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x02	b00000010	  2	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x31	b00110001	 49	'1' (parsing) -> partitions -> partition_header -> key -> cell_value
-0x35	b00110101	 53	'5' (parsing) -> partitions -> partition_header -> key -> cell_value
-0x08	b00001000	  8	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x0e	b00001110	 14	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0xc0	b11000000	192	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0xa9	b10101001	169	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x62	b01100010	 98	'b' (parsing) -> partitions -> partition_header -> key -> cell_value
-0x08	b00001000	  8	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x02	b00000010	  2	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x31	b00110001	 49	'1' (parsing) -> partitions -> partition_header -> key -> cell_value
-0x35	b00110101	 53	'5' (parsing) -> partitions -> partition_header -> key -> cell_value
-0x24	b00100100	 36	'$' (parsing) -> partitions -> partition_header -> key -> cell_value
-0x00	b00000000	  0	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x02	b00000010	  2	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x31	b00110001	 49	'1' (parsing) -> partitions -> partition_header -> key -> cell_value
-0x36	b00110110	 54	'6' (parsing) -> partitions -> partition_header -> key -> cell_value
-0x08	b00001000	  8	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x0e	b00001110	 14	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0xc0	b11000000	192	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0xb4	b10110100	180	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0xc1	b11000001	193	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x08	b00001000	  8	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x02	b00000010	  2	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x31	b00110001	 49	'1' (parsing) -> partitions -> partition_header -> key -> cell_value
-0x36	b00110110	 54	'6' (parsing) -> partitions -> partition_header -> key -> cell_value
-0x24	b00100100	 36	'$' (parsing)
-0x00	b00000000	  0	─── (parsing) -> partitions -> partition_header -> key_len
-0x02	b00000010	  2	─── (parsing) -> partitions -> partition_header -> key_len
-0x31	b00110001	 49	'1' (parsing) -> partitions -> partition_header -> key -> cell_value_len
-0x37	b00110111	 55	'7' (parsing) -> partitions -> partition_header -> key -> cell_value
-0x08	b00001000	  8	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x0e	b00001110	 14	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0xc0	b11000000	192	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0xc0	b11000000	192	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x97	b10010111	151	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x08	b00001000	  8	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x02	b00000010	  2	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x31	b00110001	 49	'1' (parsing) -> partitions -> partition_header -> key -> cell_value
-0x37	b00110111	 55	'7' (parsing) -> partitions -> partition_header -> key -> cell_value
-0x24	b00100100	 36	'$' (parsing) -> partitions -> partition_header -> key -> cell_value
-0x00	b00000000	  0	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x02	b00000010	  2	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x31	b00110001	 49	'1' (parsing) -> partitions -> partition_header -> key -> cell_value
-0x38	b00111000	 56	'8' (parsing) -> partitions -> partition_header -> key -> cell_value
-0x08	b00001000	  8	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x0e	b00001110	 14	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0xc0	b11000000	192	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0xcc	b11001100	204	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x3a	b00111010	 58	':' (parsing) -> partitions -> partition_header -> key -> cell_value
-0x08	b00001000	  8	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x02	b00000010	  2	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x31	b00110001	 49	'1' (parsing) -> partitions -> partition_header -> key -> cell_value
-0x38	b00111000	 56	'8' (parsing) -> partitions -> partition_header -> key -> cell_value
-0x24	b00100100	 36	'$' (parsing) -> partitions -> partition_header -> key -> cell_value
-0x00	b00000000	  0	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x02	b00000010	  2	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x31	b00110001	 49	'1' (parsing) -> partitions -> partition_header -> key -> cell_value
-0x39	b00111001	 57	'9' (parsing) -> partitions -> partition_header -> key -> cell_value
-0x08	b00001000	  8	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x0e	b00001110	 14	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0xc0	b11000000	192	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0xd9	b11011001	217	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x16	b00010110	 22	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x08	b00001000	  8	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x02	b00000010	  2	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x31	b00110001	 49	'1' (parsing) -> partitions -> partition_header -> key -> cell_value
-0x39	b00111001	 57	'9' (parsing) -> partitions -> partition_header -> key -> cell_value
-0x24	b00100100	 36	'$' (parsing) -> partitions -> partition_header -> key -> cell_value
-0x00	b00000000	  0	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x01	b00000001	  1	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x32	b00110010	 50	'2' (parsing) -> partitions -> partition_header -> key -> cell_value
-0x06	b00000110	  6	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x0e	b00001110	 14	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x90	b10010000	144	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x33	b00110011	 51	'3' (parsing) -> partitions -> partition_header -> key -> cell_value
-0x08	b00001000	  8	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x01	b00000001	  1	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x32	b00110010	 50	'2' (parsing) -> partitions -> partition_header -> key -> cell_value
-0x24	b00100100	 36	'$' (parsing)
-0x00	b00000000	  0	─── (parsing) -> partitions -> partition_header -> key_len
-0x02	b00000010	  2	─── (parsing) -> partitions -> partition_header -> key_len
-0x32	b00110010	 50	'2' (parsing) -> partitions -> partition_header -> key -> cell_value_len
-0x30	b00110000	 48	'0' (parsing) -> partitions -> partition_header -> key -> cell_value
-0x08	b00001000	  8	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x0b	b00001011	 11	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0xc0	b11000000	192	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0xe3	b11100011	227	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0xd8	b11011000	216	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x08	b00001000	  8	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x02	b00000010	  2	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x32	b00110010	 50	'2' (parsing) -> partitions -> partition_header -> key -> cell_value
-0x30	b00110000	 48	'0' (parsing) -> partitions -> partition_header -> key -> cell_value
-0x24	b00100100	 36	'$' (parsing) -> partitions -> partition_header -> key -> cell_value
-0x00	b00000000	  0	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x01	b00000001	  1	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x33	b00110011	 51	'3' (parsing) -> partitions -> partition_header -> key -> cell_value
-0x06	b00000110	  6	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x0e	b00001110	 14	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x9d	b10011101	157	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0xed	b11101101	237	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x08	b00001000	  8	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x01	b00000001	  1	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x33	b00110011	 51	'3' (parsing) -> partitions -> partition_header -> key -> cell_value
-0x24	b00100100	 36	'$' (parsing) -> partitions -> partition_header -> key -> cell_value
-0x00	b00000000	  0	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x01	b00000001	  1	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x34	b00110100	 52	'4' (parsing) -> partitions -> partition_header -> key -> cell_value
-0x06	b00000110	  6	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x0b	b00001011	 11	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0xa9	b10101001	169	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0xa1	b10100001	161	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x08	b00001000	  8	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x01	b00000001	  1	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x34	b00110100	 52	'4' (parsing) -> partitions -> partition_header -> key -> cell_value
-0x24	b00100100	 36	'$' (parsing) -> partitions -> partition_header -> key -> cell_value
-0x00	b00000000	  0	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x01	b00000001	  1	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x35	b00110101	 53	'5' (parsing) -> partitions -> partition_header -> key -> cell_value
-0x06	b00000110	  6	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x0b	b00001011	 11	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0xb5	b10110101	181	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x8e	b10001110	142	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x08	b00001000	  8	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x01	b00000001	  1	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x35	b00110101	 53	'5' (parsing) -> partitions -> partition_header -> key -> cell_value
-0x24	b00100100	 36	'$' (parsing) -> partitions -> partition_header -> key -> cell_value
-0x00	b00000000	  0	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x01	b00000001	  1	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x36	b00110110	 54	'6' (parsing) -> partitions -> partition_header -> key -> cell_value
-0x07	b00000111	  7	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x0b	b00001011	 11	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0xc0	b11000000	192	─── (parsing) -> partitions -> partition_header -> key -> cell_value
-0x40	b01000000	 64	'@' (parsing)
-0xf5	b11110101	245	─── (parsing) -> partitions -> partition_header -> key_len
-0x08	b00001000	  8	─── (parsing) -> partitions -> partition_header -> key_len
-0x01	b00000001	  1	─── (parsing) -> partitions -> partition_header -> key -> cell_value_len
-0x36	b00110110	 54	'6' (parsing) -> partitions -> partition_header -> key -> cell_value
-0x24	b00100100	 36	'$' (parsing) -> partitions -> partition_header -> deletion_time -> local_deletion_time
-0x00	b00000000	  0	─── (parsing) -> partitions -> partition_header -> deletion_time -> local_deletion_time
-0x01	b00000001	  1	─── (parsing) -> partitions -> partition_header -> deletion_time -> local_deletion_time
-0x37	b00110111	 55	'7' (parsing) -> partitions -> partition_header -> deletion_time -> local_deletion_time
-0x07	b00000111	  7	─── (parsing) -> partitions -> partition_header -> deletion_time -> marked_for_delete_at
-0x0c	b00001100	 12	─── (parsing) -> partitions -> partition_header -> deletion_time -> marked_for_delete_at
-0xc0	b11000000	192	─── (parsing) -> partitions -> partition_header -> deletion_time -> marked_for_delete_at
-0x4b	b01001011	 75	'K' (parsing) -> partitions -> partition_header -> deletion_time -> marked_for_delete_at
-0xfa	b11111010	250	─── (parsing) -> partitions -> partition_header -> deletion_time -> marked_for_delete_at
-0x08	b00001000	  8	─── (parsing) -> partitions -> partition_header -> deletion_time -> marked_for_delete_at
-0x01	b00000001	  1	─── (parsing) -> partitions -> partition_header -> deletion_time -> marked_for_delete_at
-0x37	b00110111	 55	'7' (parsing) -> partitions -> partition_header -> deletion_time -> marked_for_delete_at
+0x41	b01000001	 65	'A' (parsing) -> partitions -> partition_header -> key
+0x7f	b01111111	127	─── (parsing) -> partitions -> partition_header -> deletion_time -> local_deletion_time
+0xff	b11111111	255	─── (parsing) -> partitions -> partition_header -> deletion_time -> local_deletion_time
+0xff	b11111111	255	─── (parsing) -> partitions -> partition_header -> deletion_time -> local_deletion_time
+0xff	b11111111	255	─── (parsing) -> partitions -> partition_header -> deletion_time -> local_deletion_time
+0x80	b10000000	128	─── (parsing) -> partitions -> partition_header -> deletion_time -> marked_for_delete_at
+0x00	b00000000	  0	─── (parsing) -> partitions -> partition_header -> deletion_time -> marked_for_delete_at
+0x00	b00000000	  0	─── (parsing) -> partitions -> partition_header -> deletion_time -> marked_for_delete_at
+0x00	b00000000	  0	─── (parsing) -> partitions -> partition_header -> deletion_time -> marked_for_delete_at
+0x00	b00000000	  0	─── (parsing) -> partitions -> partition_header -> deletion_time -> marked_for_delete_at
+0x00	b00000000	  0	─── (parsing) -> partitions -> partition_header -> deletion_time -> marked_for_delete_at
+0x00	b00000000	  0	─── (parsing) -> partitions -> partition_header -> deletion_time -> marked_for_delete_at
+0x00	b00000000	  0	─── (parsing) -> partitions -> partition_header -> deletion_time -> marked_for_delete_at
+0x24	b00100100	 36	'$' (parsing) -> partitions -> unfiltereds -> row_flags
+0x00	b00000000	  0	─── (parsing) -> partitions -> unfiltereds -> row -> clustering_block -> clustering_block_header
+0x01	b00000001	  1	─── (parsing) -> partitions -> unfiltereds -> row -> clustering_block -> clustering_cells -> key -> cell_value_len
+0x31	b00110001	 49	'1' (parsing) -> partitions -> unfiltereds -> row -> clustering_block -> clustering_cells -> key -> cell_value
+0x05	b00000101	  5	─── (parsing) -> partitions -> unfiltereds -> row -> serialized_row_body_size
+0x0f	b00001111	 15	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> previous_unfiltered_size
+0x00	b00000000	  0	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> timestamp_diff
+0x08	b00001000	  8	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> cell_flags
+0x01	b00000001	  1	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> cell -> cell_value_len
+0x31	b00110001	 49	'1' (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> cell -> cell_value
+0x24	b00100100	 36	'$' (parsing) -> partitions -> unfiltereds -> row_flags
+0x00	b00000000	  0	─── (parsing) -> partitions -> unfiltereds -> row -> clustering_block -> clustering_block_header
+0x02	b00000010	  2	─── (parsing) -> partitions -> unfiltereds -> row -> clustering_block -> clustering_cells -> key -> cell_value_len
+0x31	b00110001	 49	'1' (parsing) -> partitions -> unfiltereds -> row -> clustering_block -> clustering_cells -> key -> cell_value
+0x30	b00110000	 48	'0' (parsing) -> partitions -> unfiltereds -> row -> clustering_block -> clustering_cells -> key -> cell_value
+0x08	b00001000	  8	─── (parsing) -> partitions -> unfiltereds -> row -> serialized_row_body_size
+0x0a	b00001010	 10	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> previous_unfiltered_size
+0xc0	b11000000	192	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> timestamp_diff
+0x71	b01110001	113	'q' (parsing) -> partitions -> unfiltereds -> row -> row_body -> timestamp_diff
+0xbb	b10111011	187	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> timestamp_diff
+0x08	b00001000	  8	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> cell_flags
+0x02	b00000010	  2	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> cell -> cell_value_len
+0x31	b00110001	 49	'1' (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> cell -> cell_value
+0x30	b00110000	 48	'0' (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> cell -> cell_value
+0x24	b00100100	 36	'$' (parsing) -> partitions -> unfiltereds -> row_flags
+0x00	b00000000	  0	─── (parsing) -> partitions -> unfiltereds -> row -> clustering_block -> clustering_block_header
+0x02	b00000010	  2	─── (parsing) -> partitions -> unfiltereds -> row -> clustering_block -> clustering_cells -> key -> cell_value_len
+0x31	b00110001	 49	'1' (parsing) -> partitions -> unfiltereds -> row -> clustering_block -> clustering_cells -> key -> cell_value
+0x31	b00110001	 49	'1' (parsing) -> partitions -> unfiltereds -> row -> clustering_block -> clustering_cells -> key -> cell_value
+0x08	b00001000	  8	─── (parsing) -> partitions -> unfiltereds -> row -> serialized_row_body_size
+0x0e	b00001110	 14	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> previous_unfiltered_size
+0xc0	b11000000	192	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> timestamp_diff
+0x7d	b01111101	125	'}' (parsing) -> partitions -> unfiltereds -> row -> row_body -> timestamp_diff
+0x13	b00010011	 19	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> timestamp_diff
+0x08	b00001000	  8	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> cell_flags
+0x02	b00000010	  2	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> cell -> cell_value_len
+0x31	b00110001	 49	'1' (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> cell -> cell_value
+0x31	b00110001	 49	'1' (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> cell -> cell_value
+0x24	b00100100	 36	'$' (parsing) -> partitions -> unfiltereds -> row_flags
+0x00	b00000000	  0	─── (parsing) -> partitions -> unfiltereds -> row -> clustering_block -> clustering_block_header
+0x02	b00000010	  2	─── (parsing) -> partitions -> unfiltereds -> row -> clustering_block -> clustering_cells -> key -> cell_value_len
+0x31	b00110001	 49	'1' (parsing) -> partitions -> unfiltereds -> row -> clustering_block -> clustering_cells -> key -> cell_value
+0x32	b00110010	 50	'2' (parsing) -> partitions -> unfiltereds -> row -> clustering_block -> clustering_cells -> key -> cell_value
+0x08	b00001000	  8	─── (parsing) -> partitions -> unfiltereds -> row -> serialized_row_body_size
+0x0e	b00001110	 14	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> previous_unfiltered_size
+0xc0	b11000000	192	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> timestamp_diff
+0x87	b10000111	135	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> timestamp_diff
+0xd4	b11010100	212	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> timestamp_diff
+0x08	b00001000	  8	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> cell_flags
+0x02	b00000010	  2	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> cell -> cell_value_len
+0x31	b00110001	 49	'1' (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> cell -> cell_value
+0x32	b00110010	 50	'2' (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> cell -> cell_value
+0x24	b00100100	 36	'$' (parsing) -> partitions -> unfiltereds -> row_flags
+0x00	b00000000	  0	─── (parsing) -> partitions -> unfiltereds -> row -> clustering_block -> clustering_block_header
+0x02	b00000010	  2	─── (parsing) -> partitions -> unfiltereds -> row -> clustering_block -> clustering_cells -> key -> cell_value_len
+0x31	b00110001	 49	'1' (parsing) -> partitions -> unfiltereds -> row -> clustering_block -> clustering_cells -> key -> cell_value
+0x33	b00110011	 51	'3' (parsing) -> partitions -> unfiltereds -> row -> clustering_block -> clustering_cells -> key -> cell_value
+0x08	b00001000	  8	─── (parsing) -> partitions -> unfiltereds -> row -> serialized_row_body_size
+0x0e	b00001110	 14	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> previous_unfiltered_size
+0xc0	b11000000	192	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> timestamp_diff
+0x93	b10010011	147	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> timestamp_diff
+0x3e	b00111110	 62	'>' (parsing) -> partitions -> unfiltereds -> row -> row_body -> timestamp_diff
+0x08	b00001000	  8	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> cell_flags
+0x02	b00000010	  2	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> cell -> cell_value_len
+0x31	b00110001	 49	'1' (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> cell -> cell_value
+0x33	b00110011	 51	'3' (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> cell -> cell_value
+0x24	b00100100	 36	'$' (parsing) -> partitions -> unfiltereds -> row_flags
+0x00	b00000000	  0	─── (parsing) -> partitions -> unfiltereds -> row -> clustering_block -> clustering_block_header
+0x02	b00000010	  2	─── (parsing) -> partitions -> unfiltereds -> row -> clustering_block -> clustering_cells -> key -> cell_value_len
+0x31	b00110001	 49	'1' (parsing) -> partitions -> unfiltereds -> row -> clustering_block -> clustering_cells -> key -> cell_value
+0x34	b00110100	 52	'4' (parsing) -> partitions -> unfiltereds -> row -> clustering_block -> clustering_cells -> key -> cell_value
+0x08	b00001000	  8	─── (parsing) -> partitions -> unfiltereds -> row -> serialized_row_body_size
+0x0e	b00001110	 14	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> previous_unfiltered_size
+0xc0	b11000000	192	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> timestamp_diff
+0x9c	b10011100	156	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> timestamp_diff
+0x7e	b01111110	126	'~' (parsing) -> partitions -> unfiltereds -> row -> row_body -> timestamp_diff
+0x08	b00001000	  8	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> cell_flags
+0x02	b00000010	  2	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> cell -> cell_value_len
+0x31	b00110001	 49	'1' (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> cell -> cell_value
+0x34	b00110100	 52	'4' (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> cell -> cell_value
+0x24	b00100100	 36	'$' (parsing) -> partitions -> unfiltereds -> row_flags
+0x00	b00000000	  0	─── (parsing) -> partitions -> unfiltereds -> row -> clustering_block -> clustering_block_header
+0x02	b00000010	  2	─── (parsing) -> partitions -> unfiltereds -> row -> clustering_block -> clustering_cells -> key -> cell_value_len
+0x31	b00110001	 49	'1' (parsing) -> partitions -> unfiltereds -> row -> clustering_block -> clustering_cells -> key -> cell_value
+0x35	b00110101	 53	'5' (parsing) -> partitions -> unfiltereds -> row -> clustering_block -> clustering_cells -> key -> cell_value
+0x08	b00001000	  8	─── (parsing) -> partitions -> unfiltereds -> row -> serialized_row_body_size
+0x0e	b00001110	 14	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> previous_unfiltered_size
+0xc0	b11000000	192	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> timestamp_diff
+0xa9	b10101001	169	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> timestamp_diff
+0x62	b01100010	 98	'b' (parsing) -> partitions -> unfiltereds -> row -> row_body -> timestamp_diff
+0x08	b00001000	  8	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> cell_flags
+0x02	b00000010	  2	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> cell -> cell_value_len
+0x31	b00110001	 49	'1' (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> cell -> cell_value
+0x35	b00110101	 53	'5' (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> cell -> cell_value
+0x24	b00100100	 36	'$' (parsing) -> partitions -> unfiltereds -> row_flags
+0x00	b00000000	  0	─── (parsing) -> partitions -> unfiltereds -> row -> clustering_block -> clustering_block_header
+0x02	b00000010	  2	─── (parsing) -> partitions -> unfiltereds -> row -> clustering_block -> clustering_cells -> key -> cell_value_len
+0x31	b00110001	 49	'1' (parsing) -> partitions -> unfiltereds -> row -> clustering_block -> clustering_cells -> key -> cell_value
+0x36	b00110110	 54	'6' (parsing) -> partitions -> unfiltereds -> row -> clustering_block -> clustering_cells -> key -> cell_value
+0x08	b00001000	  8	─── (parsing) -> partitions -> unfiltereds -> row -> serialized_row_body_size
+0x0e	b00001110	 14	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> previous_unfiltered_size
+0xc0	b11000000	192	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> timestamp_diff
+0xb4	b10110100	180	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> timestamp_diff
+0xc1	b11000001	193	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> timestamp_diff
+0x08	b00001000	  8	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> cell_flags
+0x02	b00000010	  2	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> cell -> cell_value_len
+0x31	b00110001	 49	'1' (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> cell -> cell_value
+0x36	b00110110	 54	'6' (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> cell -> cell_value
+0x24	b00100100	 36	'$' (parsing) -> partitions -> unfiltereds -> row_flags
+0x00	b00000000	  0	─── (parsing) -> partitions -> unfiltereds -> row -> clustering_block -> clustering_block_header
+0x02	b00000010	  2	─── (parsing) -> partitions -> unfiltereds -> row -> clustering_block -> clustering_cells -> key -> cell_value_len
+0x31	b00110001	 49	'1' (parsing) -> partitions -> unfiltereds -> row -> clustering_block -> clustering_cells -> key -> cell_value
+0x37	b00110111	 55	'7' (parsing) -> partitions -> unfiltereds -> row -> clustering_block -> clustering_cells -> key -> cell_value
+0x08	b00001000	  8	─── (parsing) -> partitions -> unfiltereds -> row -> serialized_row_body_size
+0x0e	b00001110	 14	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> previous_unfiltered_size
+0xc0	b11000000	192	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> timestamp_diff
+0xc0	b11000000	192	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> timestamp_diff
+0x97	b10010111	151	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> timestamp_diff
+0x08	b00001000	  8	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> cell_flags
+0x02	b00000010	  2	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> cell -> cell_value_len
+0x31	b00110001	 49	'1' (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> cell -> cell_value
+0x37	b00110111	 55	'7' (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> cell -> cell_value
+0x24	b00100100	 36	'$' (parsing) -> partitions -> unfiltereds -> row_flags
+0x00	b00000000	  0	─── (parsing) -> partitions -> unfiltereds -> row -> clustering_block -> clustering_block_header
+0x02	b00000010	  2	─── (parsing) -> partitions -> unfiltereds -> row -> clustering_block -> clustering_cells -> key -> cell_value_len
+0x31	b00110001	 49	'1' (parsing) -> partitions -> unfiltereds -> row -> clustering_block -> clustering_cells -> key -> cell_value
+0x38	b00111000	 56	'8' (parsing) -> partitions -> unfiltereds -> row -> clustering_block -> clustering_cells -> key -> cell_value
+0x08	b00001000	  8	─── (parsing) -> partitions -> unfiltereds -> row -> serialized_row_body_size
+0x0e	b00001110	 14	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> previous_unfiltered_size
+0xc0	b11000000	192	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> timestamp_diff
+0xcc	b11001100	204	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> timestamp_diff
+0x3a	b00111010	 58	':' (parsing) -> partitions -> unfiltereds -> row -> row_body -> timestamp_diff
+0x08	b00001000	  8	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> cell_flags
+0x02	b00000010	  2	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> cell -> cell_value_len
+0x31	b00110001	 49	'1' (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> cell -> cell_value
+0x38	b00111000	 56	'8' (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> cell -> cell_value
+0x24	b00100100	 36	'$' (parsing) -> partitions -> unfiltereds -> row_flags
+0x00	b00000000	  0	─── (parsing) -> partitions -> unfiltereds -> row -> clustering_block -> clustering_block_header
+0x02	b00000010	  2	─── (parsing) -> partitions -> unfiltereds -> row -> clustering_block -> clustering_cells -> key -> cell_value_len
+0x31	b00110001	 49	'1' (parsing) -> partitions -> unfiltereds -> row -> clustering_block -> clustering_cells -> key -> cell_value
+0x39	b00111001	 57	'9' (parsing) -> partitions -> unfiltereds -> row -> clustering_block -> clustering_cells -> key -> cell_value
+0x08	b00001000	  8	─── (parsing) -> partitions -> unfiltereds -> row -> serialized_row_body_size
+0x0e	b00001110	 14	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> previous_unfiltered_size
+0xc0	b11000000	192	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> timestamp_diff
+0xd9	b11011001	217	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> timestamp_diff
+0x16	b00010110	 22	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> timestamp_diff
+0x08	b00001000	  8	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> cell_flags
+0x02	b00000010	  2	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> cell -> cell_value_len
+0x31	b00110001	 49	'1' (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> cell -> cell_value
+0x39	b00111001	 57	'9' (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> cell -> cell_value
+0x24	b00100100	 36	'$' (parsing) -> partitions -> unfiltereds -> row_flags
+0x00	b00000000	  0	─── (parsing) -> partitions -> unfiltereds -> row -> clustering_block -> clustering_block_header
+0x01	b00000001	  1	─── (parsing) -> partitions -> unfiltereds -> row -> clustering_block -> clustering_cells -> key -> cell_value_len
+0x32	b00110010	 50	'2' (parsing) -> partitions -> unfiltereds -> row -> clustering_block -> clustering_cells -> key -> cell_value
+0x06	b00000110	  6	─── (parsing) -> partitions -> unfiltereds -> row -> serialized_row_body_size
+0x0e	b00001110	 14	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> previous_unfiltered_size
+0x90	b10010000	144	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> timestamp_diff
+0x33	b00110011	 51	'3' (parsing) -> partitions -> unfiltereds -> row -> row_body -> timestamp_diff
+0x08	b00001000	  8	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> cell_flags
+0x01	b00000001	  1	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> cell -> cell_value_len
+0x32	b00110010	 50	'2' (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> cell -> cell_value
+0x24	b00100100	 36	'$' (parsing) -> partitions -> unfiltereds -> row_flags
+0x00	b00000000	  0	─── (parsing) -> partitions -> unfiltereds -> row -> clustering_block -> clustering_block_header
+0x02	b00000010	  2	─── (parsing) -> partitions -> unfiltereds -> row -> clustering_block -> clustering_cells -> key -> cell_value_len
+0x32	b00110010	 50	'2' (parsing) -> partitions -> unfiltereds -> row -> clustering_block -> clustering_cells -> key -> cell_value
+0x30	b00110000	 48	'0' (parsing) -> partitions -> unfiltereds -> row -> clustering_block -> clustering_cells -> key -> cell_value
+0x08	b00001000	  8	─── (parsing) -> partitions -> unfiltereds -> row -> serialized_row_body_size
+0x0b	b00001011	 11	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> previous_unfiltered_size
+0xc0	b11000000	192	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> timestamp_diff
+0xe3	b11100011	227	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> timestamp_diff
+0xd8	b11011000	216	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> timestamp_diff
+0x08	b00001000	  8	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> cell_flags
+0x02	b00000010	  2	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> cell -> cell_value_len
+0x32	b00110010	 50	'2' (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> cell -> cell_value
+0x30	b00110000	 48	'0' (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> cell -> cell_value
+0x24	b00100100	 36	'$' (parsing) -> partitions -> unfiltereds -> row_flags
+0x00	b00000000	  0	─── (parsing) -> partitions -> unfiltereds -> row -> clustering_block -> clustering_block_header
+0x01	b00000001	  1	─── (parsing) -> partitions -> unfiltereds -> row -> clustering_block -> clustering_cells -> key -> cell_value_len
+0x33	b00110011	 51	'3' (parsing) -> partitions -> unfiltereds -> row -> clustering_block -> clustering_cells -> key -> cell_value
+0x06	b00000110	  6	─── (parsing) -> partitions -> unfiltereds -> row -> serialized_row_body_size
+0x0e	b00001110	 14	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> previous_unfiltered_size
+0x9d	b10011101	157	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> timestamp_diff
+0xed	b11101101	237	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> timestamp_diff
+0x08	b00001000	  8	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> cell_flags
+0x01	b00000001	  1	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> cell -> cell_value_len
+0x33	b00110011	 51	'3' (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> cell -> cell_value
+0x24	b00100100	 36	'$' (parsing) -> partitions -> unfiltereds -> row_flags
+0x00	b00000000	  0	─── (parsing) -> partitions -> unfiltereds -> row -> clustering_block -> clustering_block_header
+0x01	b00000001	  1	─── (parsing) -> partitions -> unfiltereds -> row -> clustering_block -> clustering_cells -> key -> cell_value_len
+0x34	b00110100	 52	'4' (parsing) -> partitions -> unfiltereds -> row -> clustering_block -> clustering_cells -> key -> cell_value
+0x06	b00000110	  6	─── (parsing) -> partitions -> unfiltereds -> row -> serialized_row_body_size
+0x0b	b00001011	 11	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> previous_unfiltered_size
+0xa9	b10101001	169	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> timestamp_diff
+0xa1	b10100001	161	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> timestamp_diff
+0x08	b00001000	  8	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> cell_flags
+0x01	b00000001	  1	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> cell -> cell_value_len
+0x34	b00110100	 52	'4' (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> cell -> cell_value
+0x24	b00100100	 36	'$' (parsing) -> partitions -> unfiltereds -> row_flags
+0x00	b00000000	  0	─── (parsing) -> partitions -> unfiltereds -> row -> clustering_block -> clustering_block_header
+0x01	b00000001	  1	─── (parsing) -> partitions -> unfiltereds -> row -> clustering_block -> clustering_cells -> key -> cell_value_len
+0x35	b00110101	 53	'5' (parsing) -> partitions -> unfiltereds -> row -> clustering_block -> clustering_cells -> key -> cell_value
+0x06	b00000110	  6	─── (parsing) -> partitions -> unfiltereds -> row -> serialized_row_body_size
+0x0b	b00001011	 11	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> previous_unfiltered_size
+0xb5	b10110101	181	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> timestamp_diff
+0x8e	b10001110	142	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> timestamp_diff
+0x08	b00001000	  8	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> cell_flags
+0x01	b00000001	  1	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> cell -> cell_value_len
+0x35	b00110101	 53	'5' (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> cell -> cell_value
+0x24	b00100100	 36	'$' (parsing) -> partitions -> unfiltereds -> row_flags
+0x00	b00000000	  0	─── (parsing) -> partitions -> unfiltereds -> row -> clustering_block -> clustering_block_header
+0x01	b00000001	  1	─── (parsing) -> partitions -> unfiltereds -> row -> clustering_block -> clustering_cells -> key -> cell_value_len
+0x36	b00110110	 54	'6' (parsing) -> partitions -> unfiltereds -> row -> clustering_block -> clustering_cells -> key -> cell_value
+0x07	b00000111	  7	─── (parsing) -> partitions -> unfiltereds -> row -> serialized_row_body_size
+0x0b	b00001011	 11	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> previous_unfiltered_size
+0xc0	b11000000	192	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> timestamp_diff
+0x40	b01000000	 64	'@' (parsing) -> partitions -> unfiltereds -> row -> row_body -> timestamp_diff
+0xf5	b11110101	245	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> timestamp_diff
+0x08	b00001000	  8	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> cell_flags
+0x01	b00000001	  1	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> cell -> cell_value_len
+0x36	b00110110	 54	'6' (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> cell -> cell_value
+0x24	b00100100	 36	'$' (parsing) -> partitions -> unfiltereds -> row_flags
+0x00	b00000000	  0	─── (parsing) -> partitions -> unfiltereds -> row -> clustering_block -> clustering_block_header
+0x01	b00000001	  1	─── (parsing) -> partitions -> unfiltereds -> row -> clustering_block -> clustering_cells -> key -> cell_value_len
+0x37	b00110111	 55	'7' (parsing) -> partitions -> unfiltereds -> row -> clustering_block -> clustering_cells -> key -> cell_value
+0x07	b00000111	  7	─── (parsing) -> partitions -> unfiltereds -> row -> serialized_row_body_size
+0x0c	b00001100	 12	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> previous_unfiltered_size
+0xc0	b11000000	192	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> timestamp_diff
+0x4b	b01001011	 75	'K' (parsing) -> partitions -> unfiltereds -> row -> row_body -> timestamp_diff
+0xfa	b11111010	250	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> timestamp_diff
+0x08	b00001000	  8	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> cell_flags
+0x01	b00000001	  1	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> cell -> cell_value_len
+0x37	b00110111	 55	'7' (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> cell -> cell_value
 0x24	b00100100	 36	'$' (parsing) -> partitions -> unfiltereds -> row_flags
 0x00	b00000000	  0	─── (parsing) -> partitions -> unfiltereds -> row -> clustering_block -> clustering_block_header
 0x01	b00000001	  1	─── (parsing) -> partitions -> unfiltereds -> row -> clustering_block -> clustering_cells -> key -> cell_value_len

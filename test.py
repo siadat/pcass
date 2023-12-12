@@ -46,7 +46,7 @@ def test_encode_and_decode():
             dump.dump(statistics_file, data_file,  mock_writer)
     utils.assert_equal(['clustering_column_1'], mock_writer.clustering_column_names)
     utils.assert_equal(['aboutme'], mock_writer.regular_column_names)
-    utils.assert_equal([1, 2, 3], mock_writer.partition_key_value)
+    utils.assert_equal([b'\x00\x00\x00\x01', b'\x00\x00\x00\x02', b'\x00\x00\x00\x03'], mock_writer.partition_key_value)
     utils.assert_equal(['sina', 'soheil', 'sara'], mock_writer.clustering_column_values)
     utils.assert_equal(['hi my name is sina!', 'hi my name is soheil!', 'hi my name is sara!'], mock_writer.regular_column_values)
 

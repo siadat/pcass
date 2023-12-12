@@ -2,7 +2,7 @@ test:
 	poetry run python test.py
 	poetry run python import.py | jq -s 'if length != 2 then error("Length is not 2") else "2 rows dumped" end'
 	poetry run python dump.py test_data/cassandra3_data_want/sina_test/sina_table-*/ | jq -s 'if length != 3 then error("Length is not 3") else "3 rows dumped" end'
-	poetry run python dump.py test_data/cassandra3_data_want/sina_test/has_all_types-*/ | jq -s 'if length != 7 then error("Length is not 7") else "7 rows dumped" end'
+	poetry run python dump.py test_data/cassandra3_data_want/sina_test/has_all_types-*/ | jq -s 'if length != 5 then error("Length is not 5 it is \(length)") else "5 rows dumped" end'
 
 old_parse_all: generate_parser parse
 

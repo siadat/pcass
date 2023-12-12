@@ -57,9 +57,10 @@ def main():
         "row_body_start": 0,
         "previous_unfiltered_size": 0,
         "timestamp_diff": 0,
+        "missing_columns": None,
         "cells": [
             {
-                "cell_flags": 0x08,
+                "cell_flags": 0x28,
                 "cell": {
                     "cell_value": 42,
                 },
@@ -70,9 +71,10 @@ def main():
         "row_body_start": 0,
         "previous_unfiltered_size": 0,
         "timestamp_diff": 0,
+        "missing_columns": None,
         "cells": [
             {
-                "cell_flags": 0x08,
+                "cell_flags": 0x28,
                 "cell": {
                     "cell_value": 123,
                 },
@@ -81,11 +83,13 @@ def main():
     }
     row_body1_size = len(sstable_data.unfiltered.row.thensubcon.row_body.build(
         row_body1,
+        overridden_row_flags=0x24,
         serialized_row_body_size=0,
         sstable_statistics=statistics_got,
     ))
     row_body2_size = len(sstable_data.unfiltered.row.thensubcon.row_body.build(
         row_body2,
+        overridden_row_flags=0x24,
         serialized_row_body_size=0,
         sstable_statistics=statistics_got,
     ))
@@ -94,9 +98,7 @@ def main():
                 {
                     "partition_header": {
                         "key_len": 2,
-                        "key": {
-                            "cell_value": 0x01,
-                        },
+                        "key": b"\x00\x01",
                         "deletion_time": {
                             "local_deletion_time": 0,
                             "marked_for_delete_at": 0,
