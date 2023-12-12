@@ -5,7 +5,7 @@ CREATE TABLE sina_table ( id int, name text, aboutme text, age int, PRIMARY KEY 
 
 INSERT INTO sina_table (id, name, aboutme, age) VALUES ( 1, 'sina', 'hi my name is sina!', 39);
 INSERT INTO sina_table (id, name, aboutme, age) VALUES ( 2, 'soheil', 'hi my name is soheil!', 46);
-INSERT INTO sina_table (id, name, aboutme, age) VALUES ( 3, 'sara', 'hi my name is sara!', 44);
+INSERT INTO sina_table (id, name, aboutme) VALUES ( 3, 'sara', 'hi my name is sara!'); -- missing column
 
 -- https://sourcegraph.com/github.com/apache/cassandra@cassandra-3.0.0/-/blob/pylib/cqlshlib/test/test_keyspace_init.cql
 CREATE TABLE has_all_types (
@@ -78,7 +78,7 @@ CREATE COLUMNFAMILY dynamic_columns (
     column1 float,
     value text,
     PRIMARY KEY(somekey, column1)
-) WITH COMPACT STORAGE;
+) WITH COMPACT STORAGE AND compression ={'enabled':'false'};
 
 INSERT INTO dynamic_columns (somekey, column1, value) VALUES (1, 1.2, 'one point two');
 INSERT INTO dynamic_columns (somekey, column1, value) VALUES (2, 2.3, 'two point three');
