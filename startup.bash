@@ -8,4 +8,4 @@ until cqlsh -e "DESCRIBE KEYSPACES" > /dev/null; do
 done
 
 # Cassandra is ready - execute the CQL file
-cqlsh -f /root/work/populate_rows.cql
+cqlsh -f /root/work/populate_test_schema.cql

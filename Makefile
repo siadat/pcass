@@ -1,8 +1,8 @@
 test:
 	poetry run python test.py
 	poetry run python import.py | jq -s 'if length != 2 then error("Length is not 2") else "2 rows dumped" end'
-	poetry run python dump.py cassandra_data_history/2023-12-02_17-37-59-558444736-with-age/sina_test/my_table-96482d20913911eea6386d2c86545d91/ | jq -s 'if length != 3 then error("Length is not 3") else "3 rows dumped" end'
-	poetry run python dump.py cassandra_data_history/2023-12-07_19-02-14-721636603-has-all-types/sina_test/has_all_types-305d5dc0953311eea6f06d2c86545d91/ | jq -s 'if length != 7 then error("Length is not 7") else "7 rows dumped" end'
+	poetry run python dump.py test_data/cassandra3_data_want/sina_test/sina_table-*/ | jq -s 'if length != 3 then error("Length is not 3") else "3 rows dumped" end'
+	poetry run python dump.py test_data/cassandra3_data_want/sina_test/has_all_types-*/ | jq -s 'if length != 7 then error("Length is not 7") else "7 rows dumped" end'
 
 old_parse_all: generate_parser parse
 
@@ -24,10 +24,10 @@ populate_db: clean cass_zig
 	make populate_rows
 	docker stop cass_zig
 
-	mkdir -p cassandra_data_history/
-	$(eval data_dir := cassandra_data_history/$(shell date "+%Y-%m-%d_%H-%M-%S-%N"))
-	cp -rp cassandra_data/data $(data_dir)
-	cp populate_rows.cql $(data_dir)
+	rm -rf test_data/cassandra3_data_want/
+	mkdir -p test_data/cassandra3_data_want/
+	cp -rp cassandra_data/data/* test_data/cassandra3_data_want/
+	cp populate_test_schema.cql test_data/cassandra3_data_want/
 
 # ====
 
