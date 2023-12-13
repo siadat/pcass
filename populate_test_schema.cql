@@ -1,11 +1,15 @@
 CREATE KEYSPACE sina_test WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1};
 USE sina_test;
 
-CREATE TABLE sina_table ( id int, name text, aboutme text, age int, PRIMARY KEY ((id), name)) WITH compression = {'enabled':'false'};
+CREATE TABLE sina_table ( id int, name text, aboutme text, gender text, age int, another int, PRIMARY KEY ((id), name)) WITH compression = {'enabled':'false'};
 
-INSERT INTO sina_table (id, name, aboutme, age) VALUES ( 1, 'sina', 'hi my name is sina!', 39);
-INSERT INTO sina_table (id, name, aboutme, age) VALUES ( 2, 'soheil', 'hi my name is soheil!', 46);
-INSERT INTO sina_table (id, name, aboutme) VALUES ( 3, 'sara', 'hi my name is sara!'); -- missing column
+INSERT INTO sina_table (id, name,          gender, age         ) VALUES ( 1, 'sina', 'male', 39);
+INSERT INTO sina_table (id, name,          gender              ) VALUES ( 2, 'soheil', 'male');
+INSERT INTO sina_table (id, name, aboutme, gender              ) VALUES ( 3, 'sara', 'hi my name is sara!', 'female');
+INSERT INTO sina_table (id, name, aboutme                      ) VALUES ( 4, 'mama', 'hi my name is mama!');
+INSERT INTO sina_table (id, name                               ) VALUES ( 5, 'baba');
+INSERT INTO sina_table (id, name                      , another) VALUES ( 6, 'ordak', 42);
+INSERT INTO sina_table (id, name,          gender              ) VALUES ( 7, 'boo', 'animal');
 
 -- https://sourcegraph.com/github.com/apache/cassandra@cassandra-3.0.0/-/blob/pylib/cqlshlib/test/test_keyspace_init.cql
 CREATE TABLE has_all_types (
