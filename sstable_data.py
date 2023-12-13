@@ -17,16 +17,42 @@ def cell_empty_func(obj):
     # print(f"cell_empty_func {ret}")
     return ret
 
-def get_cell_repeat_until_func(obj, lst, ctx): 
-    # print(f"get_cell_repeat_until_func {lst}")
+def get_cell_count_func(ctx): 
+    cols_count = len(ctx._root._.sstable_statistics.serialization_header.regular_columns)
     if ctx.missing_columns:
-        raise Exception("TODO: handle missing columns please")
+        disabled_count = 0
+        byte_value = ctx.missing_columns
+        while byte_value:
+            # print(f"checking {utils.bin(byte_value)}")
+            if byte_value & 1:
+                disabled_count+=1
+            byte_value >>= 1
+        # print(f"get_cell_count_func {disabled_count} {ctx.missing_columns}")
+        return cols_count - disabled_count
     else:
-        return len(lst) >= len(ctx._root._.sstable_statistics.serialization_header.regular_columns)
-    length_so_far = ctx._io.tell()-ctx.row_body_start+1
-    cont = length_so_far >= ctx._.serialized_row_body_size
-    # print(f"get_cell_repeat_until_func {ctx._index} {length_so_far} {ctx._.serialized_row_body_size} {cont}")
-    return cont
+        # print(f"get_cell_count_func wow {cols_count} {ctx.missing_columns}")
+        return cols_count
+    # length_so_far = ctx._io.tell()-ctx.row_body_start+1
+    # cont = length_so_far >= ctx._.serialized_row_body_size
+    # # print(f"get_cell_repeat_until_func {ctx._index} {length_so_far} {ctx._.serialized_row_body_size} {cont}")
+    # return cont
+# def get_cell_repeat_until_func(obj, lst, ctx): 
+#     if ctx.missing_columns:
+#         count = 0
+#         byte_value = ctx.missing_columns
+#         while byte_value:
+#             count += (byte_value & 1 == 0)
+#             byte_value >>= 1
+#         ret = len(lst) >= count
+#         print(f"get_cell_repeat_until_func len(lst)={len(lst)} missing_columns={utils.bin(ctx.missing_columns)} count={count} ret={ret}")
+#         return ret
+#     else:
+#         print(f"get_cell_repeat_until_func wow")
+#         return len(lst) >= len(ctx._root._.sstable_statistics.serialization_header.regular_columns)
+#     # length_so_far = ctx._io.tell()-ctx.row_body_start+1
+#     # cont = length_so_far >= ctx._.serialized_row_body_size
+#     # # print(f"get_cell_repeat_until_func {ctx._index} {length_so_far} {ctx._.serialized_row_body_size} {cont}")
+#     # return cont
 
 def get_partition_key_type_func(ctx):
     name = ctx._root._.sstable_statistics.serialization_header.partition_key_type.name
@@ -37,8 +63,23 @@ def get_partition_key_type_func(ctx):
 
 def get_cell_type_func(ctx):
     cols = ctx._root._.sstable_statistics.serialization_header.regular_columns
-    # print(f"get_cell_type_func index {ctx._index}/{len(cols)}: {cols}")
-    name = cols[ctx._index].type.name
+    if ctx._.missing_columns:
+        # print(f"get_cell_type_func {ctx._index} {utils.bin(ctx._.missing_columns)}")
+        # print(f"get_cell_type_func index {ctx._index}/{len(cols)}: {cols}")
+        idx = 0
+        enabled_col_indexes = []
+        for i in range(len(cols)):
+            disabled = (1 << i) & (ctx._.missing_columns)
+            if not disabled:
+                enabled_col_indexes.append(i)
+
+        col = cols[enabled_col_indexes[ctx._index]]
+        name = col.type.name
+    else:
+        col = cols[ctx._index]
+        name = col.type.name
+
+    # print(f"Enabled ones: {enabled_col_indexes} {col}")
     # print("get_cell_type_func name", ctx._index, name)
     if name not in java_type_to_construct:
         raise Exception(f"Unhandled type {name}, please add to java_type_to_construct")
@@ -205,10 +246,12 @@ row_body_format = construct.Struct(
   # https://sourcegraph.com/github.com/scylladb/scylladb@scylla-5.4.0/-/blob/sstables/mx/writer.cc?L1150
   "missing_columns" / construct.If(
         has_missing_columns_func,
-        varint.VarInt(),
+        construct.Byte,
+        # varint.VarInt(),
   ),
   # cells are repeated until the row body size is serialized_row_body_size
-  "cells" / construct.RepeatUntil(get_cell_repeat_until_func, simple_cell), # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/rows/BufferCell.java#L211
+  # "cells" / construct.RepeatUntil(get_cell_repeat_until_func, simple_cell), # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/rows/BufferCell.java#L211
+  "cells" / construct.Array(get_cell_count_func, simple_cell), # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/rows/BufferCell.java#L211
 )
 unfiltered = construct.Struct(
     "row_flags" / construct.Hex(construct.Int8ub), # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/rows/UnfilteredSerializer.java#L78-L85
