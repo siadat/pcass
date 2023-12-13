@@ -66,4 +66,8 @@ def main():
     print("")
     parsed_data = parse_data_db(os.path.join(args.dir, "me-1-big-Data.db"), parsed_statistics)
 
+    # # inspect:
+    # for (k, v) in positioned_construct.global_position_map.items():
+    #     print(k, v)
+
 main()

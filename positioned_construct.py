@@ -3,6 +3,7 @@ import utils
 
 import construct
 
+DEFAULT_PATH = "(parsing)"
 global_position_map = {}
 all_keys = []
 
@@ -27,10 +28,15 @@ def wrap_func(cls):
             print("    " * context.depth, f"- {self.__class__} end_pos={end_pos} {path}")
             context.depth -= 1
 
-        global global_position_map
-        current = global_position_map.get((start_pos, end_pos), [])
-        current.append(path) # + " " + self.__class__.__name__
-        global_position_map[(start_pos, end_pos)] = current
+        # current.append(path) # + " " + self.__class__.__name__
+        if path != DEFAULT_PATH:
+            global global_position_map
+            current = global_position_map.get((start_pos, end_pos), [])
+            # Whenever I call parse_stream in a custom Construct, the path of the nested parser is reset to "(parsing)"
+            # as seen in https://sourcegraph.com/github.com/construct/construct@c25a47172d4bde392b7ad188175b07b319d3dea4/-/blob/construct/core.py?L416
+            # Because this is a nested construct, it has smaller range and so it will be disabled, which is useless.
+            current.append(path) # + " " + self.__class__.__name__
+            global_position_map[(start_pos, end_pos)] = current
         return ret
     
     cls._parse = new_parse
@@ -49,7 +55,7 @@ def global_position_map_keys():
 
 def get_matches_for_pos(pos):
     global global_position_map
-    result = []
+    paths = []
     for (start, end) in global_position_map_keys():
         if pos > end:
             continue
@@ -57,13 +63,15 @@ def get_matches_for_pos(pos):
             continue
         # The reason for "< end" instead of "<= end" is that the end pos is recorded after a _read is returned, so pos is one ahead.
         if start <= pos < end:
-            result.append(global_position_map[(start, end)])
+            p = global_position_map[(start, end)]
+            paths.append(p)
+            # if p != DEFAULT_PATH:
 
-    if result:
-        return result[-1][0]
+    if paths:
+        return paths[-1][0]
     else:
         return None
-    # return " >> ".join(result)
+    # return " >> ".join(paths)
 
 
 def parse(filepath):

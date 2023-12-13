@@ -5742,139 +5742,139 @@ Container:
 0x87	b10000111	135	─── (parsing) -> partitions -> unfiltereds -> row_flags
 0x0f	b00001111	 15	─── (parsing) -> partitions -> partition_header -> key_len
 0x74	b01110100	116	't' (parsing) -> partitions -> partition_header -> key_len
-0x77	b01110111	119	'w' (parsing)
-0x6f	b01101111	111	'o' (parsing)
-0x20	b00100000	 32	' ' (parsing)
-0x70	b01110000	112	'p' (parsing)
-0x6f	b01101111	111	'o' (parsing)
-0x69	b01101001	105	'i' (parsing)
-0x6e	b01101110	110	'n' (parsing)
-0x74	b01110100	116	't' (parsing)
-0x20	b00100000	 32	' ' (parsing)
-0x74	b01110100	116	't' (parsing)
-0x68	b01101000	104	'h' (parsing)
-0x72	b01110010	114	'r' (parsing)
-0x65	b01100101	101	'e' (parsing)
-0x65	b01100101	101	'e' (parsing)
-0x01	b00000001	  1	─── (parsing)
-0x00	b00000000	  0	─── (parsing)
-0x04	b00000100	  4	─── (parsing)
-0x00	b00000000	  0	─── (parsing)
-0x00	b00000000	  0	─── (parsing)
-0x00	b00000000	  0	─── (parsing)
-0x03	b00000011	  3	─── (parsing)
-0x7f	b01111111	127	─── (parsing)
-0xff	b11111111	255	─── (parsing)
-0xff	b11111111	255	─── (parsing)
-0xff	b11111111	255	─── (parsing)
-0x80	b10000000	128	─── (parsing)
-0x00	b00000000	  0	─── (parsing)
-0x00	b00000000	  0	─── (parsing)
-0x00	b00000000	  0	─── (parsing)
-0x00	b00000000	  0	─── (parsing)
-0x00	b00000000	  0	─── (parsing)
-0x00	b00000000	  0	─── (parsing)
-0x00	b00000000	  0	─── (parsing)
-0x20	b00100000	 32	' ' (parsing)
-0x00	b00000000	  0	─── (parsing)
-0xb8	b10111000	184	─── (parsing)
-0xd1	b11010001	209	─── (parsing)
-0xb7	b10110111	183	─── (parsing)
-0x17	b00010111	 23	─── (parsing)
-0x1c	b00011100	 28	─── (parsing)
-0x12	b00010010	 18	─── (parsing)
-0x00	b00000000	  0	─── (parsing)
-0xaf	b10101111	175	─── (parsing)
-0x70	b01110000	112	'p' (parsing)
-0x17	b00010111	 23	─── (parsing)
-0x6e	b01101110	110	'n' (parsing)
-0x65	b01100101	101	'e' (parsing)
-0x67	b01100111	103	'g' (parsing)
-0x61	b01100001	 97	'a' (parsing)
-0x74	b01110100	116	't' (parsing)
-0x69	b01101001	105	'i' (parsing)
-0x76	b01110110	118	'v' (parsing)
-0x65	b01100101	101	'e' (parsing)
-0x20	b00100000	 32	' ' (parsing)
-0x74	b01110100	116	't' (parsing)
-0x65	b01100101	101	'e' (parsing)
-0x6e	b01101110	110	'n' (parsing)
-0x20	b00100000	 32	' ' (parsing)
-0x74	b01110100	116	't' (parsing)
-0x68	b01101000	104	'h' (parsing)
-0x6f	b01101111	111	'o' (parsing)
-0x75	b01110101	117	'u' (parsing)
-0x73	b01110011	115	's' (parsing)
-0x61	b01100001	 97	'a' (parsing)
-0x6e	b01101110	110	'n' (parsing)
-0x64	b01100100	100	'd' (parsing)
-0x74	b01110100	116	't' (parsing)
-0x68	b01101000	104	'h' (parsing)
-0x20	b00100000	 32	' ' (parsing)
-0x00	b00000000	  0	─── (parsing)
-0x40	b01000000	 64	'@' (parsing)
-0x5d	b01011101	 93	']' (parsing)
-0x70	b01110000	112	'p' (parsing)
-0xa4	b10100100	164	─── (parsing)
-0x19	b00011001	 25	─── (parsing)
-0x23	b00100011	 35	'#' (parsing)
-0x00	b00000000	  0	─── (parsing)
-0x99	b10011001	153	─── (parsing)
-0x52	b01010010	 82	'R' (parsing)
-0x14	b00010100	 20	─── (parsing)
-0x74	b01110100	116	't' (parsing)
-0x68	b01101000	104	'h' (parsing)
-0x72	b01110010	114	'r' (parsing)
-0x65	b01100101	101	'e' (parsing)
-0x65	b01100101	101	'e' (parsing)
-0x20	b00100000	 32	' ' (parsing)
-0x70	b01110000	112	'p' (parsing)
-0x6f	b01101111	111	'o' (parsing)
-0x69	b01101001	105	'i' (parsing)
-0x6e	b01101110	110	'n' (parsing)
-0x74	b01110100	116	't' (parsing)
-0x20	b00100000	 32	' ' (parsing)
-0x66	b01100110	102	'f' (parsing)
-0x6f	b01101111	111	'o' (parsing)
-0x75	b01110101	117	'u' (parsing)
-0x72	b01110010	114	'r' (parsing)
-0x20	b00100000	 32	' ' (parsing)
-0x73	b01110011	115	's' (parsing)
-0x69	b01101001	105	'i' (parsing)
-0x78	b01111000	120	'x' (parsing)
-0x20	b00100000	 32	' ' (parsing)
-0x00	b00000000	  0	─── (parsing)
-0x42	b01000010	 66	'B' (parsing)
-0xc6	b11000110	198	─── (parsing)
-0x00	b00000000	  0	─── (parsing)
-0x00	b00000000	  0	─── (parsing)
-0x19	b00011001	 25	─── (parsing)
-0x20	b00100000	 32	' ' (parsing)
-0x00	b00000000	  0	─── (parsing)
-0xa3	b10100011	163	─── (parsing)
-0xf7	b11110111	247	─── (parsing)
-0x14	b00010100	 20	─── (parsing)
-0x6e	b01101110	110	'n' (parsing)
-0x69	b01101001	105	'i' (parsing)
-0x6e	b01101110	110	'n' (parsing)
-0x65	b01100101	101	'e' (parsing)
-0x74	b01110100	116	't' (parsing)
-0x79	b01111001	121	'y' (parsing)
-0x2d	b00101101	 45	'-' (parsing)
-0x6e	b01101110	110	'n' (parsing)
-0x69	b01101001	105	'i' (parsing)
-0x6e	b01101110	110	'n' (parsing)
-0x65	b01100101	101	'e' (parsing)
-0x20	b00100000	 32	' ' (parsing)
-0x70	b01110000	112	'p' (parsing)
-0x6f	b01101111	111	'o' (parsing)
-0x69	b01101001	105	'i' (parsing)
-0x6e	b01101110	110	'n' (parsing)
-0x74	b01110100	116	't' (parsing)
-0x20	b00100000	 32	' ' (parsing)
-0x6f	b01101111	111	'o' (parsing)
-0x68	b01101000	104	'h' (parsing)
-0x01	b00000001	  1	─── (parsing)
+0x77	b01110111	119	'w' None
+0x6f	b01101111	111	'o' None
+0x20	b00100000	 32	' ' None
+0x70	b01110000	112	'p' None
+0x6f	b01101111	111	'o' None
+0x69	b01101001	105	'i' None
+0x6e	b01101110	110	'n' None
+0x74	b01110100	116	't' None
+0x20	b00100000	 32	' ' None
+0x74	b01110100	116	't' None
+0x68	b01101000	104	'h' None
+0x72	b01110010	114	'r' None
+0x65	b01100101	101	'e' None
+0x65	b01100101	101	'e' None
+0x01	b00000001	  1	─── None
+0x00	b00000000	  0	─── None
+0x04	b00000100	  4	─── None
+0x00	b00000000	  0	─── None
+0x00	b00000000	  0	─── None
+0x00	b00000000	  0	─── None
+0x03	b00000011	  3	─── None
+0x7f	b01111111	127	─── None
+0xff	b11111111	255	─── None
+0xff	b11111111	255	─── None
+0xff	b11111111	255	─── None
+0x80	b10000000	128	─── None
+0x00	b00000000	  0	─── None
+0x00	b00000000	  0	─── None
+0x00	b00000000	  0	─── None
+0x00	b00000000	  0	─── None
+0x00	b00000000	  0	─── None
+0x00	b00000000	  0	─── None
+0x00	b00000000	  0	─── None
+0x20	b00100000	 32	' ' None
+0x00	b00000000	  0	─── None
+0xb8	b10111000	184	─── None
+0xd1	b11010001	209	─── None
+0xb7	b10110111	183	─── None
+0x17	b00010111	 23	─── None
+0x1c	b00011100	 28	─── None
+0x12	b00010010	 18	─── None
+0x00	b00000000	  0	─── None
+0xaf	b10101111	175	─── None
+0x70	b01110000	112	'p' None
+0x17	b00010111	 23	─── None
+0x6e	b01101110	110	'n' None
+0x65	b01100101	101	'e' None
+0x67	b01100111	103	'g' None
+0x61	b01100001	 97	'a' None
+0x74	b01110100	116	't' None
+0x69	b01101001	105	'i' None
+0x76	b01110110	118	'v' None
+0x65	b01100101	101	'e' None
+0x20	b00100000	 32	' ' None
+0x74	b01110100	116	't' None
+0x65	b01100101	101	'e' None
+0x6e	b01101110	110	'n' None
+0x20	b00100000	 32	' ' None
+0x74	b01110100	116	't' None
+0x68	b01101000	104	'h' None
+0x6f	b01101111	111	'o' None
+0x75	b01110101	117	'u' None
+0x73	b01110011	115	's' None
+0x61	b01100001	 97	'a' None
+0x6e	b01101110	110	'n' None
+0x64	b01100100	100	'd' None
+0x74	b01110100	116	't' None
+0x68	b01101000	104	'h' None
+0x20	b00100000	 32	' ' None
+0x00	b00000000	  0	─── None
+0x40	b01000000	 64	'@' None
+0x5d	b01011101	 93	']' None
+0x70	b01110000	112	'p' None
+0xa4	b10100100	164	─── None
+0x19	b00011001	 25	─── None
+0x23	b00100011	 35	'#' None
+0x00	b00000000	  0	─── None
+0x99	b10011001	153	─── None
+0x52	b01010010	 82	'R' None
+0x14	b00010100	 20	─── None
+0x74	b01110100	116	't' None
+0x68	b01101000	104	'h' None
+0x72	b01110010	114	'r' None
+0x65	b01100101	101	'e' None
+0x65	b01100101	101	'e' None
+0x20	b00100000	 32	' ' None
+0x70	b01110000	112	'p' None
+0x6f	b01101111	111	'o' None
+0x69	b01101001	105	'i' None
+0x6e	b01101110	110	'n' None
+0x74	b01110100	116	't' None
+0x20	b00100000	 32	' ' None
+0x66	b01100110	102	'f' None
+0x6f	b01101111	111	'o' None
+0x75	b01110101	117	'u' None
+0x72	b01110010	114	'r' None
+0x20	b00100000	 32	' ' None
+0x73	b01110011	115	's' None
+0x69	b01101001	105	'i' None
+0x78	b01111000	120	'x' None
+0x20	b00100000	 32	' ' None
+0x00	b00000000	  0	─── None
+0x42	b01000010	 66	'B' None
+0xc6	b11000110	198	─── None
+0x00	b00000000	  0	─── None
+0x00	b00000000	  0	─── None
+0x19	b00011001	 25	─── None
+0x20	b00100000	 32	' ' None
+0x00	b00000000	  0	─── None
+0xa3	b10100011	163	─── None
+0xf7	b11110111	247	─── None
+0x14	b00010100	 20	─── None
+0x6e	b01101110	110	'n' None
+0x69	b01101001	105	'i' None
+0x6e	b01101110	110	'n' None
+0x65	b01100101	101	'e' None
+0x74	b01110100	116	't' None
+0x79	b01111001	121	'y' None
+0x2d	b00101101	 45	'-' None
+0x6e	b01101110	110	'n' None
+0x69	b01101001	105	'i' None
+0x6e	b01101110	110	'n' None
+0x65	b01100101	101	'e' None
+0x20	b00100000	 32	' ' None
+0x70	b01110000	112	'p' None
+0x6f	b01101111	111	'o' None
+0x69	b01101001	105	'i' None
+0x6e	b01101110	110	'n' None
+0x74	b01110100	116	't' None
+0x20	b00100000	 32	' ' None
+0x6f	b01101111	111	'o' None
+0x68	b01101000	104	'h' None
+0x01	b00000001	  1	─── None
 
 # Successfully parsed me-1-big-Data.db to here.
 

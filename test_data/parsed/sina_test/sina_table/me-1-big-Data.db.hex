@@ -9217,7 +9217,7 @@ Container:
 0xc0	b11000000	192	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> timestamp_diff
 0xd6	b11010110	214	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> timestamp_diff
 0x94	b10010100	148	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> timestamp_diff
-0x42	b01000010	 66	'B' (parsing)
+0x42	b01000010	 66	'B' (parsing) -> partitions -> unfiltereds -> row -> row_body -> missing_columns
 0x01	b00000001	  1	─── (parsing) -> partitions -> unfiltereds -> row_flags
 0x00	b00000000	  0	─── (parsing) -> partitions -> partition_header -> key_len
 0x04	b00000100	  4	─── (parsing) -> partitions -> partition_header -> key_len
@@ -9247,9 +9247,9 @@ Container:
 0x10	b00010000	 16	─── (parsing) -> partitions -> unfiltereds -> row -> serialized_row_body_size
 0x12	b00010010	 18	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> previous_unfiltered_size
 0x00	b00000000	  0	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> timestamp_diff
-0x40	b01000000	 64	'@' (parsing)
-0x01	b00000001	  1	─── (parsing)
-0x41	b01000001	 65	'A' (parsing)
+0x40	b01000000	 64	'@' (parsing) -> partitions -> unfiltereds -> row -> row_body -> missing_columns
+0x01	b00000001	  1	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> missing_columns
+0x41	b01000001	 65	'A' (parsing) -> partitions -> unfiltereds -> row -> row_body -> missing_columns
 0x08	b00001000	  8	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> cell_flags
 0x00	b00000000	  0	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> cell -> cell_value
 0x00	b00000000	  0	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> cell -> cell_value
@@ -9293,8 +9293,8 @@ Container:
 0x12	b00010010	 18	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> previous_unfiltered_size
 0xbb	b10111011	187	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> timestamp_diff
 0x7d	b01111101	125	'}' (parsing) -> partitions -> unfiltereds -> row -> row_body -> timestamp_diff
-0x41	b01000001	 65	'A' (parsing)
-0x41	b01000001	 65	'A' (parsing)
+0x41	b01000001	 65	'A' (parsing) -> partitions -> unfiltereds -> row -> row_body -> missing_columns
+0x41	b01000001	 65	'A' (parsing) -> partitions -> unfiltereds -> row -> row_body -> missing_columns
 0x08	b00001000	  8	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> cell_flags
 0x04	b00000100	  4	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> cell -> cell_value_len
 0x6d	b01101101	109	'm' (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> cell -> cell_value
@@ -9332,8 +9332,8 @@ Container:
 0xc0	b11000000	192	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> timestamp_diff
 0xc4	b11000100	196	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> timestamp_diff
 0x5e	b01011110	 94	'^' (parsing) -> partitions -> unfiltereds -> row -> row_body -> timestamp_diff
-0x41	b01000001	 65	'A' (parsing)
-0x00	b00000000	  0	─── (parsing)
+0x41	b01000001	 65	'A' (parsing) -> partitions -> unfiltereds -> row -> row_body -> missing_columns
+0x00	b00000000	  0	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> missing_columns
 0x08	b00001000	  8	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> cell_flags
 0x13	b00010011	 19	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> cell -> cell_value_len
 0x68	b01101000	104	'h' (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> cell -> cell_value
@@ -9385,8 +9385,8 @@ Container:
 0xc0	b11000000	192	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> timestamp_diff
 0xf9	b11111001	249	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> timestamp_diff
 0xcf	b11001111	207	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> timestamp_diff
-0x41	b01000001	 65	'A' (parsing)
-0x03	b00000011	  3	─── (parsing)
+0x41	b01000001	 65	'A' (parsing) -> partitions -> unfiltereds -> row -> row_body -> missing_columns
+0x03	b00000011	  3	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> missing_columns
 0x08	b00001000	  8	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> cell_flags
 0x00	b00000000	  0	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> cell -> cell_value
 0x00	b00000000	  0	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> cell -> cell_value
@@ -9424,8 +9424,8 @@ Container:
 0xc0	b11000000	192	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> timestamp_diff
 0xe7	b11100111	231	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> timestamp_diff
 0xc8	b11001000	200	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> timestamp_diff
-0x41	b01000001	 65	'A' (parsing)
-0x22	b00100010	 34	'"' (parsing)
+0x41	b01000001	 65	'A' (parsing) -> partitions -> unfiltereds -> row -> row_body -> missing_columns
+0x22	b00100010	 34	'"' (parsing) -> partitions -> unfiltereds -> row -> row_body -> missing_columns
 0x08	b00001000	  8	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> cell_flags
 0x00	b00000000	  0	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> cell -> cell_value
 0x00	b00000000	  0	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> cell -> cell_value
