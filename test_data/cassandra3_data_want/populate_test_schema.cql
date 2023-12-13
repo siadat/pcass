@@ -7,24 +7,42 @@ CREATE TABLE sina_table (
   aboutme text,
   gender text,
   age int,
-  another4 int,
-  another5 int,
-  another6 int,
-  another7 int,
-  another8 int,
-  another9 int,
-  another10 int,
-  another11 int,
+  col1 int, col2 int, col3 int, col4 int, col5 int, col6 int, col7 int, col8 int,
+  col9 int, col10 int, col11 int, col12 int, col13 int, col14 int, col15 int, col16 int,
+  col17 int, col18 int, col19 int, col20 int, col21 int, col22 int, col23 int, col24 int,
+  col25 int, col26 int, col27 int, col28 int, col29 int, col30 int, col31 int, col32 int,
+  col33 int, col34 int, col35 int, col36 int, col37 int, col38 int, col39 int, col40 int,
+  col41 int, col42 int, col43 int, col44 int, col45 int, col46 int, col47 int, col48 int,
+  col49 int, col50 int, col51 int, col52 int, col53 int, col54 int, col55 int, col56 int,
+  col57 int, col58 int, col59 int, col60 int, col61 int, col62 int, col63 int, col64 int,
   PRIMARY KEY ((id), name)
 ) WITH compression = {'enabled':'false'};
 
 INSERT INTO sina_table (id, name,          gender, age          ) VALUES ( 1, 'sina', 'male', 39);
 INSERT INTO sina_table (id, name,          gender               ) VALUES ( 2, 'soheil', 'male');
-INSERT INTO sina_table (id, name, aboutme, gender               ) VALUES ( 3, 'sara', 'hi my name is sara!', 'female');
+INSERT INTO sina_table (id, name, aboutme, gender, age,
+      col2, col3, col4, col5, col6, col7, col8,
+col9, col10, col11, col12, col13, col14, col15, col16,
+col17, col18, col19, col20, col21, col22, col23, col24,
+col25, col26, col27, col28, col29, col30, col31, col32,
+col33, col34, col35, col36, col37, col38, col39, col40,
+col41, col42, col43, col44, col45, col46, col47, col48,
+col49, col50, col51, col52, col53, col54, col55, col56,
+col57, col58, col59, col60, col61, col62, col63, col64
+) VALUES ( 3, 'sara', 'hi my name is sara!', 'female', 44,
+      2, 3, 4, 5, 6, 7, 8,
+9, 10, 11, 12, 13, 14, 15, 16,
+17, 18, 19, 20, 21, 22, 23, 24,
+25, 26, 27, 28, 29, 30, 31, 32,
+33, 34, 35, 36, 37, 38, 39, 40,
+41, 42, 43, 44, 45, 46, 47, 48,
+49, 50, 51, 52, 53, 54, 55, 56,
+57, 58, 59, 60, 61, 62, 63, 64
+);
 INSERT INTO sina_table (id, name, aboutme                       ) VALUES ( 4, 'mama', 'hi my name is mama!');
 INSERT INTO sina_table (id, name                                ) VALUES ( 5, 'baba');
-INSERT INTO sina_table (id, name                      , another4) VALUES ( 6, 'ordak', 42);
-INSERT INTO sina_table (id, name                      , another11) VALUES ( 7, 'boo', 100);
+INSERT INTO sina_table (id, name                      , col4) VALUES ( 6, 'ordak', 42);
+INSERT INTO sina_table (id, name                                              , col11) VALUES ( 7, 'boo', 100);
 
 -- https://sourcegraph.com/github.com/apache/cassandra@cassandra-3.0.0/-/blob/pylib/cqlshlib/test/test_keyspace_init.cql
 CREATE TABLE has_all_types (
