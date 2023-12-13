@@ -14,82 +14,37 @@ construct.setGlobalPrintFullStrings(utils.PRINT_FULL_STRING)
 
 def cell_empty_func(obj):
     ret = obj.cell_flags & 0x04 != 0x4
-    # print(f"cell_empty_func {ret}")
     return ret
 
 def get_cell_count_func(ctx): 
     cols_count = len(ctx._root._.sstable_statistics.serialization_header.regular_columns)
-    if ctx.missing_columns:
-        disabled_count = 0
-        byte_value = ctx.missing_columns
-        while byte_value:
-            # print(f"checking {utils.bin(byte_value)}")
-            if byte_value & 1:
-                disabled_count+=1
-            byte_value >>= 1
-        # print(f"get_cell_count_func {disabled_count} {ctx.missing_columns}")
-        return cols_count - disabled_count
+    if ctx.missing_columns is not None:
+        return len(ctx.missing_columns)
     else:
-        # print(f"get_cell_count_func wow {cols_count} {ctx.missing_columns}")
         return cols_count
-    # length_so_far = ctx._io.tell()-ctx.row_body_start+1
-    # cont = length_so_far >= ctx._.serialized_row_body_size
-    # # print(f"get_cell_repeat_until_func {ctx._index} {length_so_far} {ctx._.serialized_row_body_size} {cont}")
-    # return cont
-# def get_cell_repeat_until_func(obj, lst, ctx): 
-#     if ctx.missing_columns:
-#         count = 0
-#         byte_value = ctx.missing_columns
-#         while byte_value:
-#             count += (byte_value & 1 == 0)
-#             byte_value >>= 1
-#         ret = len(lst) >= count
-#         print(f"get_cell_repeat_until_func len(lst)={len(lst)} missing_columns={utils.bin(ctx.missing_columns)} count={count} ret={ret}")
-#         return ret
-#     else:
-#         print(f"get_cell_repeat_until_func wow")
-#         return len(lst) >= len(ctx._root._.sstable_statistics.serialization_header.regular_columns)
-#     # length_so_far = ctx._io.tell()-ctx.row_body_start+1
-#     # cont = length_so_far >= ctx._.serialized_row_body_size
-#     # # print(f"get_cell_repeat_until_func {ctx._index} {length_so_far} {ctx._.serialized_row_body_size} {cont}")
-#     # return cont
 
 def get_partition_key_type_func(ctx):
     name = ctx._root._.sstable_statistics.serialization_header.partition_key_type.name
-    # print("get_partition_key_type_func", name)
     if name not in java_type_to_construct:
         raise Exception(f"Unhandled type {name}, please add to java_type_to_construct")
     return name
 
 def get_cell_type_func(ctx):
     cols = ctx._root._.sstable_statistics.serialization_header.regular_columns
-    if ctx._.missing_columns:
-        # print(f"get_cell_type_func {ctx._index} {utils.bin(ctx._.missing_columns)}")
-        # print(f"get_cell_type_func index {ctx._index}/{len(cols)}: {cols}")
-        idx = 0
-        enabled_col_indexes = []
-        for i in range(len(cols)):
-            disabled = (1 << i) & (ctx._.missing_columns)
-            if not disabled:
-                enabled_col_indexes.append(i)
-
-        col = cols[enabled_col_indexes[ctx._index]]
+    if ctx._.missing_columns is not None:
+        col = cols[ctx._.missing_columns[ctx._index]]
         name = col.type.name
     else:
         col = cols[ctx._index]
         name = col.type.name
 
-    # print(f"Enabled ones: {enabled_col_indexes} {col}")
-    # print("get_cell_type_func name", ctx._index, name)
     if name not in java_type_to_construct:
         raise Exception(f"Unhandled type {name}, please add to java_type_to_construct")
     return name
 
 def get_clustering_key_type_func(ctx):
     cols = ctx._root._.sstable_statistics.serialization_header.clustering_key_types
-    # print(f"get_clustering_key_type_func index {ctx._index}/{len(cols)}: {cols}")
     name = cols[ctx._index].name
-    # print(f"get_clustering_key_type_func name", name)
     if name not in java_type_to_construct:
         raise Exception(f"Unhandled type {name}, please add to java_type_to_construct")
     return name
@@ -235,18 +190,66 @@ def has_missing_columns_func(x):
     else:
         row_flags = x._._.row_flags
     ret = row_flags & 0x20 == 0x00
-    # print(f"has_missing_columns_func {ret}")
     return ret
+
+# Source: https://opensource.docs.scylladb.com/stable/architecture/sstable/sstable3/sstables-3-data-file-format.html#:~:text=We%20have%20a%20_superset_%20of%20columns%2C
+class EnabledColumns(construct.Construct):
+    def __init__(self, columns_count_predicate):
+        super().__init__()
+        self.columns_count_predicate = columns_count_predicate
+
+    def _parse(self, stream, context, path):
+        columns_count = self.columns_count_predicate(context)
+
+        if columns_count < 64:
+            mask = varint.VarInt().parse_stream(stream)
+            enabled_col_indexes = []
+            for i in range(columns_count):
+                disabled = (1 << i) & mask
+                if not disabled:
+                    enabled_col_indexes.append(i)
+
+            return enabled_col_indexes
+        else:
+            disabled_count = varint.VarInt().parse_stream(stream)
+
+            indexes = []
+            for i in range(columns_count - disabled_count):
+                index = varint.VarInt().parse_stream(stream)
+                indexes.append(index)
+
+            if disabled_count >= columns_count/2:
+                # there are fewer enabled colums, so the listed indexes are for
+                # enabled colums to be more space efficient.
+                # We want to return list of enabled indexes.
+                return indexes
+            else:
+                # there are fewer disabled colums, so the listed indexes are
+                # for disabled colums to be more space efficient.
+                # We still want to return the index of enabled columns though
+                return list(set(range(columns_count)) - set(indexes))
+
+    def _build(self, obj, stream, context, path):
+        raise Exception("TODO: please implement _build for EnabledColumns")
+
+utils.assert_equal([3, 4, 6, 7, 8, 9], EnabledColumns(lambda context: 10).parse(bytes([0b00100111])))
+utils.assert_equal([10], EnabledColumns(lambda context: 11).parse(bytes([0b10000011, 0b11111111])))
+utils.assert_equal([], EnabledColumns(lambda context: 66).parse(bytes([66])))
+utils.assert_equal([7, 8], EnabledColumns(lambda context: 66).parse(bytes([64, 7, 8])))
 
 row_body_format = construct.Struct(
   "row_body_start" / construct.Tell,
   "previous_unfiltered_size" / varint.VarInt(), # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/rows/UnfilteredSerializer.java#L170
   "timestamp_diff" / varint.VarInt(), # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/rows/UnfilteredSerializer.java#L174
                                       # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/SerializationHeader.java#L195
-  # https://sourcegraph.com/github.com/scylladb/scylladb@scylla-5.4.0/-/blob/sstables/mx/writer.cc?L1150
+
+  # Not: https://sourcegraph.com/github.com/scylladb/scylladb@scylla-5.4.0/-/blob/sstables/mx/writer.cc?L1150
+  # https://sourcegraph.com/github.com/apache/cassandra@cassandra-3.0.0/-/blob/src/java/org/apache/cassandra/db/Columns.java?L446-455
+  # Encoding: https://sourcegraph.com/github.com/apache/cassandra@cassandra-3.0.0/-/blob/src/java/org/apache/cassandra/db/Columns.java?L520-522
   "missing_columns" / construct.If(
         has_missing_columns_func,
-        construct.Byte,
+        EnabledColumns(lambda context: len(context._root._.sstable_statistics.serialization_header.regular_columns)),
+        # construct.Switch(get_missing_columns_encoding_fun, missing_columns_encoding_to_construct),
         # varint.VarInt(),
   ),
   # cells are repeated until the row body size is serialized_row_body_size
@@ -276,7 +279,6 @@ unfiltered = construct.Struct(
                     "clustering_cells" / construct.Array(get_clustering_key_count_func, clustering_cell), # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/ClusteringPrefix.java#L310
                 ),
             ),
-
             "serialized_row_body_size" / varint.VarInt(), # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/rows/UnfilteredSerializer.java#L169
             "row_body" / row_body_format,
         ),

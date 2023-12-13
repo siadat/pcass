@@ -137,6 +137,12 @@ statistics_format = construct.Struct(
         "static_columns" / construct.Array(construct.this.static_column_count, column),
 
         "regular_column_count" / varint.VarInt(),
+        # NOTE: regular_columns doesn't include all columns in the table. It
+        # only includes the columns set in any of the rows in this specific
+        # SSTable (memtable). i.e. if all rows in this sstblae are missing
+        # value for column3, then column3 is not mentioned here (therefore no
+        # information about it being a missing_column needs to be encoded in
+        # Data.db as well).
         "regular_columns" / construct.Array(construct.this.regular_column_count, column),
     )),
 )
