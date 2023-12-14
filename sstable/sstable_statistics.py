@@ -1,22 +1,22 @@
-import utils
+import sstable.utils
 import construct
 
-import varint
-import string_encoded
-import string_encoded
-import uuid
+import sstable.varint
+import sstable.string_encoded
+import sstable.string_encoded
+import sstable.uuid
 
-construct.setGlobalPrintFullStrings(utils.PRINT_FULL_STRING)
+construct.setGlobalPrintFullStrings(sstable.utils.PRINT_FULL_STRING)
 
 # https://opensource.docs.scylladb.com/stable/architecture/sstable/sstable3/sstables-3-statistics.html
 
-# vint == varint: https://sourcegraph.com/github.com/scylladb/scylladb@01e54f5b12e72a2976f973d23ae0c61ce19ba914/-/blob/vint-serialization.hh
+# vint == sstable.varint: https://sourcegraph.com/github.com/scylladb/scylladb@01e54f5b12e72a2976f973d23ae0c61ce19ba914/-/blob/vint-serialization.hh
 
 # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/io/sstable/metadata/MetadataType.java#L28
 modified_utf8 = construct.Struct(
     "length" / construct.Int16ub,
 
-    "utf8_string" / string_encoded.StringEncoded(construct.Bytes(construct.this.length), "utf-8"),
+    "utf8_string" / sstable.string_encoded.StringEncoded(construct.Bytes(construct.this.length), "utf-8"),
     # "utf8_bytes" / construct.Bytes(construct.this.utf8_length),
 )
 bucket = construct.Struct(
@@ -53,12 +53,12 @@ clustering_bound = construct.Struct(
     "column" / construct.Array(construct.this.length, clustering_column),
 )
 typ = construct.Struct(
-    "name_length" / varint.VarInt(),
-    "name" / string_encoded.StringEncoded(construct.Bytes(construct.this.name_length), "ascii"),
+    "name_length" / sstable.varint.VarInt(),
+    "name" / sstable.string_encoded.StringEncoded(construct.Bytes(construct.this.name_length), "ascii"),
 )
 column = construct.Struct(
     "name_length" / construct.Int8ub,
-    "name" / string_encoded.StringEncoded(construct.Bytes(construct.this.name_length), "ascii"),
+    "name" / sstable.string_encoded.StringEncoded(construct.Bytes(construct.this.name_length), "ascii"),
 
     "type" / typ,
 )
@@ -116,7 +116,7 @@ statistics_format = construct.Struct(
         "commit_log_intervals" / construct.Array(construct.this.commit_log_intervals_length, commit_log_interval),
 
         "TODO_WHY_IS_THIS_NEEDED" / construct.Bytes(1),
-        "host_id" / uuid.Uuid,
+        "host_id" / sstable.uuid.Uuid,
     )),
     # "serialization_header_start" / construct.Tell,
     "serialization_header" / construct.If(metadata_exists(SERIALIZATION_METADATA), construct.Struct(
@@ -125,18 +125,18 @@ statistics_format = construct.Struct(
         # "min_local_deletion_time" / construct.Int32ub,
         # "min_ttl" / construct.Int32ub,
         # "partition_key_type" / typ,
-        "min_timestamp" / varint.VarInt(),
-        "min_local_deletion_time" / varint.VarInt(),
-        "min_ttl" / varint.VarInt(),
+        "min_timestamp" / sstable.varint.VarInt(),
+        "min_local_deletion_time" / sstable.varint.VarInt(),
+        "min_ttl" / sstable.varint.VarInt(),
         "partition_key_type" / typ,
 
-        "clustering_key_count" / varint.VarInt(),
+        "clustering_key_count" / sstable.varint.VarInt(),
         "clustering_key_types" / construct.Array(construct.this.clustering_key_count, typ),
 
-        "static_column_count" / varint.VarInt(),
+        "static_column_count" / sstable.varint.VarInt(),
         "static_columns" / construct.Array(construct.this.static_column_count, column),
 
-        "regular_column_count" / varint.VarInt(),
+        "regular_column_count" / sstable.varint.VarInt(),
         # NOTE: regular_columns doesn't include all columns in the table. It
         # only includes the columns set in any of the rows in this specific
         # SSTable (memtable). i.e. if all rows in this sstblae are missing

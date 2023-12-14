@@ -1,12 +1,12 @@
 import io
 import os
 import box
-import utils
+import sstable.utils
 
-import dump
+import sstable.dump
 import construct
-import sstable_data
-import sstable_statistics
+import sstable.sstable_data
+import sstable.sstable_statistics
 
 # import Python object and print its sstable byte representation
 
@@ -15,7 +15,7 @@ def main():
         "metadata_count": 1,
         "toc": [
             {
-                "type": sstable_statistics.SERIALIZATION_METADATA,
+                "type": sstable.sstable_statistics.SERIALIZATION_METADATA,
                 "offset": (1 + 2) * 4,
             },
         ],
@@ -47,9 +47,9 @@ def main():
             ],
         },
     }
-    statistics_bytes = sstable_statistics.statistics_format.build(statistics_dict)
-    statistics_got = sstable_statistics.statistics_format.parse(statistics_bytes)
-    utils.assert_equal(1, statistics_got.metadata_count)
+    statistics_bytes = sstable.sstable_statistics.statistics_format.build(statistics_dict)
+    statistics_got = sstable.sstable_statistics.statistics_format.parse(statistics_bytes)
+    sstable.utils.assert_equal(1, statistics_got.metadata_count)
 
     # print("Statistics.db:\t", statistics_bytes)
 
@@ -81,19 +81,19 @@ def main():
             },
         ],
     }
-    row_body1_size = len(sstable_data.unfiltered.row.thensubcon.row_body.build(
+    row_body1_size = len(sstable.sstable_data.unfiltered.row.thensubcon.row_body.build(
         row_body1,
         overridden_row_flags=0x24,
         serialized_row_body_size=0,
         sstable_statistics=statistics_got,
     ))
-    row_body2_size = len(sstable_data.unfiltered.row.thensubcon.row_body.build(
+    row_body2_size = len(sstable.sstable_data.unfiltered.row.thensubcon.row_body.build(
         row_body2,
         overridden_row_flags=0x24,
         serialized_row_body_size=0,
         sstable_statistics=statistics_got,
     ))
-    data_bytes = sstable_data.data_format.build({
+    data_bytes = sstable.sstable_data.data_format.build({
             "partitions": [
                 {
                     "partition_header": {
@@ -135,15 +135,15 @@ def main():
         # We also need to box statistics_dict because it is used like an object, not like a dict.
         sstable_statistics=box.Box(statistics_dict),
     )
-    data_got = sstable_data.data_format.parse(data_bytes, sstable_statistics=statistics_got)
-    utils.assert_equal(2, data_got.partitions[0].partition_header.key_len)
+    data_got = sstable.sstable_data.data_format.parse(data_bytes, sstable_statistics=statistics_got)
+    sstable.utils.assert_equal(2, data_got.partitions[0].partition_header.key_len)
 
     # print("Data.db:\t", data_bytes)
 
-    dump.dump(
+    sstable.dump.dump(
         io.BytesIO(statistics_bytes),
         io.BytesIO(data_bytes),
-        dump.JsonWriter(os.sys.stdout),
+        sstable.dump.JsonWriter(os.sys.stdout),
     )
 
     # with open(f"out/me-1-big-Statistics.db", "wb") as f:

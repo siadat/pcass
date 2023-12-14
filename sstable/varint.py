@@ -1,7 +1,7 @@
 import textwrap
 import construct
 import io
-import utils
+import sstable.utils
 
 def parse(stream):
     first_byte = stream.read(1)[0]
@@ -100,21 +100,21 @@ class VarInt(construct.Construct):
     #     # or raise SizeofError (when variable size or unknown)
     #     print(f"_sizeof {context} {path}")
 
-utils.assert_equal(0, parse(io.BytesIO(bytes([0b00000000]))))
-utils.assert_equal(1, parse(io.BytesIO(bytes([0b00000001]))))
-utils.assert_equal(127, parse(io.BytesIO(bytes([0b01111111]))))
-utils.assert_equal(128, parse(io.BytesIO(bytes([0b10000000, 0b10000000]))))
-utils.assert_equal(129, parse(io.BytesIO(bytes([0b10000000, 0b10000001]))))
-utils.assert_equal(640, parse(io.BytesIO(bytes([0b10000010, 0b10000000]))))
-utils.assert_equal(32773, parse(io.BytesIO(bytes([0b11000000, 0b10000000, 0b00000101]))))
+sstable.utils.assert_equal(0, parse(io.BytesIO(bytes([0b00000000]))))
+sstable.utils.assert_equal(1, parse(io.BytesIO(bytes([0b00000001]))))
+sstable.utils.assert_equal(127, parse(io.BytesIO(bytes([0b01111111]))))
+sstable.utils.assert_equal(128, parse(io.BytesIO(bytes([0b10000000, 0b10000000]))))
+sstable.utils.assert_equal(129, parse(io.BytesIO(bytes([0b10000000, 0b10000001]))))
+sstable.utils.assert_equal(640, parse(io.BytesIO(bytes([0b10000010, 0b10000000]))))
+sstable.utils.assert_equal(32773, parse(io.BytesIO(bytes([0b11000000, 0b10000000, 0b00000101]))))
 
-utils.assert_equal(bytes([0b00000000]), build(0))
-utils.assert_equal(bytes([0b00000001]), build(1))
-utils.assert_equal(bytes([0b01111111]), build(127))
-utils.assert_equal(bytes([0b10000000, 0b10000000]), build(128))
-utils.assert_equal(bytes([0b10000000, 0b10000001]), build(129))
-utils.assert_equal(bytes([0b10000010, 0b10000000]), build(640))
-utils.assert_equal(bytes([0b11000000, 0b10000000, 0b00000101]), build(32773))
+sstable.utils.assert_equal(bytes([0b00000000]), build(0))
+sstable.utils.assert_equal(bytes([0b00000001]), build(1))
+sstable.utils.assert_equal(bytes([0b01111111]), build(127))
+sstable.utils.assert_equal(bytes([0b10000000, 0b10000000]), build(128))
+sstable.utils.assert_equal(bytes([0b10000000, 0b10000001]), build(129))
+sstable.utils.assert_equal(bytes([0b10000010, 0b10000000]), build(640))
+sstable.utils.assert_equal(bytes([0b11000000, 0b10000000, 0b00000101]), build(32773))
 
-utils.assert_equal(640, VarInt().parse(bytes([0b10000010, 0b10000000])))
-utils.assert_equal(bytes([0b10000010, 0b10000000]), VarInt().build(640))
+sstable.utils.assert_equal(640, VarInt().parse(bytes([0b10000010, 0b10000000])))
+sstable.utils.assert_equal(bytes([0b10000010, 0b10000000]), VarInt().build(640))

@@ -1,8 +1,8 @@
 from decimal import Decimal
 import construct
 
-import varint
-import utils
+import sstable.varint
+import sstable.utils
 
 # Source https://github.com/openjdk/jdk/blob/jdk8-b120/jdk/src/share/classes/java/math/BigInteger.java#L3697-L3726
 def to_byte_array(value):
@@ -39,12 +39,12 @@ def get_scale(number):
 def from_byte_array(value):
     return [0x01, 0x02, 0x03]
 
-utils.assert_equal(2, get_scale(123.45))
-utils.assert_equal(2, get_scale(-123.45))
-utils.assert_equal(0, get_scale(0))
-utils.assert_equal(0, get_scale(1230))
-utils.assert_equal(0, get_scale(-1230))
-utils.assert_equal(14, get_scale(1e-14))
+sstable.utils.assert_equal(2, get_scale(123.45))
+sstable.utils.assert_equal(2, get_scale(-123.45))
+sstable.utils.assert_equal(0, get_scale(0))
+sstable.utils.assert_equal(0, get_scale(1230))
+sstable.utils.assert_equal(0, get_scale(-1230))
+sstable.utils.assert_equal(14, get_scale(1e-14))
 
 class _DecimalAdapter(construct.Adapter):
     def _decode(self, obj, context, path):
@@ -71,13 +71,13 @@ test_cases = [
 ]
 
 for tc in test_cases:
-    utils.assert_equal(tc["bytes"], to_byte_array(tc["number"]))
+    sstable.utils.assert_equal(tc["bytes"], to_byte_array(tc["number"]))
 
 DecimalNumber = _DecimalAdapter(construct.Struct(
-    "total_length" / varint.VarInt(),
+    "total_length" / sstable.varint.VarInt(),
     "scale" / construct.Int32ub, # scale as in (unscaled_big_int * 10**scale)
     "unscaled_big_int" / construct.BytesInteger(construct.this.total_length-4), # 4 is the length of Int32ub for scale
 ))
 
-utils.assert_equal(b"\x05\x00\x00\x00\x0e\x01", DecimalNumber.build(0.00000000000001))
-utils.assert_equal(0.00000000000001, DecimalNumber.parse(b"\x05\x00\x00\x00\x0e\x01"))
+sstable.utils.assert_equal(b"\x05\x00\x00\x00\x0e\x01", DecimalNumber.build(0.00000000000001))
+sstable.utils.assert_equal(0.00000000000001, DecimalNumber.parse(b"\x05\x00\x00\x00\x0e\x01"))

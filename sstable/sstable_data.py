@@ -1,14 +1,14 @@
-import utils
-import varint
+import sstable.utils
+import sstable.varint
 
 import construct
 
-import greedy_range
-import string_encoded
-import sstable_decimal
-import uuid
+import sstable.greedy_range
+import sstable.string_encoded
+import sstable.sstable_decimal
+import sstable.uuid
 
-construct.setGlobalPrintFullStrings(utils.PRINT_FULL_STRING)
+construct.setGlobalPrintFullStrings(sstable.utils.PRINT_FULL_STRING)
 
 # https://opensource.docs.scylladb.com/stable/architecture/sstable/sstable3/sstables-3-data-file-format.html#
 
@@ -57,72 +57,72 @@ def has_clustering_columns_func(ctx):
 
 text_cell_value = construct.Struct(
     # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/rows/BufferCell.java#L272
-    "cell_value_len" / varint.VarInt(),
-    "cell_value" / string_encoded.StringEncoded(construct.Bytes(construct.this.cell_value_len), "utf-8"),
+    "cell_value_len" / sstable.varint.VarInt(),
+    "cell_value" / sstable.string_encoded.StringEncoded(construct.Bytes(construct.this.cell_value_len), "utf-8"),
 )
-utils.assert_equal(b"\x04\x61\x62\x63\x64", text_cell_value.build({"cell_value_len": 4, "cell_value": "abcd"}))
+sstable.utils.assert_equal(b"\x04\x61\x62\x63\x64", text_cell_value.build({"cell_value_len": 4, "cell_value": "abcd"}))
 
 int_cell_value = construct.Struct(
     "cell_value" / construct.Int32sb,
 )
-utils.assert_equal(b"\x00\x00\x00\x04", int_cell_value.build({"cell_value": 4}))
+sstable.utils.assert_equal(b"\x00\x00\x00\x04", int_cell_value.build({"cell_value": 4}))
 
-# The IntegerType is used for CQL varint type
+# The IntegerType is used for CQL sstable.varint type
 # It is a Java BigInteger https://sourcegraph.com/github.com/apache/cassandra@cassandra-3.0.0/-/blob/src/java/org/apache/cassandra/serializers/IntegerSerializer.java?L35
 integer_cell_value = construct.Struct(
-    "length" / varint.VarInt(),
+    "length" / sstable.varint.VarInt(),
     "cell_value" / construct.BytesInteger(construct.this.length),
 )
-utils.assert_equal(b"\x01\x09", integer_cell_value.build({"length": 1, "cell_value": 9}))
+sstable.utils.assert_equal(b"\x01\x09", integer_cell_value.build({"length": 1, "cell_value": 9}))
 
 # https://sourcegraph.com/github.com/apache/cassandra@cassandra-3.0.0/-/blob/src/java/org/apache/cassandra/db/marshal/ShortType.java?L54
 # https://docs.oracle.com/javase/tutorial/java/nutsandbolts/datatypes.html
 short_cell_value = construct.Struct(
-    "length" / varint.VarInt(), # TODO: now sure why short needs a length? it should always be 2?
+    "length" / sstable.varint.VarInt(), # TODO: now sure why short needs a length? it should always be 2?
     "cell_value" / construct.BytesInteger(construct.this.length), # I think this is probably always 2 bytes, i.e. construct.Int16sb
 )
-utils.assert_equal(b"\x02\x00\x04", short_cell_value.build({"length": 2, "cell_value": 4}))
+sstable.utils.assert_equal(b"\x02\x00\x04", short_cell_value.build({"length": 2, "cell_value": 4}))
 
 long_cell_value = construct.Struct(
     "cell_value" / construct.Int64sb,
 )
-utils.assert_equal(b"\x00\x00\x00\x00\x00\x00\x00\x04", long_cell_value.build({"cell_value": 4}))
+sstable.utils.assert_equal(b"\x00\x00\x00\x00\x00\x00\x00\x04", long_cell_value.build({"cell_value": 4}))
 
 # https://github.com/openjdk/jdk/blob/jdk8-b120/jdk/src/share/classes/java/math/BigInteger.java#L3697-L3726
 # https://sourcegraph.com/github.com/apache/cassandra@cassandra-3.0.0/-/blob/src/java/org/apache/cassandra/serializers/DecimalSerializer.java?L45-59
 # Note that this ^ serialize() method doesn't include the length of the value.
 decimal_cell_value = construct.Struct(
-    "cell_value" / sstable_decimal.DecimalNumber,
+    "cell_value" / sstable.sstable_decimal.DecimalNumber,
 )
 
 # Not tested with Cassnadra:
 float_cell_value = construct.Struct(
     "cell_value" / construct.Float32b,
 )
-utils.assert_equal(b"\x00\x00\x00\x00", float_cell_value.build({"cell_value": 0}))
+sstable.utils.assert_equal(b"\x00\x00\x00\x00", float_cell_value.build({"cell_value": 0}))
 
 double_cell_value = construct.Struct(
     "cell_value" / construct.Float64b,
 )
-utils.assert_equal(b"\x00\x00\x00\x00\x00\x00\x00\x00", double_cell_value.build({"cell_value": 0}))
+sstable.utils.assert_equal(b"\x00\x00\x00\x00\x00\x00\x00\x00", double_cell_value.build({"cell_value": 0}))
 
 
 # Not tested with Cassnadra:
 ascii_cell_value = construct.Struct(
-    "length" / varint.VarInt(),
-    "cell_value" / string_encoded.StringEncoded(construct.Bytes(construct.this.length), "ascii"),
+    "length" / sstable.varint.VarInt(),
+    "cell_value" / sstable.string_encoded.StringEncoded(construct.Bytes(construct.this.length), "ascii"),
 )
-utils.assert_equal(b"\x04\x61\x62\x63\x64", ascii_cell_value.build({"length": 4, "cell_value": "abcd"}))
+sstable.utils.assert_equal(b"\x04\x61\x62\x63\x64", ascii_cell_value.build({"length": 4, "cell_value": "abcd"}))
 
 bytes_cell_value = construct.Struct(
-    "length" / varint.VarInt(),
+    "length" / sstable.varint.VarInt(),
     "cell_value" / construct.Bytes(construct.this.length),
 )
-utils.assert_equal(b"\x04\x61\x62\x63\x64", bytes_cell_value.build({"length": 4, "cell_value": b"abcd"}))
+sstable.utils.assert_equal(b"\x04\x61\x62\x63\x64", bytes_cell_value.build({"length": 4, "cell_value": b"abcd"}))
 
 # The ByteType seems to be used for tinyint AND it has a length! WTF :shrug:
 byte_cell_value = construct.Struct(
-    "length" / varint.VarInt(),
+    "length" / sstable.varint.VarInt(),
     "cell_value" / construct.Bytes(construct.this.length),
 )
 
@@ -130,19 +130,19 @@ byte_cell_value = construct.Struct(
 boolean_cell_value = construct.Struct(
     "cell_value" / construct.OneOf(construct.Byte, [0, 1]),
 )
-utils.assert_equal(b"\x00", boolean_cell_value.build({"cell_value": False}))
-utils.assert_equal(False, boolean_cell_value.parse(b"\x00").cell_value)
+sstable.utils.assert_equal(b"\x00", boolean_cell_value.build({"cell_value": False}))
+sstable.utils.assert_equal(False, boolean_cell_value.parse(b"\x00").cell_value)
 
 # https://sourcegraph.com/github.com/apache/cassandra@cassandra-3.0.0/-/blob/src/java/org/apache/cassandra/serializers/TimestampSerializer.java?L122
 # Note that getTime() returns a Java `long` and it represents milliseconds
 timestamp_cell_value = construct.Struct(
     "cell_value" / construct.Int64sb,
 )
-utils.assert_equal(b"\x00\x00\x00\x00\x00\x00\x00\x04", timestamp_cell_value.build({"cell_value": 4}))
-utils.assert_equal(4, timestamp_cell_value.parse(b"\x00\x00\x00\x00\x00\x00\x00\x04").cell_value)
+sstable.utils.assert_equal(b"\x00\x00\x00\x00\x00\x00\x00\x04", timestamp_cell_value.build({"cell_value": 4}))
+sstable.utils.assert_equal(4, timestamp_cell_value.parse(b"\x00\x00\x00\x00\x00\x00\x00\x04").cell_value)
 
 uuid_cell_value = construct.Struct(
-    "cell_value" / uuid.Uuid,
+    "cell_value" / sstable.uuid.Uuid,
 )
 
 # TODO this might be a CompositeType as well
@@ -177,7 +177,7 @@ simple_cell = construct.Struct(
     ),
 )
 clustering_cell = construct.Struct(
-    # "cell_value_len" / varint.VarInt(),
+    # "cell_value_len" / sstable.varint.VarInt(),
     # "cell_value" / construct.Bytes(construct.this.cell_value_len),
 
     # NOTE: ctx._index seems ok, I used to think it incremented globally
@@ -202,7 +202,7 @@ class EnabledColumns(construct.Construct):
         columns_count = self.columns_count_predicate(context)
 
         if columns_count < 64:
-            mask = varint.VarInt().parse_stream(stream)
+            mask = sstable.varint.VarInt().parse_stream(stream)
             enabled_col_indexes = []
             for i in range(columns_count):
                 disabled = (1 << i) & mask
@@ -211,11 +211,11 @@ class EnabledColumns(construct.Construct):
 
             return enabled_col_indexes
         else:
-            disabled_count = varint.VarInt().parse_stream(stream)
+            disabled_count = sstable.varint.VarInt().parse_stream(stream)
 
             indexes = []
             for i in range(columns_count - disabled_count):
-                index = varint.VarInt().parse_stream(stream)
+                index = sstable.varint.VarInt().parse_stream(stream)
                 indexes.append(index)
 
             if disabled_count >= columns_count/2:
@@ -232,15 +232,15 @@ class EnabledColumns(construct.Construct):
     def _build(self, obj, stream, context, path):
         raise Exception("TODO: please implement _build for EnabledColumns")
 
-utils.assert_equal([3, 4, 6, 7, 8, 9], EnabledColumns(lambda context: 10).parse(bytes([0b00100111])))
-utils.assert_equal([10], EnabledColumns(lambda context: 11).parse(bytes([0b10000011, 0b11111111])))
-utils.assert_equal([], EnabledColumns(lambda context: 66).parse(bytes([66])))
-utils.assert_equal([7, 8], EnabledColumns(lambda context: 66).parse(bytes([64, 7, 8])))
+sstable.utils.assert_equal([3, 4, 6, 7, 8, 9], EnabledColumns(lambda context: 10).parse(bytes([0b00100111])))
+sstable.utils.assert_equal([10], EnabledColumns(lambda context: 11).parse(bytes([0b10000011, 0b11111111])))
+sstable.utils.assert_equal([], EnabledColumns(lambda context: 66).parse(bytes([66])))
+sstable.utils.assert_equal([7, 8], EnabledColumns(lambda context: 66).parse(bytes([64, 7, 8])))
 
 row_body_format = construct.Struct(
   "row_body_start" / construct.Tell,
-  "previous_unfiltered_size" / varint.VarInt(), # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/rows/UnfilteredSerializer.java#L170
-  "timestamp_diff" / varint.VarInt(), # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/rows/UnfilteredSerializer.java#L174
+  "previous_unfiltered_size" / sstable.varint.VarInt(), # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/rows/UnfilteredSerializer.java#L170
+  "timestamp_diff" / sstable.varint.VarInt(), # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/rows/UnfilteredSerializer.java#L174
                                       # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/SerializationHeader.java#L195
 
   # Not: https://sourcegraph.com/github.com/scylladb/scylladb@scylla-5.4.0/-/blob/sstables/mx/writer.cc?L1150
@@ -250,7 +250,7 @@ row_body_format = construct.Struct(
         has_missing_columns_func,
         EnabledColumns(lambda context: len(context._root._.sstable_statistics.serialization_header.regular_columns)),
         # construct.Switch(get_missing_columns_encoding_fun, missing_columns_encoding_to_construct),
-        # varint.VarInt(),
+        # sstable.varint.VarInt(),
   ),
   # cells are repeated until the row body size is serialized_row_body_size
   # "cells" / construct.RepeatUntil(get_cell_repeat_until_func, simple_cell), # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/rows/BufferCell.java#L211
@@ -279,7 +279,7 @@ unfiltered = construct.Struct(
                     "clustering_cells" / construct.Array(get_clustering_key_count_func, clustering_cell), # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/ClusteringPrefix.java#L310
                 ),
             ),
-            "serialized_row_body_size" / varint.VarInt(), # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/rows/UnfilteredSerializer.java#L169
+            "serialized_row_body_size" / sstable.varint.VarInt(), # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/rows/UnfilteredSerializer.java#L169
             "row_body" / row_body_format,
         ),
     ),
@@ -304,4 +304,4 @@ partition = construct.Struct(
     "unfiltereds" / construct.RepeatUntil(lambda obj, lst, ctx: (obj.row_flags & 0x01) == 0x01, unfiltered),
 )
 
-data_format = construct.Struct("partitions" / greedy_range.GreedyRangeWithExceptionHandling(partition))
+data_format = construct.Struct("partitions" / sstable.greedy_range.GreedyRangeWithExceptionHandling(partition))

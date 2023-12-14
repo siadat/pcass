@@ -1,19 +1,19 @@
 import os
 import io
 
-import varint
+import sstable.varint
 import construct
-import positioned_construct
+import sstable.positioned_construct
 
 
 def inspect(byts):
-    for (k, v) in positioned_construct.global_position_map.items():
+    for (k, v) in sstable.positioned_construct.global_position_map.items():
         print(k, v)
-    positioned_construct.pretty_hexdump("ok", io.BytesIO(byts), len(byts), os.sys.stdout, index=True)
+    sstable.positioned_construct.pretty_hexdump("ok", io.BytesIO(byts), len(byts), os.sys.stdout, index=True)
 
 ####
 typ = construct.Struct(
-    "name_length" / varint.VarInt(),
+    "name_length" / sstable.varint.VarInt(),
     "name" / construct.Bytes(construct.this.name_length),
 )
 column = construct.Struct(
@@ -34,7 +34,7 @@ column = construct.Struct(
 
 ####
 # typ2 = construct.Struct(
-#     "name" / construct.PascalString(varint.VarInt(), "ascii"),
+#     "name" / construct.PascalString(sstable.varint.VarInt(), "ascii"),
 # )
 # column2 = construct.Struct(
 #     "name" / construct.PascalString(construct.Int8ub, "ascii"),
@@ -42,7 +42,7 @@ column = construct.Struct(
 # )
 # 
 ####
-positioned_construct.init()
+sstable.positioned_construct.init()
 byts = column.build({
     "name_length": 3,
     "name": b"hii",
@@ -62,7 +62,7 @@ byts = column.build({
     },
 })
 column.parse_stream(io.BytesIO(byts))
-inspect(byts)
+# inspect(byts)
 
 # ####
 # print()
@@ -70,7 +70,7 @@ inspect(byts)
 # print(">>>>", "DONT USE PascalString, because positionings will be relative hence wrong", "<<<<")
 # print(">>>>", 100 * "-", "<<<<")
 # print()
-# positioned_construct.init()
+# sstable.positioned_construct.init()
 # byts = column2.build({"name": "hii", "type": {"name": "hello"}})
 # column2.parse_stream(io.BytesIO(byts))
 # inspect(byts)

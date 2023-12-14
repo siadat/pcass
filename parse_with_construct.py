@@ -5,20 +5,20 @@ import traceback
 
 import construct
 
-import sstable_data
-import sstable_statistics
-import positioned_construct
+import sstable.sstable_data
+import sstable.sstable_statistics
+import sstable.positioned_construct
 
 def parse_statistics_db(statistics_file):
     parsed = None
-    positioned_construct.init()
+    sstable.positioned_construct.init()
     with open(statistics_file, "rb") as f:
         err = None
         err_pos = None
         err_traceback = None
 
         try:
-            parsed = sstable_statistics.statistics_format.parse_stream(f)
+            parsed = sstable.sstable_statistics.statistics_format.parse_stream(f)
             print("# Parsed Statistics.db:")
             print(parsed)
         except Exception as e:
@@ -30,19 +30,19 @@ def parse_statistics_db(statistics_file):
     with open(statistics_file, "rb") as f:
         print()
         print("# Hex Statistics.db")
-        positioned_construct.pretty_hexdump(statistics_file, f, last_pos, os.sys.stdout, err, err_pos, err_traceback, index=False)
+        sstable.positioned_construct.pretty_hexdump(statistics_file, f, last_pos, os.sys.stdout, err, err_pos, err_traceback, index=False)
     return parsed
 
 def parse_data_db(data_file, parsed_statistics):
     parsed = None
-    positioned_construct.init()
+    sstable.positioned_construct.init()
     with open(data_file, "rb") as f:
         err = None
         err_pos = None
         err_traceback = None
 
         try:
-            parsed = sstable_data.data_format.parse_stream(f, sstable_statistics=parsed_statistics)
+            parsed = sstable.sstable_data.data_format.parse_stream(f, sstable_statistics=parsed_statistics)
             print("# Parsed Data.db:")
             print(parsed)
         except Exception as e:
@@ -54,7 +54,7 @@ def parse_data_db(data_file, parsed_statistics):
     with open(data_file, "rb") as f:
         print()
         print("# Hex Data.db")
-        positioned_construct.pretty_hexdump(data_file, f, last_pos, os.sys.stdout, err, err_pos, err_traceback)
+        sstable.positioned_construct.pretty_hexdump(data_file, f, last_pos, os.sys.stdout, err, err_pos, err_traceback)
     return parsed
 
 def main():
@@ -67,7 +67,7 @@ def main():
     parsed_data = parse_data_db(os.path.join(args.dir, "me-1-big-Data.db"), parsed_statistics)
 
     # # inspect:
-    # for (k, v) in positioned_construct.global_position_map.items():
+    # for (k, v) in sstable.positioned_construct.global_position_map.items():
     #     print(k, v)
 
 main()

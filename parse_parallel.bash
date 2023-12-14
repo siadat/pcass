@@ -15,7 +15,7 @@ for table_dir in $data_dir/${keyspace_name}/* ; do
     fi
     echo "Parsing table ${data_db_file}"
     {
-      poetry run python parse_with_construct.py "${table_dir}" > $table_parsed_dir/$(basename $data_db_file).hex
+      poetry run python -m parse_with_construct "${table_dir}" > $table_parsed_dir/$(basename $data_db_file).hex
       echo "Done ${data_db_file}"
     } &
   done

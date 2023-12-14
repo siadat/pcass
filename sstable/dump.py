@@ -4,16 +4,16 @@ import io
 import os
 import argparse
 
-import utils
-import sstable_data
-import sstable_statistics
+import sstable.utils
+import sstable.sstable_data
+import sstable.sstable_statistics
 
 
 class CustomJSONEncoder(json.JSONEncoder):
     def default(self, obj):
         # If the object is bytes, decode it to a string
         if isinstance(obj, bytes):
-            return "".join([utils.hex(byt) for byt in obj])
+            return "".join([sstable.utils.hex(byt) for byt in obj])
         # For all other types, use the standard handling
         return json.JSONEncoder.default(self, obj)
 
@@ -64,8 +64,8 @@ class JsonWriter:
         self.writer.write(json.dumps(row, cls=CustomJSONEncoder) + "\n")
 
 def dump(statistics_stream, data_stream, writer):
-    parsed_statistics = sstable_statistics.statistics_format.parse_stream(statistics_stream)
-    parsed_data = sstable_data.data_format.parse_stream(data_stream, sstable_statistics=parsed_statistics)
+    parsed_statistics = sstable.sstable_statistics.statistics_format.parse_stream(statistics_stream)
+    parsed_data = sstable.sstable_data.data_format.parse_stream(data_stream, sstable_statistics=parsed_statistics)
 
     # header:
     clustering_column_names = [f"clustering_column_{i+1}" for i, typ in enumerate(parsed_statistics.serialization_header.clustering_key_types)]
