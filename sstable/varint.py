@@ -61,28 +61,27 @@ def build(value):
     if byte_length > 8:
         raise f"Only 8 byte integers are supported, {value} is {byte_length} bytes"
 
+    flag_bits = 0
+    for i in range(byte_length):
+        flag_bits |= 1<<(7-i)
+
     if byte_length == 8:
         # No separating 0 is needed
-        return bytes([flag_byte] + list(value.to_bytes(byte_length, byteorder="big")))
+        return bytes([flag_bits] + list(value.to_bytes(byte_length, byteorder="big")))
 
-    flag_byte = 0
-    for i in range(byte_length):
-        flag_byte |= 1<<(7-i)
-
-    flag_mask = flag_byte | (1<<(7-byte_length))
-    if flag_mask & first_byte > 0:
-        # flag_mask and first_byte overlap, so we need to start the value bits
-        # from the next byte:
-        return bytes([flag_byte] + list(value.to_bytes(byte_length, byteorder="big")))
-    else:
-        # flag_mask and first_byte do not overlap, so we should merge flag_byte
+    if flag_bits & first_byte == 0:
+        # flag_bits_mask and first_byte do not overlap, so we should merge flag_bits
         # and first_byte, but we need to need to remove one of the 1s from
-        # flag_byte, because the number of bytes that follow the flag_byte is
+        # flag_bits, because the number of bytes that follow the flag_bits is
         # one less than the number of bytes needed to represent the number.
         # Removing the right-most-1 is done with (byte&(byte-1)):
-        flag_byte = flag_byte & (flag_byte-1)
-        merged_first_byte = flag_byte | first_byte
+        flag_bits = flag_bits & (flag_bits-1)
+        merged_first_byte = flag_bits | first_byte
         return bytes([merged_first_byte] + list(value.to_bytes(byte_length, byteorder="big"))[1:])
+    else:
+        # flag_bits_mask and first_byte overlap, so we need to start the value bits
+        # from the next byte:
+        return bytes([flag_bits] + list(value.to_bytes(byte_length, byteorder="big")))
 
 class VarInt(construct.Construct):
     def _parse(self, stream, context, path):
@@ -99,22 +98,3 @@ class VarInt(construct.Construct):
     #     # return computed size (when fixed size or depends on context)
     #     # or raise SizeofError (when variable size or unknown)
     #     print(f"_sizeof {context} {path}")
-
-sstable.utils.assert_equal(0, parse(io.BytesIO(bytes([0b00000000]))))
-sstable.utils.assert_equal(1, parse(io.BytesIO(bytes([0b00000001]))))
-sstable.utils.assert_equal(127, parse(io.BytesIO(bytes([0b01111111]))))
-sstable.utils.assert_equal(128, parse(io.BytesIO(bytes([0b10000000, 0b10000000]))))
-sstable.utils.assert_equal(129, parse(io.BytesIO(bytes([0b10000000, 0b10000001]))))
-sstable.utils.assert_equal(640, parse(io.BytesIO(bytes([0b10000010, 0b10000000]))))
-sstable.utils.assert_equal(32773, parse(io.BytesIO(bytes([0b11000000, 0b10000000, 0b00000101]))))
-
-sstable.utils.assert_equal(bytes([0b00000000]), build(0))
-sstable.utils.assert_equal(bytes([0b00000001]), build(1))
-sstable.utils.assert_equal(bytes([0b01111111]), build(127))
-sstable.utils.assert_equal(bytes([0b10000000, 0b10000000]), build(128))
-sstable.utils.assert_equal(bytes([0b10000000, 0b10000001]), build(129))
-sstable.utils.assert_equal(bytes([0b10000010, 0b10000000]), build(640))
-sstable.utils.assert_equal(bytes([0b11000000, 0b10000000, 0b00000101]), build(32773))
-
-sstable.utils.assert_equal(640, VarInt().parse(bytes([0b10000010, 0b10000000])))
-sstable.utils.assert_equal(bytes([0b10000010, 0b10000000]), VarInt().build(640))

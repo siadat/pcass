@@ -28,6 +28,8 @@ def bin(number):
     # Split the string into chunks of 8 bits using list comprehension
     return ' '.join(padded_binary_str[i:i+8] for i in range(0, len(padded_binary_str), 8))
 
+def bins(byte_array):
+    return [bin(x) for x in byte_array]
 
 def byte_repr(byte):
     if 32 <= byte <= 126:
