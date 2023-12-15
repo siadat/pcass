@@ -30,25 +30,25 @@ def test_encode_and_decode():
         statistics_bytes = f.read()
     statistics_parsed = sstable.sstable_statistics.statistics_format.parse(statistics_bytes)
     statistics_bytes_got = sstable.sstable_statistics.statistics_format.build(statistics_parsed)
-    sstable.utils.assert_equal(statistics_bytes, statistics_bytes_got)
+    assert statistics_bytes == statistics_bytes_got
 
     # Data.db
     with open("test_data/me-1-big-Data.db", "rb") as f:
         db_bytes = f.read()
     data_parsed = sstable.sstable_data.data_format.parse(db_bytes, sstable_statistics=statistics_parsed)
     data_bytes_got = sstable.sstable_data.data_format.build(data_parsed, sstable_statistics=statistics_parsed)
-    sstable.utils.assert_equal(db_bytes, data_bytes_got)
+    assert db_bytes == data_bytes_got
     mock_writer = MockWriter()
 
     # dump
     with open(os.path.join("test_data", "me-1-big-Statistics.db"), "rb") as statistics_file:
         with open(os.path.join("test_data", "me-1-big-Data.db"), "rb") as data_file:
             sstable.dump.dump(statistics_file, data_file,  mock_writer)
-    sstable.utils.assert_equal(['clustering_column_1'], mock_writer.clustering_column_names)
-    sstable.utils.assert_equal(['aboutme'], mock_writer.regular_column_names)
-    sstable.utils.assert_equal([b'\x00\x00\x00\x01', b'\x00\x00\x00\x02', b'\x00\x00\x00\x03'], mock_writer.partition_key_value)
-    sstable.utils.assert_equal(['sina', 'soheil', 'sara'], mock_writer.clustering_column_values)
-    sstable.utils.assert_equal(['hi my name is sina!', 'hi my name is soheil!', 'hi my name is sara!'], mock_writer.regular_column_values)
+    assert ['clustering_column_1'] == mock_writer.clustering_column_names
+    assert ['aboutme'] == mock_writer.regular_column_names
+    assert [b'\x00\x00\x00\x01', b'\x00\x00\x00\x02', b'\x00\x00\x00\x03'] == mock_writer.partition_key_value
+    assert ['sina', 'soheil', 'sara'] == mock_writer.clustering_column_values
+    assert ['hi my name is sina!', 'hi my name is soheil!', 'hi my name is sara!'] == mock_writer.regular_column_values
 
 test_encode_and_decode()
 
