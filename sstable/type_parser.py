@@ -152,7 +152,6 @@ class TypeTransformer(Transformer):
 
     @v_args(inline=True)
     def basic_type(self, package):
-        print("package is", package)
         return java_type_to_construct[package]
 
     @v_args(inline=True)
@@ -169,7 +168,6 @@ class TypeTransformer(Transformer):
                 # "cell_value" / construct.Array(construct.this.cell_value_len, subcon),
                 "cell_value" / subcon,
             )
-            print("ret", ret)
             return ret
         else:
             raise Exception(f"Unknown type: {package}")
@@ -179,7 +177,13 @@ parser = Lark(type_grammar, parser='lalr', transformer=TypeTransformer())
 
 # Testing with an example string
 sstable.utils.assert_equal(int_cell_value, parser.parse('org.apache.cassandra.db.marshal.Int32Type'))
-# TODO: sstable.utils.assert_equal('list-of-org.apache.cassandra.db.marshal.Int32Type-s', parser.parse('org.apache.cassandra.db.marshal.ListType(org.apache.cassandra.db.marshal.Int32Type)'))
+
+int32_obj = {"cell_value_len": 4, "cell_value": {"cell_value": 123}}
+sstable.utils.assert_equal(construct.Struct(
+        "cell_value_len" / sstable.varint.VarInt(),
+        "cell_value" / int_cell_value,
+).build(int32_obj), parser.parse('org.apache.cassandra.db.marshal.ListType(org.apache.cassandra.db.marshal.Int32Type)').build(int32_obj))
+
 # TODO: sstable.utils.assert_equal('map-from-org.apache.cassandra.db.marshal.Int32Type-to-org.apache.cassandra.db.marshal.Int32Type', parser.parse('org.apache.cassandra.db.marshal.MapType(org.apache.cassandra.db.marshal.Int32Type,org.apache.cassandra.db.marshal.Int32Type)'))
 # TODO: sstable.utils.assert_equal(None, parser.parse('org.apache.cassandra.db.marshal.UserType(sina_test,74616773,74616773:org.apache.cassandra.db.marshal.MapType(org.apache.cassandra.db.marshal.UTF8Type,org.apache.cassandra.db.marshal.UTF8Type))'))
 # TODO: sstable.utils.assert_equal(None, parser.parse('org.apache.cassandra.db.marshal.UserType(sina_test,62616e645f696e666f5f74797065,666f756e646564:org.apache.cassandra.db.marshal.IntegerType,6d656d62657273:org.apache.cassandra.db.marshal.SetType(org.apache.cassandra.db.marshal.UTF8Type),6465736372697074696f6e:org.apache.cassandra.db.marshal.UTF8Type)'))

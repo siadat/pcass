@@ -37,7 +37,7 @@ def test_encode_and_decode():
         db_bytes = f.read()
     data_parsed = sstable.sstable_data.data_format.parse(db_bytes, sstable_statistics=statistics_parsed)
     data_bytes_got = sstable.sstable_data.data_format.build(data_parsed, sstable_statistics=statistics_parsed)
-    assert db_bytes == data_bytes_got
+    sstable.utils.assert_equal(db_bytes, data_bytes_got)
     mock_writer = MockWriter()
 
     # dump

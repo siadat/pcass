@@ -15,7 +15,6 @@ construct.setGlobalPrintFullStrings(sstable.utils.PRINT_FULL_STRING)
 
 def cell_empty_func(obj):
     ret = obj.cell_flags & 0x04 != 0x4
-    print(f"cell_empty_func {ret}", obj.cell_flags)
     return ret
 
 def get_cell_count_func(ctx): 
@@ -37,8 +36,6 @@ def get_cell_type_func(ctx):
     if hasattr(ctx, "computed_index"):
         index = ctx.computed_index
 
-    print(f"get_cell_type_func {ctx._index} {index}")
-
     if ctx.computed_missing_columns is not None:
         col = cols[ctx.computed_missing_columns[index]]
         name = col.type.name
@@ -52,7 +49,6 @@ def get_cell_type_func(ctx):
 
 def get_clustering_key_type_func(ctx):
     cols = ctx._root._.sstable_statistics.serialization_header.clustering_key_types
-    print(f"get_clustering_key_type_func {ctx._index}")
     name = cols[ctx._index].name
     # if name not in java_type_to_construct:
     #     raise Exception(f"Unhandled type {name}, please add to java_type_to_construct")

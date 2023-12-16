@@ -238,6 +238,24 @@ files = [
 ]
 
 [[package]]
+name = "lark"
+version = "1.1.8"
+description = "a modern parsing library"
+category = "main"
+optional = false
+python-versions = ">=3.6"
+files = [
+    {file = "lark-1.1.8-py3-none-any.whl", hash = "sha256:7d2c221a66a8165f3f81aacb958d26033d40d972fdb70213ab0a2e0627e29c86"},
+    {file = "lark-1.1.8.tar.gz", hash = "sha256:7ef424db57f59c1ffd6f0d4c2b705119927f566b68c0fe1942dddcc0e44391a5"},
+]
+
+[package.extras]
+atomic-cache = ["atomicwrites"]
+interegular = ["interegular (>=0.3.1,<0.4.0)"]
+nearley = ["js2py"]
+regex = ["regex"]
+
+[[package]]
 name = "matplotlib-inline"
 version = "0.1.6"
 description = "Inline Matplotlib backend for Jupyter"
@@ -590,4 +608,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "32556f1dd4262d27c4fff7e11d232365d34bdabd7e8d857debd9782850004aee"
+content-hash = "740cf85bc4d87e90199e559615bd00af05c21ce3cbd1c05127b675f59d1f541d"

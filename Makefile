@@ -1,6 +1,6 @@
 test:
 	poetry run pytest -x -s --cov=. --cov-report=html -v
-	poetry run python -m sstable.import | jq -s 'if length != 2 then error("Length is not 2") else "2 rows dumped" end'
+	poetry run python -m sstable.import | jq -s 'if length != 2 then error("Length is not 2, it is \(length)") else "2 rows dumped" end'
 	poetry run python -m sstable.dump test_data/cassandra3_data_want/sina_test/sina_table-*/ | jq -s 'if length != 7 then error("Length is not 7, it is \(length)") else "7 rows dumped" end'
 	poetry run python -m sstable.dump test_data/cassandra3_data_want/sina_test/has_all_types-*/ | jq -s 'if length != 5 then error("Length is not 5, it is \(length)") else "5 rows dumped" end'
 
