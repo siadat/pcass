@@ -6,6 +6,7 @@ import construct
 import sstable.greedy_range
 import sstable.string_encoded
 import sstable.sstable_decimal
+import sstable.dynamic_switch
 import sstable.uuid
 
 construct.setGlobalPrintFullStrings(sstable.utils.PRINT_FULL_STRING)
@@ -14,6 +15,7 @@ construct.setGlobalPrintFullStrings(sstable.utils.PRINT_FULL_STRING)
 
 def cell_empty_func(obj):
     ret = obj.cell_flags & 0x04 != 0x4
+    print(f"cell_empty_func {ret}", obj.cell_flags)
     return ret
 
 def get_cell_count_func(ctx): 
@@ -25,28 +27,35 @@ def get_cell_count_func(ctx):
 
 def get_partition_key_type_func(ctx):
     name = ctx._root._.sstable_statistics.serialization_header.partition_key_type.name
-    if name not in java_type_to_construct:
-        raise Exception(f"Unhandled type {name}, please add to java_type_to_construct")
+    # if name not in java_type_to_construct:
+    #     raise Exception(f"Unhandled type {name}, please add to java_type_to_construct")
     return name
 
 def get_cell_type_func(ctx):
     cols = ctx._root._.sstable_statistics.serialization_header.regular_columns
-    if ctx._.missing_columns is not None:
-        col = cols[ctx._.missing_columns[ctx._index]]
+    index = ctx._index
+    if hasattr(ctx, "computed_index"):
+        index = ctx.computed_index
+
+    print(f"get_cell_type_func {ctx._index} {index}")
+
+    if ctx.computed_missing_columns is not None:
+        col = cols[ctx.computed_missing_columns[index]]
         name = col.type.name
     else:
-        col = cols[ctx._index]
+        col = cols[index]
         name = col.type.name
 
-    if name not in java_type_to_construct:
-        raise Exception(f"Unhandled type {name}, please add to java_type_to_construct")
+    # if name not in java_type_to_construct:
+    #     raise Exception(f"Unhandled type {name}, please add to java_type_to_construct")
     return name
 
 def get_clustering_key_type_func(ctx):
     cols = ctx._root._.sstable_statistics.serialization_header.clustering_key_types
+    print(f"get_clustering_key_type_func {ctx._index}")
     name = cols[ctx._index].name
-    if name not in java_type_to_construct:
-        raise Exception(f"Unhandled type {name}, please add to java_type_to_construct")
+    # if name not in java_type_to_construct:
+    #     raise Exception(f"Unhandled type {name}, please add to java_type_to_construct")
     return name
 
 def get_clustering_key_count_func(ctx):
@@ -55,126 +64,50 @@ def get_clustering_key_count_func(ctx):
 def has_clustering_columns_func(ctx):
     return ctx._root._.sstable_statistics.serialization_header.clustering_key_count > 0
 
-text_cell_value = construct.Struct(
-    # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/rows/BufferCell.java#L272
-    "cell_value_len" / sstable.varint.VarInt(),
-    "cell_value" / sstable.string_encoded.StringEncoded(construct.Bytes(construct.this.cell_value_len), "utf-8"),
-)
-sstable.utils.assert_equal(b"\x04\x61\x62\x63\x64", text_cell_value.build({"cell_value_len": 4, "cell_value": "abcd"}))
-
-int_cell_value = construct.Struct(
-    "cell_value" / construct.Int32sb,
-)
-sstable.utils.assert_equal(b"\x00\x00\x00\x04", int_cell_value.build({"cell_value": 4}))
-
-# The IntegerType is used for CQL sstable.varint type
-# It is a Java BigInteger https://sourcegraph.com/github.com/apache/cassandra@cassandra-3.0.0/-/blob/src/java/org/apache/cassandra/serializers/IntegerSerializer.java?L35
-integer_cell_value = construct.Struct(
-    "length" / sstable.varint.VarInt(),
-    "cell_value" / construct.BytesInteger(construct.this.length),
-)
-sstable.utils.assert_equal(b"\x01\x09", integer_cell_value.build({"length": 1, "cell_value": 9}))
-
-# https://sourcegraph.com/github.com/apache/cassandra@cassandra-3.0.0/-/blob/src/java/org/apache/cassandra/db/marshal/ShortType.java?L54
-# https://docs.oracle.com/javase/tutorial/java/nutsandbolts/datatypes.html
-short_cell_value = construct.Struct(
-    "length" / sstable.varint.VarInt(), # TODO: now sure why short needs a length? it should always be 2?
-    "cell_value" / construct.BytesInteger(construct.this.length), # I think this is probably always 2 bytes, i.e. construct.Int16sb
-)
-sstable.utils.assert_equal(b"\x02\x00\x04", short_cell_value.build({"length": 2, "cell_value": 4}))
-
-long_cell_value = construct.Struct(
-    "cell_value" / construct.Int64sb,
-)
-sstable.utils.assert_equal(b"\x00\x00\x00\x00\x00\x00\x00\x04", long_cell_value.build({"cell_value": 4}))
-
-# https://github.com/openjdk/jdk/blob/jdk8-b120/jdk/src/share/classes/java/math/BigInteger.java#L3697-L3726
-# https://sourcegraph.com/github.com/apache/cassandra@cassandra-3.0.0/-/blob/src/java/org/apache/cassandra/serializers/DecimalSerializer.java?L45-59
-# Note that this ^ serialize() method doesn't include the length of the value.
-decimal_cell_value = construct.Struct(
-    "cell_value" / sstable.sstable_decimal.DecimalNumber,
-)
-
-# Not tested with Cassnadra:
-float_cell_value = construct.Struct(
-    "cell_value" / construct.Float32b,
-)
-sstable.utils.assert_equal(b"\x00\x00\x00\x00", float_cell_value.build({"cell_value": 0}))
-
-double_cell_value = construct.Struct(
-    "cell_value" / construct.Float64b,
-)
-sstable.utils.assert_equal(b"\x00\x00\x00\x00\x00\x00\x00\x00", double_cell_value.build({"cell_value": 0}))
-
-
-# Not tested with Cassnadra:
-ascii_cell_value = construct.Struct(
-    "length" / sstable.varint.VarInt(),
-    "cell_value" / sstable.string_encoded.StringEncoded(construct.Bytes(construct.this.length), "ascii"),
-)
-sstable.utils.assert_equal(b"\x04\x61\x62\x63\x64", ascii_cell_value.build({"length": 4, "cell_value": "abcd"}))
-
-bytes_cell_value = construct.Struct(
-    "length" / sstable.varint.VarInt(),
-    "cell_value" / construct.Bytes(construct.this.length),
-)
-sstable.utils.assert_equal(b"\x04\x61\x62\x63\x64", bytes_cell_value.build({"length": 4, "cell_value": b"abcd"}))
-
-# The ByteType seems to be used for tinyint AND it has a length! WTF :shrug:
-byte_cell_value = construct.Struct(
-    "length" / sstable.varint.VarInt(),
-    "cell_value" / construct.Bytes(construct.this.length),
-)
-
-# Not tested with Cassnadra:
-boolean_cell_value = construct.Struct(
-    "cell_value" / construct.OneOf(construct.Byte, [0, 1]),
-)
-sstable.utils.assert_equal(b"\x00", boolean_cell_value.build({"cell_value": False}))
-sstable.utils.assert_equal(False, boolean_cell_value.parse(b"\x00").cell_value)
-
-# https://sourcegraph.com/github.com/apache/cassandra@cassandra-3.0.0/-/blob/src/java/org/apache/cassandra/serializers/TimestampSerializer.java?L122
-# Note that getTime() returns a Java `long` and it represents milliseconds
-timestamp_cell_value = construct.Struct(
-    "cell_value" / construct.Int64sb,
-)
-sstable.utils.assert_equal(b"\x00\x00\x00\x00\x00\x00\x00\x04", timestamp_cell_value.build({"cell_value": 4}))
-sstable.utils.assert_equal(4, timestamp_cell_value.parse(b"\x00\x00\x00\x00\x00\x00\x00\x04").cell_value)
-
-uuid_cell_value = construct.Struct(
-    "cell_value" / sstable.uuid.Uuid,
-)
-
-# TODO this might be a CompositeType as well
-java_type_to_construct = {
-    # Sources:
-    # - https://sourcegraph.com/github.com/apache/cassandra@cassandra-3.0.29/-/tree/src/java/org/apache/cassandra/db/marshal
-    # - https://cassandra.apache.org/doc/stable/cassandra/cql/types.html
-    "org.apache.cassandra.db.marshal.UTF8Type": text_cell_value,
-    "org.apache.cassandra.db.marshal.ShortType": short_cell_value,
-    "org.apache.cassandra.db.marshal.IntegerType": integer_cell_value,
-    "org.apache.cassandra.db.marshal.Int32Type": int_cell_value,
-    "org.apache.cassandra.db.marshal.LongType": long_cell_value,
-    "org.apache.cassandra.db.marshal.DecimalType": decimal_cell_value,
-    "org.apache.cassandra.db.marshal.AsciiType": ascii_cell_value,
-    "org.apache.cassandra.db.marshal.ByteType": byte_cell_value,
-    "org.apache.cassandra.db.marshal.BytesType": bytes_cell_value,
-    "org.apache.cassandra.db.marshal.BooleanType": boolean_cell_value,
-    "org.apache.cassandra.db.marshal.FloatType": float_cell_value,
-    "org.apache.cassandra.db.marshal.DoubleType": double_cell_value,
-    "org.apache.cassandra.db.marshal.TimestampType": timestamp_cell_value,
-    "org.apache.cassandra.db.marshal.UUIDType": uuid_cell_value,
-}
-
 simple_cell = construct.Struct(
+    # Making missing_columns available to cell
+    "computed_missing_columns" / construct.Computed(lambda ctx: ctx._.missing_columns),
+
     "cell_flags" / construct.Hex(construct.Int8ub), # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/rows/BufferCell.java#L230-L234
                                                     # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/rows/BufferCell.java#L258
     # NOTE: ctx._index seems ok, I used to think it incremented globally
     "cell" / construct.If(
         # TODO: 0x04 means empty value, e.g. empty '' string (and probably usef for tombstones as well?)
         cell_empty_func,
-        construct.Switch(get_cell_type_func, java_type_to_construct),
+        # construct.Switch(get_cell_type_func, java_type_to_construct),
+        sstable.dynamic_switch.DynamicSwitch(get_cell_type_func),
     ),
+)
+
+cell_path = construct.Struct(
+    "length" / sstable.varint.VarInt(),
+    "path" / construct.Bytes(construct.this.length),
+)
+
+complex_cell_item = construct.Struct(
+    # Making missing_columns available to cell
+    "computed_missing_columns" / construct.Computed(lambda ctx: ctx._._.missing_columns),
+    "computed_index" / construct.Computed(lambda ctx: ctx._._._index),
+
+    "cell_flags" / construct.Hex(construct.Int8ub), # see simple_cell
+    "path" / cell_path,
+    "cell" / construct.If(
+        # TODO: 0x04 means empty value, e.g. empty '' string (and probably usef for tombstones as well?)
+        cell_empty_func,
+        # construct.Switch(get_cell_type_func, java_type_to_construct),
+        sstable.dynamic_switch.DynamicSwitch(get_cell_type_func),
+    ),
+)
+
+delta_deletion_time = construct.Struct(
+    "delta_mark_for_delete_at" / sstable.varint.VarInt(),
+    "delta_local_deletion_time" / sstable.varint.VarInt(),
+)
+
+complex_cell = construct.Struct(
+    "complex_deletion_time" / delta_deletion_time,
+    "items_count" / sstable.varint.VarInt(),
+    "items" / construct.Array(construct.this.items_count, complex_cell_item),
 )
 clustering_cell = construct.Struct(
     # "cell_value_len" / sstable.varint.VarInt(),
@@ -182,8 +115,18 @@ clustering_cell = construct.Struct(
 
     # NOTE: ctx._index seems ok, I used to think it incremented globally
     # "key" / construct.Switch(lambda ctx: ctx._root._.sstable_statistics.serialization_header.clustering_key_types[ctx._index].name, java_type_to_construct),
-    "key" / construct.Switch(get_clustering_key_type_func, java_type_to_construct),
+    ### "key" / construct.Switch(get_clustering_key_type_func, java_type_to_construct),
+    "key" / sstable.dynamic_switch.DynamicSwitch(get_clustering_key_type_func),
 )
+
+def has_complex_deletion(x):
+    if hasattr(x._, "overridden_row_flags"):
+        row_flags = x._.overridden_row_flags
+    else:
+        row_flags = x._._.row_flags
+    ret = row_flags & 0x40 == 0x40
+    return ret
+
 def has_missing_columns_func(x):
     if hasattr(x._, "overridden_row_flags"):
         row_flags = x._.overridden_row_flags
@@ -254,7 +197,8 @@ row_body_format = construct.Struct(
   ),
   # cells are repeated until the row body size is serialized_row_body_size
   # "cells" / construct.RepeatUntil(get_cell_repeat_until_func, simple_cell), # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/rows/BufferCell.java#L211
-  "cells" / construct.Array(get_cell_count_func, simple_cell), # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/rows/BufferCell.java#L211
+  "cells" / construct.Array(get_cell_count_func, construct.Switch(has_complex_deletion, {True: complex_cell, False: simple_cell}),
+  ), # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/rows/BufferCell.java#L211
 )
 unfiltered = construct.Struct(
     "row_flags" / construct.Hex(construct.Int8ub), # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/rows/UnfilteredSerializer.java#L78-L85

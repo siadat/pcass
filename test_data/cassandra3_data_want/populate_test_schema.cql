@@ -1,6 +1,39 @@
 CREATE KEYSPACE sina_test WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1};
 USE sina_test;
 
+-- CREATE TYPE example_user_type2 (
+--     height float
+-- );
+-- CREATE TYPE example_user_type (
+--     name text,
+--     age int,
+--     metadata frozen<example_user_type2>
+-- );
+-- CREATE TABLE collection_types (
+--     k int PRIMARY KEY,
+--     l list<int>,
+--     s set<int>,
+--     m map<int, int>,
+-- 
+--     simple_frozen frozen<list<int>>,
+-- 
+--     f frozen<example_user_type>,
+--     lf list<frozen<example_user_type>>,
+--     flf frozen<list<frozen<example_user_type>>>
+-- ) WITH compression = {'enabled':'false'};
+-- 
+-- 
+-- INSERT INTO collection_types (k, l, s, m, simple_frozen, f, lf, flf) VALUES (0, [1, 2, 3], {4, 5, 6}, {7: 8, 9: 10}, [11, 12, 13], {name: 'foo', age: 42, metadata: {height: 1.83}}, [{name: 'bar', age: 24, metadata: {height: 1.82}}, {name: 'baz', age: 66, metadata: {height: 1.81}}], [{name: 'qux', age: 88, metadata: {height: 1.80}}, {name: 'quux', age: 99, metadata: {height: 1.79}}]);
+
+CREATE TABLE table_with_list (
+    k int PRIMARY KEY,
+    l list<int>,
+) WITH compression = {'enabled':'false'};
+
+INSERT INTO table_with_list (k, l) VALUES (0, [1, 2, 3]);
+INSERT INTO table_with_list (k, l) VALUES (1, [4, 5, 6]);
+
+
 CREATE TABLE sina_table (
   id int,
   name text,
