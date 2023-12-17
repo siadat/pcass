@@ -12,30 +12,19 @@ import sstable.uuid
 
 construct.setGlobalPrintFullStrings(sstable.utils.PRINT_FULL_STRING)
 
-def debug_func(ctx):
-    # print(f"yo1, getting it", ctx)
-    return ctx.missing_columns
-
-def debug2_func(ctx):
-    # print(f"yo2, getting it", ctx)
-    return ctx._.missing_columns
-
-
 # https://opensource.docs.scylladb.com/stable/architecture/sstable/sstable3/sstables-3-data-file-format.html#
 
 def cell_empty_func(obj):
     ret = obj.cell_flags & 0x04 != 0x4
     return ret
 
-def get_cell_count_func(ctx): 
-    cols_count = len(ctx._root._.sstable_statistics.serialization_header.regular_columns)
-    # print(f"get_cell_count_func", ctx)
-    mc = ctx.missing_columns
-    # print(f"done")
-    if mc is not None:
-        return len(mc)
-    else:
-        return cols_count
+# def get_cell_count_func(ctx): 
+#     cols_count = len(ctx._root._.sstable_statistics.serialization_header.regular_columns)
+#     mc = ctx.missing_columns
+#     if mc is not None:
+#         return len(mc)
+#     else:
+#         return cols_count
 
 def get_partition_key_type_func(ctx):
     name = ctx._root._.sstable_statistics.serialization_header.partition_key_type.name
@@ -49,14 +38,12 @@ def get_cell_type_func(ctx):
     # if hasattr(ctx._, "_index"):
     #     index = ctx._._index
 
-    # print(f"get_cell_type_func", ctx._)
     if ctx._.missing_columns is not None:
         col = cols[ctx._.missing_columns[index]]
         name = col.type.name
     else:
         col = cols[index]
         name = col.type.name
-    # print(f"yo done")
 
     # if name not in java_type_to_construct:
     #     raise Exception(f"Unhandled type {name}, please add to java_type_to_construct")
@@ -76,9 +63,6 @@ def has_clustering_columns_func(ctx):
     return ctx._root._.sstable_statistics.serialization_header.clustering_key_count > 0
 
 simple_cell = construct.Struct(
-    # Making missing_columns available to cell
-    # "computed_missing_columns" / construct.Computed(lambda ctx: ctx._.missing_columns),
-
     "cell_flags" / construct.Hex(construct.Int8ub), # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/rows/BufferCell.java#L230-L234
                                                     # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/rows/BufferCell.java#L258
     # NOTE: ctx._index seems ok, I used to think it incremented globally
@@ -96,10 +80,6 @@ cell_path = construct.Struct(
 )
 
 complex_cell_item = construct.Struct(
-    # Making missing_columns available to cell
-    # "computed_missing_columns" / construct.Computed(lambda ctx: ctx._._.missing_columns),
-    # "computed_index" / construct.Computed(lambda ctx: ctx._._._index),
-
     "cell_flags" / construct.Hex(construct.Int8ub), # see simple_cell
     "path" / cell_path,
     "cell" / construct.If(
@@ -118,7 +98,7 @@ delta_deletion_time = construct.Struct(
 complex_cell = construct.Struct(
     "complex_deletion_time" / delta_deletion_time,
     "items_count" / sstable.varint.VarInt(),
-    "items" / construct.Array(construct.this.items_count, sstable.with_context.WithContext(complex_cell_item, missing_columns=debug2_func, index=lambda ctx: ctx._.index)),
+    "items" / construct.Array(construct.this.items_count, sstable.with_context.WithContext(complex_cell_item, missing_columns=lambda ctx: ctx._.missing_columns, index=lambda ctx: ctx._.index)),
 )
 clustering_cell = construct.Struct(
     # "cell_value_len" / sstable.varint.VarInt(),
@@ -208,9 +188,9 @@ row_body_format = construct.Struct(
   ),
   # cells are repeated until the row body size is serialized_row_body_size
   # "cells" / construct.RepeatUntil(get_cell_repeat_until_func, simple_cell), # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/rows/BufferCell.java#L211
-  "cells" / construct.Array(get_cell_count_func, construct.Switch(has_complex_deletion, {
-      True: sstable.with_context.WithContext(complex_cell, missing_columns=debug_func, index=lambda ctx: ctx._index),
-      False: sstable.with_context.WithContext(simple_cell, missing_columns=debug_func, index=lambda ctx: ctx._index),
+  "cells" / construct.Array(lambda ctx: len(ctx.missing_columns) if ctx.missing_columns is not None else len(ctx._root._.sstable_statistics.serialization_header.regular_columns), construct.Switch(has_complex_deletion, {
+      True: sstable.with_context.WithContext(complex_cell, missing_columns=lambda ctx: ctx.missing_columns, index=lambda ctx: ctx._index),
+      False: sstable.with_context.WithContext(simple_cell, missing_columns=lambda ctx: ctx.missing_columns, index=lambda ctx: ctx._index),
   }),
   ), # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/rows/BufferCell.java#L211
 )
