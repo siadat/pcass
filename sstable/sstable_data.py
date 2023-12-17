@@ -18,14 +18,6 @@ def cell_empty_func(obj):
     ret = obj.cell_flags & 0x04 != 0x4
     return ret
 
-# def get_cell_count_func(ctx): 
-#     cols_count = len(ctx._root._.sstable_statistics.serialization_header.regular_columns)
-#     mc = ctx.missing_columns
-#     if mc is not None:
-#         return len(mc)
-#     else:
-#         return cols_count
-
 def get_partition_key_type_func(ctx):
     name = ctx._root._.sstable_statistics.serialization_header.partition_key_type.name
     # if name not in java_type_to_construct:
@@ -33,21 +25,16 @@ def get_partition_key_type_func(ctx):
     return name
 
 def get_cell_type_func(ctx):
+    col = None
     cols = ctx._root._.sstable_statistics.serialization_header.regular_columns
     index = ctx._.index
-    # if hasattr(ctx._, "_index"):
-    #     index = ctx._._index
 
     if ctx._.missing_columns is not None:
         col = cols[ctx._.missing_columns[index]]
-        name = col.type.name
     else:
         col = cols[index]
-        name = col.type.name
 
-    # if name not in java_type_to_construct:
-    #     raise Exception(f"Unhandled type {name}, please add to java_type_to_construct")
-    return name
+    return col.type.name
 
 def get_clustering_key_type_func(ctx):
     cols = ctx._root._.sstable_statistics.serialization_header.clustering_key_types
@@ -69,7 +56,6 @@ simple_cell = construct.Struct(
     "cell" / construct.If(
         # TODO: 0x04 means empty value, e.g. empty '' string (and probably usef for tombstones as well?)
         cell_empty_func,
-        # construct.Switch(get_cell_type_func, java_type_to_construct),
         sstable.dynamic_switch.DynamicSwitch(get_cell_type_func),
     ),
 )
@@ -85,7 +71,6 @@ complex_cell_item = construct.Struct(
     "cell" / construct.If(
         # TODO: 0x04 means empty value, e.g. empty '' string (and probably usef for tombstones as well?)
         cell_empty_func,
-        # construct.Switch(get_cell_type_func, java_type_to_construct),
         sstable.dynamic_switch.DynamicSwitch(get_cell_type_func),
     ),
 )
