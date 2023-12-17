@@ -20,8 +20,6 @@ def cell_empty_func(obj):
 
 def get_partition_key_type_func(ctx):
     name = ctx._root._.sstable_statistics.serialization_header.partition_key_type.name
-    # if name not in java_type_to_construct:
-    #     raise Exception(f"Unhandled type {name}, please add to java_type_to_construct")
     return name
 
 def get_cell_type_func(ctx):
@@ -39,8 +37,6 @@ def get_cell_type_func(ctx):
 def get_clustering_key_type_func(ctx):
     cols = ctx._root._.sstable_statistics.serialization_header.clustering_key_types
     name = cols[ctx._index].name
-    # if name not in java_type_to_construct:
-    #     raise Exception(f"Unhandled type {name}, please add to java_type_to_construct")
     return name
 
 def get_clustering_key_count_func(ctx):
@@ -54,7 +50,7 @@ simple_cell = construct.Struct(
                                                     # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/rows/BufferCell.java#L258
     # NOTE: ctx._index seems ok, I used to think it incremented globally
     "cell" / construct.If(
-        # TODO: 0x04 means empty value, e.g. empty '' string (and probably usef for tombstones as well?)
+        # TODO: 0x04 means empty value, e.g. empty '' string (and probably used for tombstones as well?)
         cell_empty_func,
         sstable.dynamic_switch.DynamicSwitch(get_cell_type_func),
     ),
@@ -69,7 +65,7 @@ complex_cell_item = construct.Struct(
     "cell_flags" / construct.Hex(construct.Int8ub), # see simple_cell
     "path" / cell_path,
     "cell" / construct.If(
-        # TODO: 0x04 means empty value, e.g. empty '' string (and probably usef for tombstones as well?)
+        # TODO: 0x04 means empty value, e.g. empty '' string (and probably used for tombstones as well?)
         cell_empty_func,
         sstable.dynamic_switch.DynamicSwitch(get_cell_type_func),
     ),
