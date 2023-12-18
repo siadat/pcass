@@ -35,32 +35,32 @@ class WithContext(construct.Subconstruct):
             context[name] = func(context)
         self.subcon._build(obj, stream, context, path)
 
-child = construct.Struct(
+test_grand_grand_grand_child = construct.Struct(
     "bytes" / construct.Bytes(lambda ctx: ctx._.row.length_from_some_parent),
     "value_from_root" / construct.Computed(lambda ctx: ctx._._root.some_root_value),
 )
 
-parent = construct.Struct(
+test_parent = construct.Struct(
     "length_from_some_parent" / construct.Int8ub,
     "some_root_value" / construct.Computed(lambda ctx: "abc"),
     "child" / construct.Struct(
-        "grand_grand_child" / construct.Struct(
-            "grand_child" / construct.Struct(
-                "child" / WithContext(child, row=lambda ctx: ctx._._._),
+        "grand_child" / construct.Struct(
+            "grand_grand_child" / construct.Struct(
+                "grand_grand_grand_child" / WithContext(test_grand_grand_grand_child, row=lambda ctx: ctx._._._),
             ),
         ),
     ),
 )
 
-parsed = parent.parse(b"\x03\x01\x02\x03")
-sstable.utils.assert_equal(b"\x01\x02\x03", parsed.child.grand_grand_child.grand_child.child.bytes)
-sstable.utils.assert_equal(b"\x03\x01\x02\x03", parent.build({
+parsed = test_parent.parse(b"\x03\x01\x02\x03")
+sstable.utils.assert_equal(b"\x01\x02\x03", parsed.child.grand_child.grand_grand_child.grand_grand_grand_child.bytes)
+sstable.utils.assert_equal(b"\x03\x01\x02\x03", test_parent.build({
     "length_from_some_parent": 3,
     "some_root_value": "abc",
     "child": {
-        "grand_grand_child": {
-            "grand_child": {
-                "child": {
+        "grand_child": {
+            "grand_grand_child": {
+                "grand_grand_grand_child": {
                     "bytes": b"\x01\x02\x03",
                     "value_from_root": "abc",
                 },
