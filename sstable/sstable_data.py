@@ -141,6 +141,56 @@ sstable.utils.assert_equal(
     })),
 )
 
+sstable.utils.assert_equal(
+    construct.Container({
+        "cell_flags": 0x08,
+        "cell": construct.Container({
+            # "type": "org.apache.cassandra.db.marshal.Int32Type", # TODO: this is needed for building, should I return it in parsing?
+            "cell_value": 1,
+        }),
+    }),
+    simple_cell.parse(
+        b"\x08"
+        + b"\x00\x00\x00\x01",
+    index=0,
+    missing_columns=None,
+    sstable_statistics=box.Box({
+        "serialization_header": {
+            "regular_columns": [
+                {
+                    "type": {
+                        "name": "org.apache.cassandra.db.marshal.Int32Type",
+                    },
+                },
+            ],
+        },
+    })),
+)
+sstable.utils.assert_equal(
+    b"\x08"
+        + b"\x00\x00\x00\x01",
+    simple_cell.build({
+        "cell_flags": 0x08,
+        "cell": {
+            "type": "org.apache.cassandra.db.marshal.Int32Type",
+            "cell_value": 1,
+        },
+    },
+    index=0,
+    missing_columns=None,
+    sstable_statistics=box.Box({
+        "serialization_header": {
+            "regular_columns": [
+                {
+                    "type": {
+                        "name": "org.apache.cassandra.db.marshal.Int32Type",
+                    },
+                },
+            ],
+        },
+    })),
+)
+
 delta_deletion_time = construct.Struct(
     "delta_mark_for_delete_at" / sstable.varint.VarInt(),
     "delta_local_deletion_time" / sstable.varint.VarInt(),
