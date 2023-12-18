@@ -1,8 +1,9 @@
+import box
+import construct
+
 import sstable.utils
 import sstable.varint
 import sstable.with_context
-
-import construct
 
 import sstable.greedy_range
 import sstable.string_encoded
@@ -69,6 +70,75 @@ complex_cell_item = construct.Struct(
         cell_empty_func,
         sstable.dynamic_switch.DynamicSwitch(get_cell_type_func),
     ),
+)
+
+sstable.utils.assert_equal(
+    construct.Container({
+        "cell_flags": 0x08,
+        "path": construct.Container({
+            "length": 16,
+            "path": b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xff",
+        }),
+        "cell": construct.Container({
+            "cell_value": 1,
+            "cell_value_len": 4,
+            "cell_value": construct.Container({"cell_value": 1}),
+        }),
+    }),
+    complex_cell_item.parse(
+        b"\x08"
+        + b"\x10"
+        + b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xff"
+        + b"\x04"
+        + b"\x00\x00\x00\x01",
+    index=0,
+    missing_columns=None,
+    sstable_statistics=box.Box({
+        "serialization_header": {
+            "regular_columns": [
+                {
+                    "type": {
+                        "name": "org.apache.cassandra.db.marshal.ListType(org.apache.cassandra.db.marshal.Int32Type)",
+                    },
+                },
+            ],
+        },
+    })),
+)
+
+sstable.utils.assert_equal(
+    b"\x08"
+        + b"\x10"
+        + b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xff"
+        + b"\x04"
+        + b"\x00\x00\x00\x01",
+    complex_cell_item.build({
+        "cell_flags": 0x08,
+        "path": {
+            "length": 16,
+            "path": b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xff",
+        },
+        "cell": {
+            "type": "org.apache.cassandra.db.marshal.Int32Type",
+            "cell_value_len": 4,
+            "cell_value": {
+                "cell_value": 1,
+            },
+        },
+    },
+    index=0,
+    missing_columns=None,
+    sstable_statistics=box.Box({
+        "serialization_header": {
+            "regular_columns": [
+                {
+                    "type": {
+                        "name": "org.apache.cassandra.db.marshal.ListType(org.apache.cassandra.db.marshal.Int32Type)",
+                    },
+                },
+            ],
+        },
+    })),
 )
 
 delta_deletion_time = construct.Struct(
