@@ -25,7 +25,7 @@ def get_partition_key_type_func(ctx):
 def get_cell_type_func(ctx):
     col = None
     cols = ctx._root._.sstable_statistics.serialization_header.regular_columns
-    index = ctx._.index
+    index = ctx._.cell_index
 
     if ctx._.missing_columns is not None:
         col = cols[ctx._.missing_columns[index]]
@@ -79,7 +79,7 @@ delta_deletion_time = construct.Struct(
 complex_cell = construct.Struct(
     "complex_deletion_time" / delta_deletion_time,
     "items_count" / sstable.varint.VarInt(),
-    "items" / construct.Array(construct.this.items_count, sstable.with_context.WithContext(complex_cell_item, missing_columns=lambda ctx: ctx._.missing_columns, index=lambda ctx: ctx._.index)),
+    "items" / construct.Array(construct.this.items_count, sstable.with_context.WithContext(complex_cell_item, missing_columns=lambda ctx: ctx._.missing_columns, cell_index=lambda ctx: ctx._.cell_index)),
 )
 clustering_cell = construct.Struct(
     # "cell_value_len" / sstable.varint.VarInt(),
@@ -170,8 +170,8 @@ row_body_format = construct.Struct(
   # cells are repeated until the row body size is serialized_row_body_size
   # "cells" / construct.RepeatUntil(get_cell_repeat_until_func, simple_cell), # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/rows/BufferCell.java#L211
   "cells" / construct.Array(lambda ctx: len(ctx.missing_columns) if ctx.missing_columns is not None else len(ctx._root._.sstable_statistics.serialization_header.regular_columns), construct.Switch(has_complex_deletion, {
-      True: sstable.with_context.WithContext(complex_cell, missing_columns=lambda ctx: ctx.missing_columns, index=lambda ctx: ctx._index),
-      False: sstable.with_context.WithContext(simple_cell, missing_columns=lambda ctx: ctx.missing_columns, index=lambda ctx: ctx._index),
+      True: sstable.with_context.WithContext(complex_cell, missing_columns=lambda ctx: ctx.missing_columns, cell_index=lambda ctx: ctx._index),
+      False: sstable.with_context.WithContext(simple_cell, missing_columns=lambda ctx: ctx.missing_columns, cell_index=lambda ctx: ctx._index),
   }),
   ), # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/rows/BufferCell.java#L211
 )

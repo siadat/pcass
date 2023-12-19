@@ -14,7 +14,7 @@ simple_cell_example = {
             }),
         }),
         "parsing_kwargs": {
-            "index": 0,
+            "cell_index": 0,
             "missing_columns": None,
             "sstable_statistics": construct.Container({
                 "serialization_header": construct.Container({
@@ -51,7 +51,7 @@ complex_cell_item_example = {
             }),
         }),
         "parsing_kwargs": {
-            "index": 0,
+            "cell_index": 0,
             "missing_columns": None,
             "sstable_statistics": construct.Container({
                 "serialization_header": construct.Container({
