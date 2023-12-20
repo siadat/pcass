@@ -36,7 +36,7 @@ class WithContext(construct.Subconstruct):
         self.subcon._build(obj, stream, context, path)
 
 test_grand_grand_grand_child = construct.Struct(
-    "bytes" / construct.Bytes(lambda ctx: ctx._.row.length_from_some_parent),
+    "bytes" / construct.Bytes(lambda ctx: ctx._.length_from_some_parent),
     "value_from_root" / construct.Computed(lambda ctx: ctx._._root.some_root_value),
 )
 
@@ -46,7 +46,7 @@ test_parent = construct.Struct(
     "child" / construct.Struct(
         "grand_child" / construct.Struct(
             "grand_grand_child" / construct.Struct(
-                "grand_grand_grand_child" / WithContext(test_grand_grand_grand_child, row=lambda ctx: ctx._._._),
+                "grand_grand_grand_child" / WithContext(test_grand_grand_grand_child, length_from_some_parent=lambda ctx: ctx._._._.length_from_some_parent),
             ),
         ),
     ),

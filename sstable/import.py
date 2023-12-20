@@ -81,13 +81,13 @@ def main():
             },
         ],
     }
-    row_body1_size = len(sstable.sstable_data.unfiltered.row.thensubcon.row_body.build(
+    row_body1_size = len(sstable.sstable_data.row_body_format.build(
         row_body1,
         overridden_row_flags=0x24,
         serialized_row_body_size=0,
         sstable_statistics=statistics_got,
     ))
-    row_body2_size = len(sstable.sstable_data.unfiltered.row.thensubcon.row_body.build(
+    row_body2_size = len(sstable.sstable_data.row_body_format.build(
         row_body2,
         overridden_row_flags=0x24,
         serialized_row_body_size=0,
@@ -121,9 +121,6 @@ def main():
                                 "row_body": row_body2,
                             },
                         }),
-                        # we need to box this, because the lambda in the
-                        # construct's conditional structs references it like
-                        # `.row_flags`, not like `["row_flags"]`
                         box.Box({
                             "row_flags": 0x01,
                             "row": None,

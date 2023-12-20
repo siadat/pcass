@@ -49,7 +49,3 @@ def test_encode_and_decode():
     assert [b'\x00\x00\x00\x01', b'\x00\x00\x00\x02', b'\x00\x00\x00\x03'] == mock_writer.partition_key_value
     assert ['sina', 'soheil', 'sara'] == mock_writer.clustering_column_values
     assert ['hi my name is sina!', 'hi my name is soheil!', 'hi my name is sara!'] == mock_writer.regular_column_values
-
-test_encode_and_decode()
-
-sstable.utils.print_test_stats()

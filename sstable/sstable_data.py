@@ -92,18 +92,12 @@ clustering_cell = construct.Struct(
 )
 
 def has_complex_deletion(x):
-    if hasattr(x._, "overridden_row_flags"):
-        row_flags = x._.overridden_row_flags
-    else:
-        row_flags = x._._.row_flags
+    row_flags = x._.overridden_row_flags
     ret = row_flags & 0x40 == 0x40
     return ret
 
 def has_missing_columns_func(x):
-    if hasattr(x._, "overridden_row_flags"):
-        row_flags = x._.overridden_row_flags
-    else:
-        row_flags = x._._.row_flags
+    row_flags = x._.overridden_row_flags
     ret = row_flags & 0x20 == 0x00
     return ret
 
@@ -199,7 +193,7 @@ unfiltered = construct.Struct(
                 ),
             ),
             "serialized_row_body_size" / sstable.varint.VarInt(), # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/rows/UnfilteredSerializer.java#L169
-            "row_body" / row_body_format,
+            "row_body" / sstable.with_context.WithContext(row_body_format, overridden_row_flags=lambda ctx: ctx._.row_flags),
         ),
     ),
 )
