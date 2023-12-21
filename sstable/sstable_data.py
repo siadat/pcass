@@ -17,8 +17,10 @@ construct.setGlobalPrintFullStrings(sstable.utils.PRINT_FULL_STRING)
 ROW_FLAG__HAS_ALL_COLUMNS = 0x20
 ROW_FLAG__HAS_COMPLEX_DELETION = 0x40
 
-def cell_empty_func(obj):
-    ret = obj.cell_flags & 0x04 == 0
+ROW_FLAGS__HAS_EMPTY_VALUE = 0x04
+
+def cell_has_non_empty_value(obj):
+    ret = obj.cell_flags & ROW_FLAGS__HAS_EMPTY_VALUE == 0
     return ret
 
 def get_partition_key_type_func(ctx):
@@ -54,7 +56,7 @@ simple_cell = construct.Struct(
     # NOTE: ctx._index seems ok, I used to think it incremented globally
     "cell" / construct.If(
         # TODO: 0x04 means empty value, e.g. empty '' string (and probably used for tombstones as well?)
-        cell_empty_func,
+        cell_has_non_empty_value,
         sstable.dynamic_switch.DynamicSwitch(get_cell_type_func),
     ),
 )
@@ -69,7 +71,7 @@ complex_cell_item = construct.Struct(
     "path" / cell_path,
     "cell" / construct.If(
         # TODO: 0x04 means empty value, e.g. empty '' string (and probably used for tombstones as well?)
-        cell_empty_func,
+        cell_has_non_empty_value,
         sstable.dynamic_switch.DynamicSwitch(get_cell_type_func),
     ),
 )
