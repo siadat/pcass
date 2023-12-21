@@ -78,7 +78,9 @@ complex_cell_example = {
                 "delta_local_deletion_time": 0,
             }),
             "items_count": 1,
-            "items": construct.ListContainer([complex_cell_item_example["obj"]]),
+            "items": [
+                complex_cell_item_example["obj"],
+            ],
         }),
         "parsing_kwargs": {
             "cell_index": 0,
@@ -110,7 +112,9 @@ complex_row_body_example = {
               "previous_unfiltered_size": 0,
               "timestamp_diff": 0,
               "missing_columns": None,
-              "cells": construct.ListContainer([complex_cell_example["obj"]]),
+              "cells": [
+                  complex_cell_example["obj"],
+              ],
         }),
         "parsing_kwargs": {
             "overridden_row_flags": ROW_FLAG__HAS_ALL_COLUMNS | ROW_FLAG__HAS_COMPLEX_DELETION,
