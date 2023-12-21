@@ -14,24 +14,26 @@ construct.setGlobalPrintFullStrings(sstable.utils.PRINT_FULL_STRING)
 
 # https://opensource.docs.scylladb.com/stable/architecture/sstable/sstable3/sstables-3-data-file-format.html#
 
-ROW_FLAG__END_OF_PARTITION = 0x01 # Signal the end of the partition. Nothing follows a <flags> field with that flag.
-ROW_FLAG__IS_MARKER = 0x02 # Whether the encoded unfiltered is a marker or a row. All following flags apply only to rows.
-ROW_FLAG__HAS_TIMESTAMP = 0x04 # Whether the encoded row has a timestamp (i.e. its liveness_info is not empty).
-ROW_FLAG__HAS_TTL = 0x08 # Whether the encoded row has some expiration info (i.e. if its liveness_info contains TTL and local_deletion).
-ROW_FLAG__HAS_DELETION = 0x10 # Whether the encoded row has some deletion info.
-ROW_FLAG__HAS_ALL_COLUMNS = 0x20 # Whether the encoded row has all of the columns from the header present.
-ROW_FLAG__HAS_COMPLEX_DELETION = 0x40 # Whether the encoded row has some complex deletion for at least one of its complex columns.
-ROW_FLAG__EXTENSION_FLAG = 0x80 # If present, another byte is read containing the "extended flags" below.
+class RowFlag:
+    END_OF_PARTITION = 0x01 # Signal the end of the partition. Nothing follows a <flags> field with that flag.
+    IS_MARKER = 0x02 # Whether the encoded unfiltered is a marker or a row. All following flags apply only to rows.
+    HAS_TIMESTAMP = 0x04 # Whether the encoded row has a timestamp (i.e. its liveness_info is not empty).
+    HAS_TTL = 0x08 # Whether the encoded row has some expiration info (i.e. if its liveness_info contains TTL and local_deletion).
+    HAS_DELETION = 0x10 # Whether the encoded row has some deletion info.
+    HAS_ALL_COLUMNS = 0x20 # Whether the encoded row has all of the columns from the header present.
+    HAS_COMPLEX_DELETION = 0x40 # Whether the encoded row has some complex deletion for at least one of its complex columns.
+    EXTENSION_FLAG = 0x80 # If present, another byte is read containing the "extended flags" below.
 
-CELL_FLAGS__IS_DELETED = 0x01 # Whether the cell is a tombstone or not.
-CELL_FLAGS__IS_EXPIRING = 0x02 # Whether the cell is expiring.
-CELL_FLAGS__HAS_EMPTY_VALUE = 0x04 # Whether the cell has an empty value. This will be the case for a tombstone in particular.
-CELL_FLAGS__USE_ROW_TIMESTAMP = 0x08 # Whether the cell has the same timestamp as the row this is a cell of.
-CELL_FLAGS__USE_ROW_TTL = 0x10 # Whether the cell has the same TTL as the row this is a cell of.
+class CellFlag:
+    IS_DELETED = 0x01 # Whether the cell is a tombstone or not.
+    IS_EXPIRING = 0x02 # Whether the cell is expiring.
+    HAS_EMPTY_VALUE = 0x04 # Whether the cell has an empty value. This will be the case for a tombstone in particular.
+    USE_ROW_TIMESTAMP = 0x08 # Whether the cell has the same timestamp as the row this is a cell of.
+    USE_ROW_TTL = 0x10 # Whether the cell has the same TTL as the row this is a cell of.
 
 
 def cell_has_non_empty_value(obj):
-    ret = obj.cell_flags & CELL_FLAGS__HAS_EMPTY_VALUE == 0
+    ret = obj.cell_flags & CellFlag.HAS_EMPTY_VALUE == 0
     return ret
 
 def get_partition_key_type_func(ctx):
@@ -109,12 +111,12 @@ clustering_cell = construct.Struct(
 
 def has_complex_deletion(x):
     row_flags = x._.overridden_row_flags
-    ret = row_flags & ROW_FLAG__HAS_COMPLEX_DELETION == 0x40
+    ret = row_flags & RowFlag.HAS_COMPLEX_DELETION == 0x40
     return ret
 
 def has_missing_columns_func(x):
     row_flags = x._.overridden_row_flags
-    ret = row_flags & ROW_FLAG__HAS_ALL_COLUMNS == 0x00
+    ret = row_flags & RowFlag.HAS_ALL_COLUMNS == 0x00
     return ret
 
 # Source: https://opensource.docs.scylladb.com/stable/architecture/sstable/sstable3/sstables-3-data-file-format.html#:~:text=We%20have%20a%20_superset_%20of%20columns%2C
@@ -188,10 +190,10 @@ row_body_format = construct.Struct(
 unfiltered = construct.Struct(
     "row_flags" / construct.Hex(construct.Int8ub), # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/rows/UnfilteredSerializer.java#L78-L85
     "row" / construct.If(
-        # If flags has ROW_FLAG__END_OF_PARTITION, then it is the end of the partition and nothing will follow (no actual row)
+        # If flags has RowFlag.END_OF_PARTITION, then it is the end of the partition and nothing will follow (no actual row)
         # Called in https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/ColumnIndex.java#L163
         # Defined in https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/rows/UnfilteredSerializer.java#L348-L351
-        construct.this.row_flags & ROW_FLAG__END_OF_PARTITION == 0,
+        construct.this.row_flags & RowFlag.END_OF_PARTITION == 0,
         construct.Struct(
             # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/rows/UnfilteredSerializer.java#L125
             # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/rows/UnfilteredSerializer.java#L165
@@ -230,7 +232,7 @@ partition = construct.Struct(
     # Even though this has a guard against sstable, it looks similar: https://github.com/apache/cassandra/blob/trunk/src/java/org/apache/cassandra/db/rows/UnfilteredRowIteratorSerializer.java#L110
     "partition_header" / partition_header,
     # "unfiltereds" / unfiltered, # construct.GreedyRange(unfiltered),
-    "unfiltereds" / construct.RepeatUntil(lambda obj, lst, ctx: (obj.row_flags & ROW_FLAG__END_OF_PARTITION) != 0, unfiltered),
+    "unfiltereds" / construct.RepeatUntil(lambda obj, lst, ctx: (obj.row_flags & RowFlag.END_OF_PARTITION) != 0, unfiltered),
 )
 
 data_format = construct.Struct("partitions" / sstable.greedy_range.GreedyRangeWithExceptionHandling(partition))

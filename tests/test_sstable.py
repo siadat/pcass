@@ -116,7 +116,7 @@ complex_row_body_example = {
               ],
         }),
         "parsing_kwargs": {
-            "overridden_row_flags": sstable.sstable_data.ROW_FLAG__HAS_ALL_COLUMNS | sstable.sstable_data.ROW_FLAG__HAS_COMPLEX_DELETION,
+            "overridden_row_flags": sstable.sstable_data.RowFlag.HAS_ALL_COLUMNS | sstable.sstable_data.RowFlag.HAS_COMPLEX_DELETION,
             "sstable_statistics": construct.Container({
                 "serialization_header": construct.Container({
                     "regular_columns": [
@@ -146,7 +146,7 @@ simple_row_body_example = {
               ],
         }),
         "parsing_kwargs": {
-            "overridden_row_flags": sstable.sstable_data.ROW_FLAG__HAS_ALL_COLUMNS,
+            "overridden_row_flags": sstable.sstable_data.RowFlag.HAS_ALL_COLUMNS,
             "sstable_statistics": construct.Container({
                 "serialization_header": construct.Container({
                     "regular_columns": [
