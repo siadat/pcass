@@ -18,10 +18,10 @@ ROW_FLAG__HAS_ALL_COLUMNS = 0x20
 ROW_FLAG__HAS_COMPLEX_DELETION = 0x40
 ROW_FLAG__END_OF_PARTITION = 0x01
 
-ROW_FLAGS__HAS_EMPTY_VALUE = 0x04
+CELL_FLAGS__HAS_EMPTY_VALUE = 0x04
 
 def cell_has_non_empty_value(obj):
-    ret = obj.cell_flags & ROW_FLAGS__HAS_EMPTY_VALUE == 0
+    ret = obj.cell_flags & CELL_FLAGS__HAS_EMPTY_VALUE == 0
     return ret
 
 def get_partition_key_type_func(ctx):
