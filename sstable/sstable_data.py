@@ -14,11 +14,21 @@ construct.setGlobalPrintFullStrings(sstable.utils.PRINT_FULL_STRING)
 
 # https://opensource.docs.scylladb.com/stable/architecture/sstable/sstable3/sstables-3-data-file-format.html#
 
-ROW_FLAG__HAS_ALL_COLUMNS = 0x20
-ROW_FLAG__HAS_COMPLEX_DELETION = 0x40
-ROW_FLAG__END_OF_PARTITION = 0x01
+ROW_FLAG__END_OF_PARTITION = 0x01 # Signal the end of the partition. Nothing follows a <flags> field with that flag.
+ROW_FLAG__IS_MARKER = 0x02 # Whether the encoded unfiltered is a marker or a row. All following flags apply only to rows.
+ROW_FLAG__HAS_TIMESTAMP = 0x04 # Whether the encoded row has a timestamp (i.e. its liveness_info is not empty).
+ROW_FLAG__HAS_TTL = 0x08 # Whether the encoded row has some expiration info (i.e. if its liveness_info contains TTL and local_deletion).
+ROW_FLAG__HAS_DELETION = 0x10 # Whether the encoded row has some deletion info.
+ROW_FLAG__HAS_ALL_COLUMNS = 0x20 # Whether the encoded row has all of the columns from the header present.
+ROW_FLAG__HAS_COMPLEX_DELETION = 0x40 # Whether the encoded row has some complex deletion for at least one of its complex columns.
+ROW_FLAG__EXTENSION_FLAG = 0x80 # If present, another byte is read containing the "extended flags" below.
 
-CELL_FLAGS__HAS_EMPTY_VALUE = 0x04
+CELL_FLAGS__IS_DELETED = 0x01 # Whether the cell is a tombstone or not.
+CELL_FLAGS__IS_EXPIRING = 0x02 # Whether the cell is expiring.
+CELL_FLAGS__HAS_EMPTY_VALUE = 0x04 # Whether the cell has an empty value. This will be the case for a tombstone in particular.
+CELL_FLAGS__USE_ROW_TIMESTAMP = 0x08 # Whether the cell has the same timestamp as the row this is a cell of.
+CELL_FLAGS__USE_ROW_TTL = 0x10 # Whether the cell has the same TTL as the row this is a cell of.
+
 
 def cell_has_non_empty_value(obj):
     ret = obj.cell_flags & CELL_FLAGS__HAS_EMPTY_VALUE == 0
