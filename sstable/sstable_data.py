@@ -18,7 +18,7 @@ ROW_FLAG__HAS_ALL_COLUMNS = 0x20
 ROW_FLAG__HAS_COMPLEX_DELETION = 0x40
 
 def cell_empty_func(obj):
-    ret = obj.cell_flags & 0x04 != 0x4
+    ret = obj.cell_flags & 0x04 == 0
     return ret
 
 def get_partition_key_type_func(ctx):
@@ -96,12 +96,12 @@ clustering_cell = construct.Struct(
 
 def has_complex_deletion(x):
     row_flags = x._.overridden_row_flags
-    ret = row_flags & 0x40 == 0x40
+    ret = row_flags & ROW_FLAG__HAS_COMPLEX_DELETION == 0x40
     return ret
 
 def has_missing_columns_func(x):
     row_flags = x._.overridden_row_flags
-    ret = row_flags & 0x20 == 0x00
+    ret = row_flags & ROW_FLAG__HAS_ALL_COLUMNS == 0x00
     return ret
 
 # Source: https://opensource.docs.scylladb.com/stable/architecture/sstable/sstable3/sstables-3-data-file-format.html#:~:text=We%20have%20a%20_superset_%20of%20columns%2C
