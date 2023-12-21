@@ -101,9 +101,6 @@ complex_cell_example = {
         },
     }
 
-ROW_FLAG__HAS_ALL_COLUMNS = 0x20
-ROW_FLAG__HAS_COMPLEX_DELETION = 0x40
-
 complex_row_body_example = {
         "construct_struct": sstable.sstable_data.row_body_format,
         "bytes": b"\x00"  # previous_unfiltered_size
@@ -119,9 +116,7 @@ complex_row_body_example = {
               ],
         }),
         "parsing_kwargs": {
-            "overridden_row_flags": ROW_FLAG__HAS_ALL_COLUMNS | ROW_FLAG__HAS_COMPLEX_DELETION,
-            # "cell_index": 0,
-            # "missing_columns": None,
+            "overridden_row_flags": sstable.sstable_data.ROW_FLAG__HAS_ALL_COLUMNS | sstable.sstable_data.ROW_FLAG__HAS_COMPLEX_DELETION,
             "sstable_statistics": construct.Container({
                 "serialization_header": construct.Container({
                     "regular_columns": [
@@ -151,9 +146,7 @@ simple_row_body_example = {
               ],
         }),
         "parsing_kwargs": {
-            "overridden_row_flags": ROW_FLAG__HAS_ALL_COLUMNS,
-            # "cell_index": 0,
-            # "missing_columns": None,
+            "overridden_row_flags": sstable.sstable_data.ROW_FLAG__HAS_ALL_COLUMNS,
             "sstable_statistics": construct.Container({
                 "serialization_header": construct.Container({
                     "regular_columns": [

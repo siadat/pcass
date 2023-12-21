@@ -14,6 +14,9 @@ construct.setGlobalPrintFullStrings(sstable.utils.PRINT_FULL_STRING)
 
 # https://opensource.docs.scylladb.com/stable/architecture/sstable/sstable3/sstables-3-data-file-format.html#
 
+ROW_FLAG__HAS_ALL_COLUMNS = 0x20
+ROW_FLAG__HAS_COMPLEX_DELETION = 0x40
+
 def cell_empty_func(obj):
     ret = obj.cell_flags & 0x04 != 0x4
     return ret
