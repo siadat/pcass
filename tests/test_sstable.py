@@ -136,8 +136,40 @@ complex_row_body_example = {
         },
     }
 
+simple_row_body_example = {
+        "construct_struct": sstable.sstable_data.row_body_format,
+        "bytes": b"\x00"  # previous_unfiltered_size
+                + b"\x00" # timestamp_diff
+                + simple_cell_example["bytes"],
+        "obj": construct.Container({
+              "row_body_start": 0,
+              "previous_unfiltered_size": 0,
+              "timestamp_diff": 0,
+              "missing_columns": None,
+              "cells": [
+                  simple_cell_example["obj"],
+              ],
+        }),
+        "parsing_kwargs": {
+            "overridden_row_flags": ROW_FLAG__HAS_ALL_COLUMNS,
+            # "cell_index": 0,
+            # "missing_columns": None,
+            "sstable_statistics": construct.Container({
+                "serialization_header": construct.Container({
+                    "regular_columns": [
+                        construct.Container({
+                            "type": construct.Container({
+                                "name": "org.apache.cassandra.db.marshal.Int32Type",
+                            }),
+                        }),
+                    ],
+                }),
+            }),
+        },
+    }
+
 def test_cells():
-    test_cells = [simple_cell_example, complex_cell_item_example, complex_cell_example, complex_row_body_example]
+    test_cells = [simple_cell_example, complex_cell_item_example, complex_cell_example, complex_row_body_example, simple_row_body_example]
     for i, cell in enumerate(test_cells):
         sstable.utils.assert_equal(
             cell["obj"],
