@@ -16,6 +16,7 @@ construct.setGlobalPrintFullStrings(sstable.utils.PRINT_FULL_STRING)
 
 ROW_FLAG__HAS_ALL_COLUMNS = 0x20
 ROW_FLAG__HAS_COMPLEX_DELETION = 0x40
+ROW_FLAG__END_OF_PARTITION = 0x01
 
 ROW_FLAGS__HAS_EMPTY_VALUE = 0x04
 
@@ -177,10 +178,10 @@ row_body_format = construct.Struct(
 unfiltered = construct.Struct(
     "row_flags" / construct.Hex(construct.Int8ub), # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/rows/UnfilteredSerializer.java#L78-L85
     "row" / construct.If(
-        # If flags has 0x01, then it is the end of the partition and nothing will follow (no actual row)
+        # If flags has ROW_FLAG__END_OF_PARTITION, then it is the end of the partition and nothing will follow (no actual row)
         # Called in https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/ColumnIndex.java#L163
         # Defined in https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/rows/UnfilteredSerializer.java#L348-L351
-        construct.this.row_flags & 0x01 != 0x01,
+        construct.this.row_flags & ROW_FLAG__END_OF_PARTITION == 0,
         construct.Struct(
             # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/rows/UnfilteredSerializer.java#L125
             # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/rows/UnfilteredSerializer.java#L165
@@ -219,7 +220,7 @@ partition = construct.Struct(
     # Even though this has a guard against sstable, it looks similar: https://github.com/apache/cassandra/blob/trunk/src/java/org/apache/cassandra/db/rows/UnfilteredRowIteratorSerializer.java#L110
     "partition_header" / partition_header,
     # "unfiltereds" / unfiltered, # construct.GreedyRange(unfiltered),
-    "unfiltereds" / construct.RepeatUntil(lambda obj, lst, ctx: (obj.row_flags & 0x01) == 0x01, unfiltered),
+    "unfiltereds" / construct.RepeatUntil(lambda obj, lst, ctx: (obj.row_flags & ROW_FLAG__END_OF_PARTITION) != 0, unfiltered),
 )
 
 data_format = construct.Struct("partitions" / sstable.greedy_range.GreedyRangeWithExceptionHandling(partition))
