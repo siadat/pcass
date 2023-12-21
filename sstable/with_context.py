@@ -68,3 +68,11 @@ sstable.utils.assert_equal(b"\x03\x01\x02\x03", test_parent.build({
         },
     },
 }))
+
+test_struct = construct.Struct(
+    "child1" / construct.Computed(lambda ctx: "hi from child1"),
+    "child2" / construct.Computed(lambda ctx: f"child1 says: {ctx.child1}"),
+    "child3" / construct.If(lambda ctx: True, construct.Computed(lambda ctx: f"child1 says: {ctx.child1}")),
+    "child4" / construct.If(lambda ctx: True, construct.Struct("grandchild" / construct.Computed(lambda ctx: f"child1 says: {ctx._.child1}"))),
+)
+# print(test_struct.parse(b""))
