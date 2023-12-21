@@ -70,15 +70,17 @@ complex_cell_item_example = {
 complex_cell_example = {
         "construct_struct": sstable.sstable_data.complex_cell,
         "bytes": b"\x00\x00"
-                + b"\x01"
+                + b"\x02"
+                + complex_cell_item_example["bytes"]
                 + complex_cell_item_example["bytes"],
         "obj": construct.Container({
             "complex_deletion_time": construct.Container({
                 "delta_mark_for_delete_at": 0,
                 "delta_local_deletion_time": 0,
             }),
-            "items_count": 1,
+            "items_count": 2,
             "items": [
+                complex_cell_item_example["obj"],
                 complex_cell_item_example["obj"],
             ],
         }),
