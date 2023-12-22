@@ -163,28 +163,31 @@ class TypeTransformer(Transformer):
     def collection_type(self, package, *types):
         if package == "org.apache.cassandra.db.marshal.ListType":
             subcon = types[0]
-            ret = construct.Struct(
-                "cell_path_length" / sstable.varint.VarInt(), # 16
-                "cell_path" / sstable.uuid.Uuid,
-                "cell_value_len" / sstable.varint.VarInt(),
-                # "cell_value" / construct.Array(construct.this.cell_value_len, subcon),
-                "cell_value" / subcon,
-            )
-            return ret
+            return make_list_struct(subcon)
         elif package == "org.apache.cassandra.db.marshal.MapType":
             key_subcon = types[0]
             val_subcon = types[1]
-            ret = construct.Struct(
-                # cell_path is key for MapType s
-                "cell_key_len" / sstable.varint.VarInt(),
-                "cell_key" / key_subcon,
-
-                "cell_val_len" / sstable.varint.VarInt(),
-                "cell_val" / key_subcon,
-            )
-            return ret
+            return make_map_struct(key_subcon, val_subcon)
         else:
             raise Exception(f"Unknown type: {package}")
+
+def make_list_struct(subcon):
+    return construct.Struct(
+        "cell_path_length" / sstable.varint.VarInt(), # 16
+        "cell_path" / sstable.uuid.Uuid,
+        "cell_value_len" / sstable.varint.VarInt(),
+        "cell_value" / subcon,
+    )
+
+def make_map_struct(key_subcon, val_subcon):
+    return construct.Struct(
+        # cell_path is key for MapType s
+        "cell_key_len" / sstable.varint.VarInt(),
+        "cell_key" / key_subcon,
+
+        "cell_val_len" / sstable.varint.VarInt(),
+        "cell_val" / key_subcon,
+    )
 
 # Example usage
 parser = Lark(type_grammar, parser='lalr', transformer=TypeTransformer())
@@ -193,37 +196,41 @@ parser = Lark(type_grammar, parser='lalr', transformer=TypeTransformer())
 sstable.utils.assert_equal(int_cell_value, parser.parse('org.apache.cassandra.db.marshal.Int32Type'))
 
 list_of_ints_example = {
-        "cell_path_length": 16,
-        "cell_path": b"\x00" * 16,
-        "cell_value_len": 4,
-        "cell_value": {
-            "cell_value": 123,
+        "type": 'org.apache.cassandra.db.marshal.ListType(org.apache.cassandra.db.marshal.Int32Type)',
+        "bytes": bytes([16])
+            + b"\x00" * 16
+            + b"\x04"
+            + b"\x00\x00\x00\x7b",
+        "obj": {
+            "cell_path_length": 16,
+            "cell_path": b"\x00" * 16,
+            "cell_value_len": 4,
+            "cell_value": {
+                "cell_value": 123,
+            },
         },
     }
-sstable.utils.assert_equal(construct.Struct(
-        "cell_path_length" / sstable.varint.VarInt(),
-        "cell_path" / sstable.uuid.Uuid,
-        "cell_value_len" / sstable.varint.VarInt(),
-        "cell_value" / int_cell_value,
-).build(list_of_ints_example), parser.parse('org.apache.cassandra.db.marshal.ListType(org.apache.cassandra.db.marshal.Int32Type)').build(list_of_ints_example))
 
-#
 map_type_example = {
-        "cell_key_len": 4,
-        "cell_key": {
-            "cell_value": 10,
-        },
-        "cell_val_len": 4,
-        "cell_val": {
-            "cell_value": 20,
+        "type": 'org.apache.cassandra.db.marshal.MapType(org.apache.cassandra.db.marshal.Int32Type, org.apache.cassandra.db.marshal.Int32Type)',
+        "bytes": b"\x04"
+               + b"\x00\x00\x00\x0a"
+               + b"\x04"
+               + b"\x00\x00\x00\x14",
+        "obj": {
+            "cell_key_len": 4,
+            "cell_key": {
+                "cell_value": 10,
+            },
+            "cell_val_len": 4,
+            "cell_val": {
+                "cell_value": 20,
+            },
         },
     }
-sstable.utils.assert_equal(construct.Struct(
-        "cell_key_len" / sstable.varint.VarInt(),
-        "cell_key" / int_cell_value,
-        "cell_val_len" / sstable.varint.VarInt(),
-        "cell_val" / int_cell_value,
-).build(map_type_example), parser.parse('org.apache.cassandra.db.marshal.MapType(org.apache.cassandra.db.marshal.Int32Type, org.apache.cassandra.db.marshal.Int32Type)').build(map_type_example))
+for test_case in [list_of_ints_example, map_type_example]:
+    sstable.utils.assert_equal(test_case["bytes"], parser.parse(test_case["type"]).build(test_case["obj"]))
+    sstable.utils.assert_equal(test_case["obj"], parser.parse(test_case["type"]).parse(test_case["bytes"]))
 
 # TODO: sstable.utils.assert_equal('map-from-org.apache.cassandra.db.marshal.Int32Type-to-org.apache.cassandra.db.marshal.Int32Type', parser.parse('org.apache.cassandra.db.marshal.MapType(org.apache.cassandra.db.marshal.Int32Type,org.apache.cassandra.db.marshal.Int32Type)'))
 # TODO: sstable.utils.assert_equal(None, parser.parse('org.apache.cassandra.db.marshal.UserType(sina_test,74616773,74616773:org.apache.cassandra.db.marshal.MapType(org.apache.cassandra.db.marshal.UTF8Type,org.apache.cassandra.db.marshal.UTF8Type))'))
