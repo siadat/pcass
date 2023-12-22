@@ -5,7 +5,7 @@ import sstable.sstable_data
 
 simple_cell_example = {
         "construct_struct": sstable.sstable_data.simple_cell,
-        "bytes": b"\x08"
+        "bytes": b"\x08" # cell_flags
             + b"\x00\x00\x00\x01",
         "obj": construct.Container({
             "cell_flags": 0x08,
@@ -30,13 +30,50 @@ simple_cell_example = {
         },
     }
 
+simple_cell_third_column_example = {
+        "construct_struct": sstable.sstable_data.simple_cell,
+        "bytes": b"\x08" # cell_flags
+            + b"\x00\x00\x00\x01",
+        "obj": construct.Container({
+            "cell_flags": 0x08,
+            "cell": construct.Container({
+                "cell_value": 1,
+            }),
+        }),
+        "parsing_kwargs": {
+            "cell_index": 2, # third column
+            "missing_columns": None,
+            "sstable_statistics": construct.Container({
+                "serialization_header": construct.Container({
+                    "regular_columns": [
+                        construct.Container({
+                            "type": construct.Container({
+                                "name": "org.apache.cassandra.db.marshal.AsciiType",
+                            }),
+                        }),
+                        construct.Container({
+                            "type": construct.Container({
+                                "name": "org.apache.cassandra.db.marshal.AsciiType",
+                            }),
+                        }),
+                        construct.Container({
+                            "type": construct.Container({
+                                "name": "org.apache.cassandra.db.marshal.Int32Type", # third column
+                            }),
+                        }),
+                    ],
+                }),
+            }),
+        },
+    }
+
 complex_cell_item_example = {
         "construct_struct": sstable.sstable_data.complex_cell_item,
-        "bytes": b"\x08"
-                + b"\x10"
-                + b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xff"
-                + b"\x04"
-                + b"\x00\x00\x00\x01",
+        "bytes": b"\x08" # cell_flags
+                + b"\x10" # path length
+                + b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xff" # path
+                + b"\x04" # cell_value_len
+                + b"\x00\x00\x00\x01", # cell_value
         "obj": construct.Container({
             "cell_flags": 0x08,
             "path": construct.Container({
@@ -69,10 +106,11 @@ complex_cell_item_example = {
 
 complex_cell_example = {
         "construct_struct": sstable.sstable_data.complex_cell,
-        "bytes": b"\x00\x00"
-                + b"\x02"
-                + complex_cell_item_example["bytes"]
-                + complex_cell_item_example["bytes"],
+        "bytes": b"\x00" # delta_mark_for_delete_at
+                + b"\x00" # delta_local_deletion_time
+                + b"\x02" # items_count
+                + complex_cell_item_example["bytes"] # items[0]
+                + complex_cell_item_example["bytes"], # items[1]
         "obj": construct.Container({
             "complex_deletion_time": construct.Container({
                 "delta_mark_for_delete_at": 0,
@@ -103,7 +141,7 @@ complex_cell_example = {
 
 complex_row_body_example = {
         "construct_struct": sstable.sstable_data.row_body_format,
-        "bytes": b"\x00"  # previous_unfiltered_size
+        "bytes": b"\x00" # previous_unfiltered_size
                 + b"\x00" # timestamp_diff
                 + complex_cell_example["bytes"],
         "obj": construct.Container({
@@ -133,7 +171,7 @@ complex_row_body_example = {
 
 simple_row_body_example = {
         "construct_struct": sstable.sstable_data.row_body_format,
-        "bytes": b"\x00"  # previous_unfiltered_size
+        "bytes": b"\x00" # previous_unfiltered_size
                 + b"\x00" # timestamp_diff
                 + simple_cell_example["bytes"],
         "obj": construct.Container({
@@ -163,8 +201,8 @@ simple_row_body_example = {
 
 simple_unfiltered_example = {
         "construct_struct": sstable.sstable_data.unfiltered,
-        "bytes": b"\x24"  # row_flags
-                + b""     # no clustering_block
+        "bytes": b"\x24" # row_flags
+                + b"" # no clustering_block
                 + bytes([len(simple_row_body_example["bytes"])]) # serialized_row_body_size
                 + simple_row_body_example["bytes"],
         "obj": construct.Container({
@@ -192,7 +230,7 @@ simple_unfiltered_example = {
     }
 
 def test_cells():
-    test_cells = [simple_cell_example, complex_cell_item_example, complex_cell_example, complex_row_body_example, simple_row_body_example, simple_unfiltered_example]
+    test_cells = [simple_cell_example, complex_cell_item_example, complex_cell_example, complex_row_body_example, simple_row_body_example, simple_unfiltered_example, simple_cell_third_column_example]
     for i, cell in enumerate(test_cells):
         sstable.utils.assert_equal(
             cell["obj"],
