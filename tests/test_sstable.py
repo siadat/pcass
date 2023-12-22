@@ -161,8 +161,38 @@ simple_row_body_example = {
         },
     }
 
+simple_unfiltered_example = {
+        "construct_struct": sstable.sstable_data.unfiltered,
+        "bytes": b"\x24"  # row_flags
+                + b""     # no clustering_block
+                + bytes([len(simple_row_body_example["bytes"])]) # serialized_row_body_size
+                + simple_row_body_example["bytes"],
+        "obj": construct.Container({
+              "row_flags": sstable.sstable_data.RowFlag.HAS_ALL_COLUMNS | sstable.sstable_data.RowFlag.HAS_TIMESTAMP,
+              "row": {
+                  "clustering_block": None,
+                  "serialized_row_body_size": len(simple_row_body_example["bytes"]),
+                  "row_body": {**simple_row_body_example["obj"], "row_body_start": 2},
+              },
+        }),
+        "parsing_kwargs": {
+            "sstable_statistics": construct.Container({
+                "serialization_header": construct.Container({
+                    "clustering_key_count": 0,
+                    "regular_columns": [
+                        construct.Container({
+                            "type": construct.Container({
+                                "name": "org.apache.cassandra.db.marshal.Int32Type",
+                            }),
+                        }),
+                    ],
+                }),
+            }),
+        },
+    }
+
 def test_cells():
-    test_cells = [simple_cell_example, complex_cell_item_example, complex_cell_example, complex_row_body_example, simple_row_body_example]
+    test_cells = [simple_cell_example, complex_cell_item_example, complex_cell_example, complex_row_body_example, simple_row_body_example, simple_unfiltered_example]
     for i, cell in enumerate(test_cells):
         sstable.utils.assert_equal(
             cell["obj"],
