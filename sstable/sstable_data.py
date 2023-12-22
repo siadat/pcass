@@ -74,14 +74,11 @@ simple_cell = construct.Struct(
     ),
 )
 
-cell_path = construct.Struct(
-    "length" / sstable.varint.VarInt(),
-    "path" / construct.Bytes(construct.this.length),
-)
-
 complex_cell_item = construct.Struct(
     "cell_flags" / construct.Hex(construct.Int8ub), # see simple_cell
-    "path" / cell_path,
+    # path is moved inside complex cell, because it is different depending on
+    # the type of the column. E.g. for ListTypes it is a UUID and for MapTypes
+    # it is the value of the key.
     "cell" / construct.If(
         # TODO: 0x04 means empty value, e.g. empty '' string (and probably used for tombstones as well?)
         cell_has_non_empty_value,

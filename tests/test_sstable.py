@@ -70,17 +70,15 @@ simple_cell_third_column_example = {
 complex_cell_item_example = {
         "construct_struct": sstable.sstable_data.complex_cell_item,
         "bytes": b"\x08" # cell_flags
-                + b"\x10" # path length
-                + b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xff" # path
+                + b"\x10" # cell_path_length
+                + b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xff" # cell_path
                 + b"\x04" # cell_value_len
                 + b"\x00\x00\x00\x01", # cell_value
         "obj": construct.Container({
             "cell_flags": 0x08,
-            "path": construct.Container({
-                "length": 16,
-                "path": b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xff",
-            }),
             "cell": construct.Container({
+                "cell_path_length": 16,
+                "cell_path": b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xff",
                 "cell_value_len": 4,
                 "cell_value": construct.Container({
                     "cell_value": 1,
