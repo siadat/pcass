@@ -136,6 +136,39 @@ complex_cell_set_item_example = {
         },
     }
 
+complex_cell_set_of_boolean_item_example = {
+        "construct_struct": sstable.sstable_data.complex_cell_item,
+        "bytes": b"\x0C" # cell_flags
+                + b"\x01" # cell_value_len
+                + b"\x01", # cell_value
+        "obj": construct.Container({
+            # NOTE: For SetType the cell_flags has CellFlag.HAS_EMPTY_VALUE
+            # however, I am encoding and decoding the value and interpreting it
+            # as path being empty.
+            "cell_flags": sstable.sstable_data.CellFlag.HAS_EMPTY_VALUE | sstable.sstable_data.CellFlag.USE_ROW_TIMESTAMP,
+            "cell": construct.Container({
+                "cell_val_len": 1,
+                "cell_val": construct.Container({
+                    "cell_value": 1,
+                }),
+            }),
+        }),
+        "parsing_kwargs": {
+            "cell_index": 0,
+            "missing_columns": None,
+            "sstable_statistics": construct.Container({
+                "serialization_header": construct.Container({
+                    "regular_columns": [
+                        construct.Container({
+                            "type": construct.Container({
+                                "name": "org.apache.cassandra.db.marshal.SetType(org.apache.cassandra.db.marshal.BooleanType)",
+                            }),
+                        }),
+                    ],
+                }),
+            }),
+        },
+    }
 complex_cell_list_example = {
         "construct_struct": sstable.sstable_data.complex_cell,
         "bytes": b"\x00" # delta_mark_for_delete_at
@@ -262,7 +295,7 @@ simple_unfiltered_example = {
     }
 
 def test_cells():
-    test_cells = [simple_cell_example, complex_cell_list_item_example, complex_cell_set_item_example, complex_cell_list_example, complex_row_body_example, simple_row_body_example, simple_unfiltered_example, simple_cell_third_column_example]
+    test_cells = [simple_cell_example, complex_cell_list_item_example, complex_cell_set_item_example, complex_cell_set_of_boolean_item_example, complex_cell_list_example, complex_row_body_example, simple_row_body_example, simple_unfiltered_example, simple_cell_third_column_example]
     for i, cell in enumerate(test_cells):
         sstable.utils.assert_equal(
             cell["obj"],
