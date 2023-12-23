@@ -33,6 +33,14 @@ CREATE TABLE table_with_set(
 INSERT INTO table_with_set (k, s) VALUES (0, {1, 2, 3});
 INSERT INTO table_with_set (k, s) VALUES (1, {10, 20, 30});
 
+CREATE TABLE table_with_boolean_set(
+    k int PRIMARY KEY,
+    s set<boolean>,
+) WITH compression = {'enabled':'false'};
+
+INSERT INTO table_with_boolean_set (k, s) VALUES (0, {true, false});
+INSERT INTO table_with_boolean_set (k, s) VALUES (1, {true, true});
+
 CREATE TABLE table_with_map (
     k int PRIMARY KEY,
     m map<int, int>,
