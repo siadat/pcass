@@ -164,6 +164,9 @@ class TypeTransformer(Transformer):
         if package == "org.apache.cassandra.db.marshal.ListType":
             subcon = types[0]
             return make_list_struct(subcon)
+        elif package == "org.apache.cassandra.db.marshal.SetType":
+            subcon = types[0]
+            return make_set_struct(subcon)
         elif package == "org.apache.cassandra.db.marshal.MapType":
             key_subcon = types[0]
             val_subcon = types[1]
@@ -189,13 +192,19 @@ def make_map_struct(key_subcon, val_subcon):
         "cell_val" / key_subcon,
     )
 
+def make_set_struct(val_subcon):
+    return construct.Struct(
+        "cell_val_len" / sstable.varint.VarInt(),
+        "cell_val" / val_subcon,
+    )
 # Example usage
 parser = Lark(type_grammar, parser='lalr', transformer=TypeTransformer())
 
 # Testing with an example string
 sstable.utils.assert_equal(int_cell_value, parser.parse('org.apache.cassandra.db.marshal.Int32Type'))
 
-list_of_ints_example = {
+tests = [
+    {
         "type": 'org.apache.cassandra.db.marshal.ListType(org.apache.cassandra.db.marshal.Int32Type)',
         "bytes": bytes([16])
             + b"\x00" * 16
@@ -209,9 +218,8 @@ list_of_ints_example = {
                 "cell_value": 123,
             },
         },
-    }
-
-map_type_example = {
+    },
+    {
         "type": 'org.apache.cassandra.db.marshal.MapType(org.apache.cassandra.db.marshal.Int32Type, org.apache.cassandra.db.marshal.Int32Type)',
         "bytes": b"\x04"
                + b"\x00\x00\x00\x0a"
@@ -227,8 +235,21 @@ map_type_example = {
                 "cell_value": 20,
             },
         },
-    }
-for test_case in [list_of_ints_example, map_type_example]:
+    },
+    {
+        "type": 'org.apache.cassandra.db.marshal.SetType(org.apache.cassandra.db.marshal.Int32Type)',
+        "bytes": b"\x04"
+               + b"\x00\x00\x00\x0a",
+        "obj": {
+            "cell_val_len": 4,
+            "cell_val": {
+                "cell_value": 10,
+            },
+        },
+    },
+]
+
+for test_case in tests:
     sstable.utils.assert_equal(test_case["bytes"], parser.parse(test_case["type"]).build(test_case["obj"]))
     sstable.utils.assert_equal(test_case["obj"], parser.parse(test_case["type"]).parse(test_case["bytes"]))
 

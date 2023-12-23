@@ -34,6 +34,10 @@ class CellFlag:
 
 def cell_has_non_empty_value(obj):
     ret = obj.cell_flags & CellFlag.HAS_EMPTY_VALUE == 0
+    if not ret:
+        # it might be a SetType
+        cell_type = get_cell_type_func(obj)
+        return cell_type.startswith("org.apache.cassandra.db.marshal.SetType")
     return ret
 
 def get_partition_key_type_func(ctx):
@@ -78,7 +82,8 @@ complex_cell_item = construct.Struct(
     "cell_flags" / construct.Hex(construct.Int8ub), # see simple_cell
     # path is moved inside complex cell, because it is different depending on
     # the type of the column. E.g. for ListTypes it is a UUID and for MapTypes
-    # it is the value of the key.
+    # it is the value of the key, and for SetTypes it is the actual value of
+    # the item.
     "cell" / construct.If(
         # TODO: 0x04 means empty value, e.g. empty '' string (and probably used for tombstones as well?)
         cell_has_non_empty_value,
