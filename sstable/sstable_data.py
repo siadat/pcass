@@ -33,12 +33,13 @@ class CellFlag:
 
 
 def cell_has_non_empty_value(obj):
-    ret = obj.cell_flags & CellFlag.HAS_EMPTY_VALUE == 0
-    if not ret:
+    has_value = obj.cell_flags & CellFlag.HAS_EMPTY_VALUE == 0
+    if not has_value:
         # it might be a SetType
         cell_type = get_cell_type_func(obj)
-        return cell_type.startswith("org.apache.cassandra.db.marshal.SetType")
-    return ret
+        is_set_type = cell_type.startswith("org.apache.cassandra.db.marshal.SetType")
+        return is_set_type
+    return has_value
 
 def get_partition_key_type_func(ctx):
     name = ctx._root._.sstable_statistics.serialization_header.partition_key_type.name

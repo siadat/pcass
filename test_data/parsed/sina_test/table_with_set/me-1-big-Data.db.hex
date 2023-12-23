@@ -5656,12 +5656,6 @@ Container:
 # Successfully parsed me-1-big-Statistics.db to here.
 
 
-cell_type org.apache.cassandra.db.marshal.SetType(org.apache.cassandra.db.marshal.Int32Type)
-cell_type org.apache.cassandra.db.marshal.SetType(org.apache.cassandra.db.marshal.Int32Type)
-cell_type org.apache.cassandra.db.marshal.SetType(org.apache.cassandra.db.marshal.Int32Type)
-cell_type org.apache.cassandra.db.marshal.SetType(org.apache.cassandra.db.marshal.Int32Type)
-cell_type org.apache.cassandra.db.marshal.SetType(org.apache.cassandra.db.marshal.Int32Type)
-cell_type org.apache.cassandra.db.marshal.SetType(org.apache.cassandra.db.marshal.Int32Type)
 # Parsed Data.db:
 Container: 
     partitions = [Container(partition_header=Container(key_len=4, key=b'\x00\x00\x00\x01', deletion_time=Container(local_deletion_time=2147483647, marked_for_delete_at=9223372036854775808)), unfiltereds=ListContainer([Container(row_flags=100, row=Container(clustering_block=None, serialized_row_body_size=27, row_body=Container(row_body_start=20, previous_unfiltered_size=18, timestamp_diff=35350, missing_columns=None, cells=ListContainer([Container(complex_deletion_time=Container(delta_mark_for_delete_at=35349, delta_local_deletion_time=0), items_count=3, items=ListContainer([Container(cell_flags=12, cell=Container(cell_val_len=4, cell_val=Container(cell_value=10))), Container(cell_flags=12, cell=Container(cell_val_len=4, cell_val=Container(cell_value=20))), Container(cell_flags=12, cell=Container(cell_val_len=4, cell_val=Container(cell_value=30)))]))])))), Container(row_flags=1, row=None)])), Container(partition_header=Container(key_len=4, key=b'\x00\x00\x00\x00', deletion_time=Container(local_deletion_time=2147483647, marked_for_delete_at=9223372036854775808)), unfiltereds=ListContainer([Container(row_flags=100, row=Container(clustering_block=None, serialized_row_body_size=23, row_body=Container(row_body_start=68, previous_unfiltered_size=18, timestamp_diff=1, missing_columns=None, cells=ListContainer([Container(complex_deletion_time=Container(delta_mark_for_delete_at=0, delta_local_deletion_time=0), items_count=3, items=ListContainer([Container(cell_flags=12, cell=Container(cell_val_len=4, cell_val=Container(cell_value=1))), Container(cell_flags=12, cell=Container(cell_val_len=4, cell_val=Container(cell_value=2))), Container(cell_flags=12, cell=Container(cell_val_len=4, cell_val=Container(cell_value=3)))]))])))), Container(row_flags=1, row=None)]))]
