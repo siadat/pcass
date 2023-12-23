@@ -25,6 +25,14 @@ USE sina_test;
 -- 
 -- INSERT INTO collection_types (k, l, s, m, simple_frozen, f, lf, flf) VALUES (0, [1, 2, 3], {4, 5, 6}, {7: 8, 9: 10}, [11, 12, 13], {name: 'foo', age: 42, metadata: {height: 1.83}}, [{name: 'bar', age: 24, metadata: {height: 1.82}}, {name: 'baz', age: 66, metadata: {height: 1.81}}], [{name: 'qux', age: 88, metadata: {height: 1.80}}, {name: 'quux', age: 99, metadata: {height: 1.79}}]);
 
+CREATE TABLE table_with_set(
+    k int PRIMARY KEY,
+    s set<int>,
+) WITH compression = {'enabled':'false'};
+
+INSERT INTO table_with_set (k, s) VALUES (0, {1, 2, 3});
+INSERT INTO table_with_set (k, s) VALUES (1, {10, 20, 30});
+
 CREATE TABLE table_with_map (
     k int PRIMARY KEY,
     m map<int, int>,

@@ -840,10 +840,10 @@ Container:
                     prev_bucket_offset = 4139110981
                     name = 0
         commit_log_upper_bound = Container: 
-            segment_id = 1703235617596
-            position_in_segment = 92963
-        min_timestamp = 1703235632040127
-        max_timestamp = 1703235632044308
+            segment_id = 1703333128467
+            position_in_segment = 95708
+        min_timestamp = 1703333141978656
+        max_timestamp = 1703333141982554
         min_local_deletion_time = 0x7FFFFFFF
         max_local_deletion_time = 0x7FFFFFFF
         min_ttl = 0
@@ -866,21 +866,21 @@ Container:
         number_of_columns = 2
         number_of_rows = 2
         commit_log_lower_bound = Container: 
-            segment_id = 1703235617596
-            position_in_segment = 73214
+            segment_id = 1703333128467
+            position_in_segment = 75974
         commit_log_intervals_length = 1
         commit_log_intervals = ListContainer: 
             Container: 
                 start = Container: 
-                    segment_id = 1703235617596
-                    position_in_segment = 73214
+                    segment_id = 1703333128467
+                    position_in_segment = 75974
                 end = Container: 
-                    segment_id = 1703235617596
-                    position_in_segment = 92963
+                    segment_id = 1703333128467
+                    position_in_segment = 95708
         TODO_WHY_IS_THIS_NEEDED = b'\x01' (total 1)
-        host_id = unhexlify('dcad259a0f614c96861fc1df649b7510')
+        host_id = unhexlify('d148002ba83c4d9686aff104bbb94d94')
     serialization_header = Container: 
-        min_timestamp = 260355632040127
+        min_timestamp = 260453141978656
         min_local_deletion_time = 0
         min_ttl = 0
         partition_key_type = Container: 
@@ -5341,30 +5341,30 @@ Container:
 0x00	b00000000	  0	─── (parsing) -> statistics_metadata -> commit_log_upper_bound -> segment_id
 0x01	b00000001	  1	─── (parsing) -> statistics_metadata -> commit_log_upper_bound -> segment_id
 0x8c	b10001100	140	─── (parsing) -> statistics_metadata -> commit_log_upper_bound -> segment_id
+0x96	b10010110	150	─── (parsing) -> statistics_metadata -> commit_log_upper_bound -> segment_id
 0x90	b10010000	144	─── (parsing) -> statistics_metadata -> commit_log_upper_bound -> segment_id
-0xc1	b11000001	193	─── (parsing) -> statistics_metadata -> commit_log_upper_bound -> segment_id
-0x03	b00000011	  3	─── (parsing) -> statistics_metadata -> commit_log_upper_bound -> segment_id
-0x3c	b00111100	 60	'<' (parsing) -> statistics_metadata -> commit_log_upper_bound -> segment_id
+0xe9	b11101001	233	─── (parsing) -> statistics_metadata -> commit_log_upper_bound -> segment_id
+0x13	b00010011	 19	─── (parsing) -> statistics_metadata -> commit_log_upper_bound -> segment_id
 0x00	b00000000	  0	─── (parsing) -> statistics_metadata -> commit_log_upper_bound -> position_in_segment
 0x01	b00000001	  1	─── (parsing) -> statistics_metadata -> commit_log_upper_bound -> position_in_segment
-0x6b	b01101011	107	'k' (parsing) -> statistics_metadata -> commit_log_upper_bound -> position_in_segment
-0x23	b00100011	 35	'#' (parsing) -> statistics_metadata -> commit_log_upper_bound -> position_in_segment
+0x75	b01110101	117	'u' (parsing) -> statistics_metadata -> commit_log_upper_bound -> position_in_segment
+0xdc	b11011100	220	─── (parsing) -> statistics_metadata -> commit_log_upper_bound -> position_in_segment
 0x00	b00000000	  0	─── (parsing) -> statistics_metadata -> min_timestamp
 0x06	b00000110	  6	─── (parsing) -> statistics_metadata -> min_timestamp
 0x0d	b00001101	 13	─── (parsing) -> statistics_metadata -> min_timestamp
-0x15	b00010101	 21	─── (parsing) -> statistics_metadata -> min_timestamp
-0x72	b01110010	114	'r' (parsing) -> statistics_metadata -> min_timestamp
-0xd1	b11010001	209	─── (parsing) -> statistics_metadata -> min_timestamp
-0x08	b00001000	  8	─── (parsing) -> statistics_metadata -> min_timestamp
-0xbf	b10111111	191	─── (parsing) -> statistics_metadata -> min_timestamp
+0x2c	b00101100	 44	',' (parsing) -> statistics_metadata -> min_timestamp
+0x26	b00100110	 38	'&' (parsing) -> statistics_metadata -> min_timestamp
+0xdc	b11011100	220	─── (parsing) -> statistics_metadata -> min_timestamp
+0x9e	b10011110	158	─── (parsing) -> statistics_metadata -> min_timestamp
+0x20	b00100000	 32	' ' (parsing) -> statistics_metadata -> min_timestamp
 0x00	b00000000	  0	─── (parsing) -> statistics_metadata -> max_timestamp
 0x06	b00000110	  6	─── (parsing) -> statistics_metadata -> max_timestamp
 0x0d	b00001101	 13	─── (parsing) -> statistics_metadata -> max_timestamp
-0x15	b00010101	 21	─── (parsing) -> statistics_metadata -> max_timestamp
-0x72	b01110010	114	'r' (parsing) -> statistics_metadata -> max_timestamp
-0xd1	b11010001	209	─── (parsing) -> statistics_metadata -> max_timestamp
-0x19	b00011001	 25	─── (parsing) -> statistics_metadata -> max_timestamp
-0x14	b00010100	 20	─── (parsing) -> statistics_metadata -> max_timestamp
+0x2c	b00101100	 44	',' (parsing) -> statistics_metadata -> max_timestamp
+0x26	b00100110	 38	'&' (parsing) -> statistics_metadata -> max_timestamp
+0xdc	b11011100	220	─── (parsing) -> statistics_metadata -> max_timestamp
+0xad	b10101101	173	─── (parsing) -> statistics_metadata -> max_timestamp
+0x5a	b01011010	 90	'Z' (parsing) -> statistics_metadata -> max_timestamp
 0x7f	b01111111	127	─── (parsing) -> statistics_metadata -> min_local_deletion_time
 0xff	b11111111	255	─── (parsing) -> statistics_metadata -> min_local_deletion_time
 0xff	b11111111	255	─── (parsing) -> statistics_metadata -> min_local_deletion_time
@@ -5438,14 +5438,14 @@ Container:
 0x00	b00000000	  0	─── (parsing) -> statistics_metadata -> commit_log_lower_bound -> segment_id
 0x01	b00000001	  1	─── (parsing) -> statistics_metadata -> commit_log_lower_bound -> segment_id
 0x8c	b10001100	140	─── (parsing) -> statistics_metadata -> commit_log_lower_bound -> segment_id
+0x96	b10010110	150	─── (parsing) -> statistics_metadata -> commit_log_lower_bound -> segment_id
 0x90	b10010000	144	─── (parsing) -> statistics_metadata -> commit_log_lower_bound -> segment_id
-0xc1	b11000001	193	─── (parsing) -> statistics_metadata -> commit_log_lower_bound -> segment_id
-0x03	b00000011	  3	─── (parsing) -> statistics_metadata -> commit_log_lower_bound -> segment_id
-0x3c	b00111100	 60	'<' (parsing) -> statistics_metadata -> commit_log_lower_bound -> segment_id
+0xe9	b11101001	233	─── (parsing) -> statistics_metadata -> commit_log_lower_bound -> segment_id
+0x13	b00010011	 19	─── (parsing) -> statistics_metadata -> commit_log_lower_bound -> segment_id
 0x00	b00000000	  0	─── (parsing) -> statistics_metadata -> commit_log_lower_bound -> position_in_segment
 0x01	b00000001	  1	─── (parsing) -> statistics_metadata -> commit_log_lower_bound -> position_in_segment
-0x1d	b00011101	 29	─── (parsing) -> statistics_metadata -> commit_log_lower_bound -> position_in_segment
-0xfe	b11111110	254	─── (parsing) -> statistics_metadata -> commit_log_lower_bound -> position_in_segment
+0x28	b00101000	 40	'(' (parsing) -> statistics_metadata -> commit_log_lower_bound -> position_in_segment
+0xc6	b11000110	198	─── (parsing) -> statistics_metadata -> commit_log_lower_bound -> position_in_segment
 0x00	b00000000	  0	─── (parsing) -> statistics_metadata -> commit_log_intervals_length
 0x00	b00000000	  0	─── (parsing) -> statistics_metadata -> commit_log_intervals_length
 0x00	b00000000	  0	─── (parsing) -> statistics_metadata -> commit_log_intervals_length
@@ -5454,50 +5454,50 @@ Container:
 0x00	b00000000	  0	─── (parsing) -> statistics_metadata -> commit_log_intervals -> start -> segment_id
 0x01	b00000001	  1	─── (parsing) -> statistics_metadata -> commit_log_intervals -> start -> segment_id
 0x8c	b10001100	140	─── (parsing) -> statistics_metadata -> commit_log_intervals -> start -> segment_id
+0x96	b10010110	150	─── (parsing) -> statistics_metadata -> commit_log_intervals -> start -> segment_id
 0x90	b10010000	144	─── (parsing) -> statistics_metadata -> commit_log_intervals -> start -> segment_id
-0xc1	b11000001	193	─── (parsing) -> statistics_metadata -> commit_log_intervals -> start -> segment_id
-0x03	b00000011	  3	─── (parsing) -> statistics_metadata -> commit_log_intervals -> start -> segment_id
-0x3c	b00111100	 60	'<' (parsing) -> statistics_metadata -> commit_log_intervals -> start -> segment_id
+0xe9	b11101001	233	─── (parsing) -> statistics_metadata -> commit_log_intervals -> start -> segment_id
+0x13	b00010011	 19	─── (parsing) -> statistics_metadata -> commit_log_intervals -> start -> segment_id
 0x00	b00000000	  0	─── (parsing) -> statistics_metadata -> commit_log_intervals -> start -> position_in_segment
 0x01	b00000001	  1	─── (parsing) -> statistics_metadata -> commit_log_intervals -> start -> position_in_segment
-0x1d	b00011101	 29	─── (parsing) -> statistics_metadata -> commit_log_intervals -> start -> position_in_segment
-0xfe	b11111110	254	─── (parsing) -> statistics_metadata -> commit_log_intervals -> start -> position_in_segment
+0x28	b00101000	 40	'(' (parsing) -> statistics_metadata -> commit_log_intervals -> start -> position_in_segment
+0xc6	b11000110	198	─── (parsing) -> statistics_metadata -> commit_log_intervals -> start -> position_in_segment
 0x00	b00000000	  0	─── (parsing) -> statistics_metadata -> commit_log_intervals -> end -> segment_id
 0x00	b00000000	  0	─── (parsing) -> statistics_metadata -> commit_log_intervals -> end -> segment_id
 0x01	b00000001	  1	─── (parsing) -> statistics_metadata -> commit_log_intervals -> end -> segment_id
 0x8c	b10001100	140	─── (parsing) -> statistics_metadata -> commit_log_intervals -> end -> segment_id
+0x96	b10010110	150	─── (parsing) -> statistics_metadata -> commit_log_intervals -> end -> segment_id
 0x90	b10010000	144	─── (parsing) -> statistics_metadata -> commit_log_intervals -> end -> segment_id
-0xc1	b11000001	193	─── (parsing) -> statistics_metadata -> commit_log_intervals -> end -> segment_id
-0x03	b00000011	  3	─── (parsing) -> statistics_metadata -> commit_log_intervals -> end -> segment_id
-0x3c	b00111100	 60	'<' (parsing) -> statistics_metadata -> commit_log_intervals -> end -> segment_id
+0xe9	b11101001	233	─── (parsing) -> statistics_metadata -> commit_log_intervals -> end -> segment_id
+0x13	b00010011	 19	─── (parsing) -> statistics_metadata -> commit_log_intervals -> end -> segment_id
 0x00	b00000000	  0	─── (parsing) -> statistics_metadata -> commit_log_intervals -> end -> position_in_segment
 0x01	b00000001	  1	─── (parsing) -> statistics_metadata -> commit_log_intervals -> end -> position_in_segment
-0x6b	b01101011	107	'k' (parsing) -> statistics_metadata -> commit_log_intervals -> end -> position_in_segment
-0x23	b00100011	 35	'#' (parsing) -> statistics_metadata -> commit_log_intervals -> end -> position_in_segment
+0x75	b01110101	117	'u' (parsing) -> statistics_metadata -> commit_log_intervals -> end -> position_in_segment
+0xdc	b11011100	220	─── (parsing) -> statistics_metadata -> commit_log_intervals -> end -> position_in_segment
 0x01	b00000001	  1	─── (parsing) -> statistics_metadata -> TODO_WHY_IS_THIS_NEEDED
-0xdc	b11011100	220	─── (parsing) -> statistics_metadata -> host_id
-0xad	b10101101	173	─── (parsing) -> statistics_metadata -> host_id
-0x25	b00100101	 37	'%' (parsing) -> statistics_metadata -> host_id
-0x9a	b10011010	154	─── (parsing) -> statistics_metadata -> host_id
-0x0f	b00001111	 15	─── (parsing) -> statistics_metadata -> host_id
-0x61	b01100001	 97	'a' (parsing) -> statistics_metadata -> host_id
-0x4c	b01001100	 76	'L' (parsing) -> statistics_metadata -> host_id
+0xd1	b11010001	209	─── (parsing) -> statistics_metadata -> host_id
+0x48	b01001000	 72	'H' (parsing) -> statistics_metadata -> host_id
+0x00	b00000000	  0	─── (parsing) -> statistics_metadata -> host_id
+0x2b	b00101011	 43	'+' (parsing) -> statistics_metadata -> host_id
+0xa8	b10101000	168	─── (parsing) -> statistics_metadata -> host_id
+0x3c	b00111100	 60	'<' (parsing) -> statistics_metadata -> host_id
+0x4d	b01001101	 77	'M' (parsing) -> statistics_metadata -> host_id
 0x96	b10010110	150	─── (parsing) -> statistics_metadata -> host_id
 0x86	b10000110	134	─── (parsing) -> statistics_metadata -> host_id
-0x1f	b00011111	 31	─── (parsing) -> statistics_metadata -> host_id
-0xc1	b11000001	193	─── (parsing) -> statistics_metadata -> host_id
-0xdf	b11011111	223	─── (parsing) -> statistics_metadata -> host_id
-0x64	b01100100	100	'd' (parsing) -> statistics_metadata -> host_id
-0x9b	b10011011	155	─── (parsing) -> statistics_metadata -> host_id
-0x75	b01110101	117	'u' (parsing) -> statistics_metadata -> host_id
-0x10	b00010000	 16	─── (parsing) -> statistics_metadata -> host_id
+0xaf	b10101111	175	─── (parsing) -> statistics_metadata -> host_id
+0xf1	b11110001	241	─── (parsing) -> statistics_metadata -> host_id
+0x04	b00000100	  4	─── (parsing) -> statistics_metadata -> host_id
+0xbb	b10111011	187	─── (parsing) -> statistics_metadata -> host_id
+0xb9	b10111001	185	─── (parsing) -> statistics_metadata -> host_id
+0x4d	b01001101	 77	'M' (parsing) -> statistics_metadata -> host_id
+0x94	b10010100	148	─── (parsing) -> statistics_metadata -> host_id
 0xfc	b11111100	252	─── (parsing) -> serialization_header -> min_timestamp
 0xec	b11101100	236	─── (parsing) -> serialization_header -> min_timestamp
-0xca	b11001010	202	─── (parsing) -> serialization_header -> min_timestamp
-0xc4	b11000100	196	─── (parsing) -> serialization_header -> min_timestamp
-0xf6	b11110110	246	─── (parsing) -> serialization_header -> min_timestamp
-0x88	b10001000	136	─── (parsing) -> serialization_header -> min_timestamp
-0xbf	b10111111	191	─── (parsing) -> serialization_header -> min_timestamp
+0xe1	b11100001	225	─── (parsing) -> serialization_header -> min_timestamp
+0x79	b01111001	121	'y' (parsing) -> serialization_header -> min_timestamp
+0x02	b00000010	  2	─── (parsing) -> serialization_header -> min_timestamp
+0x1e	b00011110	 30	─── (parsing) -> serialization_header -> min_timestamp
+0x20	b00100000	 32	' ' (parsing) -> serialization_header -> min_timestamp
 0x00	b00000000	  0	─── (parsing) -> serialization_header -> min_local_deletion_time
 0x00	b00000000	  0	─── (parsing) -> serialization_header -> min_ttl
 0x28	b00101000	 40	'(' (parsing) -> serialization_header -> partition_key_type -> name_length
@@ -5593,7 +5593,7 @@ Container:
 
 # Parsed Data.db:
 Container: 
-    partitions = [Container(partition_header=Container(key_len=2, key=b'k1', deletion_time=Container(local_deletion_time=2147483647, marked_for_delete_at=9223372036854775808)), unfiltereds=ListContainer([Container(row_flags=36, row=Container(clustering_block=None, serialized_row_body_size=6, row_body=Container(row_body_start=18, previous_unfiltered_size=16, timestamp_diff=0, missing_columns=None, cells=ListContainer([Container(cell_flags=8, cell=Container(cell_value_len=2, cell_value=u'c1'))])))), Container(row_flags=1, row=None)])), Container(partition_header=Container(key_len=2, key=b'k2', deletion_time=Container(local_deletion_time=2147483647, marked_for_delete_at=9223372036854775808)), unfiltereds=ListContainer([Container(row_flags=36, row=Container(clustering_block=None, serialized_row_body_size=7, row_body=Container(row_body_start=43, previous_unfiltered_size=16, timestamp_diff=4181, missing_columns=None, cells=ListContainer([Container(cell_flags=8, cell=Container(cell_value_len=2, cell_value=u'c2'))])))), Container(row_flags=1, row=None)]))]
+    partitions = [Container(partition_header=Container(key_len=2, key=b'k1', deletion_time=Container(local_deletion_time=2147483647, marked_for_delete_at=9223372036854775808)), unfiltereds=ListContainer([Container(row_flags=36, row=Container(clustering_block=None, serialized_row_body_size=6, row_body=Container(row_body_start=18, previous_unfiltered_size=16, timestamp_diff=0, missing_columns=None, cells=ListContainer([Container(cell_flags=8, cell=Container(cell_value_len=2, cell_value=u'c1'))])))), Container(row_flags=1, row=None)])), Container(partition_header=Container(key_len=2, key=b'k2', deletion_time=Container(local_deletion_time=2147483647, marked_for_delete_at=9223372036854775808)), unfiltereds=ListContainer([Container(row_flags=36, row=Container(clustering_block=None, serialized_row_body_size=7, row_body=Container(row_body_start=43, previous_unfiltered_size=16, timestamp_diff=3898, missing_columns=None, cells=ListContainer([Container(cell_flags=8, cell=Container(cell_value_len=2, cell_value=u'c2'))])))), Container(row_flags=1, row=None)]))]
 
 # Hex Data.db
 0x00	b00000000	  0	─── (parsing) -> partitions -> partition_header -> key_len
@@ -5640,8 +5640,8 @@ Container:
 0x24	b00100100	 36	'$' (parsing) -> partitions -> unfiltereds -> row_flags
 0x07	b00000111	  7	─── (parsing) -> partitions -> unfiltereds -> row -> serialized_row_body_size
 0x10	b00010000	 16	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> previous_unfiltered_size
-0x90	b10010000	144	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> timestamp_diff
-0x55	b01010101	 85	'U' (parsing) -> partitions -> unfiltereds -> row -> row_body -> timestamp_diff
+0x8f	b10001111	143	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> timestamp_diff
+0x3a	b00111010	 58	':' (parsing) -> partitions -> unfiltereds -> row -> row_body -> timestamp_diff
 0x08	b00001000	  8	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> cell_flags
 0x02	b00000010	  2	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> cell -> cell_value_len
 0x63	b01100011	 99	'c' (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> cell -> cell_value

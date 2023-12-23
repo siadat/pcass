@@ -840,11 +840,11 @@ Container:
                     prev_bucket_offset = 4139110981
                     name = 0
         commit_log_upper_bound = Container: 
-            segment_id = 1703235617596
-            position_in_segment = 92963
-        min_timestamp = 1703235630940042
-        max_timestamp = 1703235630947490
-        min_local_deletion_time = 0x6585502E
+            segment_id = 1703333128467
+            position_in_segment = 95708
+        min_timestamp = 1703333140760313
+        max_timestamp = 1703333140768371
+        min_local_deletion_time = 0x6586CD14
         max_local_deletion_time = 0x7FFFFFFF
         min_ttl = 0
         max_ttl = 0
@@ -855,7 +855,7 @@ Container:
                 length = 1
                 bucket = ListContainer: 
                     Container: 
-                        prev_bucket_offset = 4744930696135442432
+                        prev_bucket_offset = 4744931105080082432
                         name = 2
         level = 0
         repaired_at = 0
@@ -869,22 +869,22 @@ Container:
         number_of_columns = 2
         number_of_rows = 2
         commit_log_lower_bound = Container: 
-            segment_id = 1703235617596
-            position_in_segment = 50161
+            segment_id = 1703333128467
+            position_in_segment = 52745
         commit_log_intervals_length = 1
         commit_log_intervals = ListContainer: 
             Container: 
                 start = Container: 
-                    segment_id = 1703235617596
-                    position_in_segment = 50161
+                    segment_id = 1703333128467
+                    position_in_segment = 52745
                 end = Container: 
-                    segment_id = 1703235617596
-                    position_in_segment = 92963
+                    segment_id = 1703333128467
+                    position_in_segment = 95708
         TODO_WHY_IS_THIS_NEEDED = b'\x01' (total 1)
-        host_id = unhexlify('dcad259a0f614c96861fc1df649b7510')
+        host_id = unhexlify('d148002ba83c4d9686aff104bbb94d94')
     serialization_header = Container: 
-        min_timestamp = 260355630940042
-        min_local_deletion_time = 260355630
+        min_timestamp = 260453140760313
+        min_local_deletion_time = 260453140
         min_ttl = 0
         partition_key_type = Container: 
             name_length = 41
@@ -5344,34 +5344,34 @@ Container:
 0x00	b00000000	  0	─── (parsing) -> statistics_metadata -> commit_log_upper_bound -> segment_id
 0x01	b00000001	  1	─── (parsing) -> statistics_metadata -> commit_log_upper_bound -> segment_id
 0x8c	b10001100	140	─── (parsing) -> statistics_metadata -> commit_log_upper_bound -> segment_id
+0x96	b10010110	150	─── (parsing) -> statistics_metadata -> commit_log_upper_bound -> segment_id
 0x90	b10010000	144	─── (parsing) -> statistics_metadata -> commit_log_upper_bound -> segment_id
-0xc1	b11000001	193	─── (parsing) -> statistics_metadata -> commit_log_upper_bound -> segment_id
-0x03	b00000011	  3	─── (parsing) -> statistics_metadata -> commit_log_upper_bound -> segment_id
-0x3c	b00111100	 60	'<' (parsing) -> statistics_metadata -> commit_log_upper_bound -> segment_id
+0xe9	b11101001	233	─── (parsing) -> statistics_metadata -> commit_log_upper_bound -> segment_id
+0x13	b00010011	 19	─── (parsing) -> statistics_metadata -> commit_log_upper_bound -> segment_id
 0x00	b00000000	  0	─── (parsing) -> statistics_metadata -> commit_log_upper_bound -> position_in_segment
 0x01	b00000001	  1	─── (parsing) -> statistics_metadata -> commit_log_upper_bound -> position_in_segment
-0x6b	b01101011	107	'k' (parsing) -> statistics_metadata -> commit_log_upper_bound -> position_in_segment
-0x23	b00100011	 35	'#' (parsing) -> statistics_metadata -> commit_log_upper_bound -> position_in_segment
+0x75	b01110101	117	'u' (parsing) -> statistics_metadata -> commit_log_upper_bound -> position_in_segment
+0xdc	b11011100	220	─── (parsing) -> statistics_metadata -> commit_log_upper_bound -> position_in_segment
 0x00	b00000000	  0	─── (parsing) -> statistics_metadata -> min_timestamp
 0x06	b00000110	  6	─── (parsing) -> statistics_metadata -> min_timestamp
 0x0d	b00001101	 13	─── (parsing) -> statistics_metadata -> min_timestamp
-0x15	b00010101	 21	─── (parsing) -> statistics_metadata -> min_timestamp
-0x72	b01110010	114	'r' (parsing) -> statistics_metadata -> min_timestamp
-0xc0	b11000000	192	─── (parsing) -> statistics_metadata -> min_timestamp
-0x3f	b00111111	 63	'?' (parsing) -> statistics_metadata -> min_timestamp
-0x8a	b10001010	138	─── (parsing) -> statistics_metadata -> min_timestamp
+0x2c	b00101100	 44	',' (parsing) -> statistics_metadata -> min_timestamp
+0x26	b00100110	 38	'&' (parsing) -> statistics_metadata -> min_timestamp
+0xca	b11001010	202	─── (parsing) -> statistics_metadata -> min_timestamp
+0x06	b00000110	  6	─── (parsing) -> statistics_metadata -> min_timestamp
+0xf9	b11111001	249	─── (parsing) -> statistics_metadata -> min_timestamp
 0x00	b00000000	  0	─── (parsing) -> statistics_metadata -> max_timestamp
 0x06	b00000110	  6	─── (parsing) -> statistics_metadata -> max_timestamp
 0x0d	b00001101	 13	─── (parsing) -> statistics_metadata -> max_timestamp
-0x15	b00010101	 21	─── (parsing) -> statistics_metadata -> max_timestamp
-0x72	b01110010	114	'r' (parsing) -> statistics_metadata -> max_timestamp
-0xc0	b11000000	192	─── (parsing) -> statistics_metadata -> max_timestamp
-0x5c	b01011100	 92	'\\' (parsing) -> statistics_metadata -> max_timestamp
-0xa2	b10100010	162	─── (parsing) -> statistics_metadata -> max_timestamp
+0x2c	b00101100	 44	',' (parsing) -> statistics_metadata -> max_timestamp
+0x26	b00100110	 38	'&' (parsing) -> statistics_metadata -> max_timestamp
+0xca	b11001010	202	─── (parsing) -> statistics_metadata -> max_timestamp
+0x26	b00100110	 38	'&' (parsing) -> statistics_metadata -> max_timestamp
+0x73	b01110011	115	's' (parsing) -> statistics_metadata -> max_timestamp
 0x65	b01100101	101	'e' (parsing) -> statistics_metadata -> min_local_deletion_time
-0x85	b10000101	133	─── (parsing) -> statistics_metadata -> min_local_deletion_time
-0x50	b01010000	 80	'P' (parsing) -> statistics_metadata -> min_local_deletion_time
-0x2e	b00101110	 46	'.' (parsing) -> statistics_metadata -> min_local_deletion_time
+0x86	b10000110	134	─── (parsing) -> statistics_metadata -> min_local_deletion_time
+0xcd	b11001101	205	─── (parsing) -> statistics_metadata -> min_local_deletion_time
+0x14	b00010100	 20	─── (parsing) -> statistics_metadata -> min_local_deletion_time
 0x7f	b01111111	127	─── (parsing) -> statistics_metadata -> max_local_deletion_time
 0xff	b11111111	255	─── (parsing) -> statistics_metadata -> max_local_deletion_time
 0xff	b11111111	255	─── (parsing) -> statistics_metadata -> max_local_deletion_time
@@ -5403,8 +5403,8 @@ Container:
 0x41	b01000001	 65	'A' (parsing) -> statistics_metadata -> tombstones -> buckets -> bucket -> prev_bucket_offset
 0xd9	b11011001	217	─── (parsing) -> statistics_metadata -> tombstones -> buckets -> bucket -> prev_bucket_offset
 0x61	b01100001	 97	'a' (parsing) -> statistics_metadata -> tombstones -> buckets -> bucket -> prev_bucket_offset
-0x54	b01010100	 84	'T' (parsing) -> statistics_metadata -> tombstones -> buckets -> bucket -> prev_bucket_offset
-0x13	b00010011	 19	─── (parsing) -> statistics_metadata -> tombstones -> buckets -> bucket -> prev_bucket_offset
+0xb3	b10110011	179	─── (parsing) -> statistics_metadata -> tombstones -> buckets -> bucket -> prev_bucket_offset
+0x4a	b01001010	 74	'J' (parsing) -> statistics_metadata -> tombstones -> buckets -> bucket -> prev_bucket_offset
 0x00	b00000000	  0	─── (parsing) -> statistics_metadata -> tombstones -> buckets -> bucket -> prev_bucket_offset
 0x00	b00000000	  0	─── (parsing) -> statistics_metadata -> tombstones -> buckets -> bucket -> prev_bucket_offset
 0x00	b00000000	  0	─── (parsing) -> statistics_metadata -> tombstones -> buckets -> bucket -> prev_bucket_offset
@@ -5457,14 +5457,14 @@ Container:
 0x00	b00000000	  0	─── (parsing) -> statistics_metadata -> commit_log_lower_bound -> segment_id
 0x01	b00000001	  1	─── (parsing) -> statistics_metadata -> commit_log_lower_bound -> segment_id
 0x8c	b10001100	140	─── (parsing) -> statistics_metadata -> commit_log_lower_bound -> segment_id
+0x96	b10010110	150	─── (parsing) -> statistics_metadata -> commit_log_lower_bound -> segment_id
 0x90	b10010000	144	─── (parsing) -> statistics_metadata -> commit_log_lower_bound -> segment_id
-0xc1	b11000001	193	─── (parsing) -> statistics_metadata -> commit_log_lower_bound -> segment_id
-0x03	b00000011	  3	─── (parsing) -> statistics_metadata -> commit_log_lower_bound -> segment_id
-0x3c	b00111100	 60	'<' (parsing) -> statistics_metadata -> commit_log_lower_bound -> segment_id
+0xe9	b11101001	233	─── (parsing) -> statistics_metadata -> commit_log_lower_bound -> segment_id
+0x13	b00010011	 19	─── (parsing) -> statistics_metadata -> commit_log_lower_bound -> segment_id
 0x00	b00000000	  0	─── (parsing) -> statistics_metadata -> commit_log_lower_bound -> position_in_segment
 0x00	b00000000	  0	─── (parsing) -> statistics_metadata -> commit_log_lower_bound -> position_in_segment
-0xc3	b11000011	195	─── (parsing) -> statistics_metadata -> commit_log_lower_bound -> position_in_segment
-0xf1	b11110001	241	─── (parsing) -> statistics_metadata -> commit_log_lower_bound -> position_in_segment
+0xce	b11001110	206	─── (parsing) -> statistics_metadata -> commit_log_lower_bound -> position_in_segment
+0x09	b00001001	  9	─── (parsing) -> statistics_metadata -> commit_log_lower_bound -> position_in_segment
 0x00	b00000000	  0	─── (parsing) -> statistics_metadata -> commit_log_intervals_length
 0x00	b00000000	  0	─── (parsing) -> statistics_metadata -> commit_log_intervals_length
 0x00	b00000000	  0	─── (parsing) -> statistics_metadata -> commit_log_intervals_length
@@ -5473,54 +5473,54 @@ Container:
 0x00	b00000000	  0	─── (parsing) -> statistics_metadata -> commit_log_intervals -> start -> segment_id
 0x01	b00000001	  1	─── (parsing) -> statistics_metadata -> commit_log_intervals -> start -> segment_id
 0x8c	b10001100	140	─── (parsing) -> statistics_metadata -> commit_log_intervals -> start -> segment_id
+0x96	b10010110	150	─── (parsing) -> statistics_metadata -> commit_log_intervals -> start -> segment_id
 0x90	b10010000	144	─── (parsing) -> statistics_metadata -> commit_log_intervals -> start -> segment_id
-0xc1	b11000001	193	─── (parsing) -> statistics_metadata -> commit_log_intervals -> start -> segment_id
-0x03	b00000011	  3	─── (parsing) -> statistics_metadata -> commit_log_intervals -> start -> segment_id
-0x3c	b00111100	 60	'<' (parsing) -> statistics_metadata -> commit_log_intervals -> start -> segment_id
+0xe9	b11101001	233	─── (parsing) -> statistics_metadata -> commit_log_intervals -> start -> segment_id
+0x13	b00010011	 19	─── (parsing) -> statistics_metadata -> commit_log_intervals -> start -> segment_id
 0x00	b00000000	  0	─── (parsing) -> statistics_metadata -> commit_log_intervals -> start -> position_in_segment
 0x00	b00000000	  0	─── (parsing) -> statistics_metadata -> commit_log_intervals -> start -> position_in_segment
-0xc3	b11000011	195	─── (parsing) -> statistics_metadata -> commit_log_intervals -> start -> position_in_segment
-0xf1	b11110001	241	─── (parsing) -> statistics_metadata -> commit_log_intervals -> start -> position_in_segment
+0xce	b11001110	206	─── (parsing) -> statistics_metadata -> commit_log_intervals -> start -> position_in_segment
+0x09	b00001001	  9	─── (parsing) -> statistics_metadata -> commit_log_intervals -> start -> position_in_segment
 0x00	b00000000	  0	─── (parsing) -> statistics_metadata -> commit_log_intervals -> end -> segment_id
 0x00	b00000000	  0	─── (parsing) -> statistics_metadata -> commit_log_intervals -> end -> segment_id
 0x01	b00000001	  1	─── (parsing) -> statistics_metadata -> commit_log_intervals -> end -> segment_id
 0x8c	b10001100	140	─── (parsing) -> statistics_metadata -> commit_log_intervals -> end -> segment_id
+0x96	b10010110	150	─── (parsing) -> statistics_metadata -> commit_log_intervals -> end -> segment_id
 0x90	b10010000	144	─── (parsing) -> statistics_metadata -> commit_log_intervals -> end -> segment_id
-0xc1	b11000001	193	─── (parsing) -> statistics_metadata -> commit_log_intervals -> end -> segment_id
-0x03	b00000011	  3	─── (parsing) -> statistics_metadata -> commit_log_intervals -> end -> segment_id
-0x3c	b00111100	 60	'<' (parsing) -> statistics_metadata -> commit_log_intervals -> end -> segment_id
+0xe9	b11101001	233	─── (parsing) -> statistics_metadata -> commit_log_intervals -> end -> segment_id
+0x13	b00010011	 19	─── (parsing) -> statistics_metadata -> commit_log_intervals -> end -> segment_id
 0x00	b00000000	  0	─── (parsing) -> statistics_metadata -> commit_log_intervals -> end -> position_in_segment
 0x01	b00000001	  1	─── (parsing) -> statistics_metadata -> commit_log_intervals -> end -> position_in_segment
-0x6b	b01101011	107	'k' (parsing) -> statistics_metadata -> commit_log_intervals -> end -> position_in_segment
-0x23	b00100011	 35	'#' (parsing) -> statistics_metadata -> commit_log_intervals -> end -> position_in_segment
+0x75	b01110101	117	'u' (parsing) -> statistics_metadata -> commit_log_intervals -> end -> position_in_segment
+0xdc	b11011100	220	─── (parsing) -> statistics_metadata -> commit_log_intervals -> end -> position_in_segment
 0x01	b00000001	  1	─── (parsing) -> statistics_metadata -> TODO_WHY_IS_THIS_NEEDED
-0xdc	b11011100	220	─── (parsing) -> statistics_metadata -> host_id
-0xad	b10101101	173	─── (parsing) -> statistics_metadata -> host_id
-0x25	b00100101	 37	'%' (parsing) -> statistics_metadata -> host_id
-0x9a	b10011010	154	─── (parsing) -> statistics_metadata -> host_id
-0x0f	b00001111	 15	─── (parsing) -> statistics_metadata -> host_id
-0x61	b01100001	 97	'a' (parsing) -> statistics_metadata -> host_id
-0x4c	b01001100	 76	'L' (parsing) -> statistics_metadata -> host_id
+0xd1	b11010001	209	─── (parsing) -> statistics_metadata -> host_id
+0x48	b01001000	 72	'H' (parsing) -> statistics_metadata -> host_id
+0x00	b00000000	  0	─── (parsing) -> statistics_metadata -> host_id
+0x2b	b00101011	 43	'+' (parsing) -> statistics_metadata -> host_id
+0xa8	b10101000	168	─── (parsing) -> statistics_metadata -> host_id
+0x3c	b00111100	 60	'<' (parsing) -> statistics_metadata -> host_id
+0x4d	b01001101	 77	'M' (parsing) -> statistics_metadata -> host_id
 0x96	b10010110	150	─── (parsing) -> statistics_metadata -> host_id
 0x86	b10000110	134	─── (parsing) -> statistics_metadata -> host_id
-0x1f	b00011111	 31	─── (parsing) -> statistics_metadata -> host_id
-0xc1	b11000001	193	─── (parsing) -> statistics_metadata -> host_id
-0xdf	b11011111	223	─── (parsing) -> statistics_metadata -> host_id
-0x64	b01100100	100	'd' (parsing) -> statistics_metadata -> host_id
-0x9b	b10011011	155	─── (parsing) -> statistics_metadata -> host_id
-0x75	b01110101	117	'u' (parsing) -> statistics_metadata -> host_id
-0x10	b00010000	 16	─── (parsing) -> statistics_metadata -> host_id
+0xaf	b10101111	175	─── (parsing) -> statistics_metadata -> host_id
+0xf1	b11110001	241	─── (parsing) -> statistics_metadata -> host_id
+0x04	b00000100	  4	─── (parsing) -> statistics_metadata -> host_id
+0xbb	b10111011	187	─── (parsing) -> statistics_metadata -> host_id
+0xb9	b10111001	185	─── (parsing) -> statistics_metadata -> host_id
+0x4d	b01001101	 77	'M' (parsing) -> statistics_metadata -> host_id
+0x94	b10010100	148	─── (parsing) -> statistics_metadata -> host_id
 0xfc	b11111100	252	─── (parsing) -> serialization_header -> min_timestamp
 0xec	b11101100	236	─── (parsing) -> serialization_header -> min_timestamp
-0xca	b11001010	202	─── (parsing) -> serialization_header -> min_timestamp
-0xc4	b11000100	196	─── (parsing) -> serialization_header -> min_timestamp
-0xe5	b11100101	229	─── (parsing) -> serialization_header -> min_timestamp
-0xbf	b10111111	191	─── (parsing) -> serialization_header -> min_timestamp
-0x8a	b10001010	138	─── (parsing) -> serialization_header -> min_timestamp
+0xe1	b11100001	225	─── (parsing) -> serialization_header -> min_timestamp
+0x78	b01111000	120	'x' (parsing) -> serialization_header -> min_timestamp
+0xef	b11101111	239	─── (parsing) -> serialization_header -> min_timestamp
+0x86	b10000110	134	─── (parsing) -> serialization_header -> min_timestamp
+0xf9	b11111001	249	─── (parsing) -> serialization_header -> min_timestamp
 0xef	b11101111	239	─── (parsing) -> serialization_header -> min_local_deletion_time
-0x84	b10000100	132	─── (parsing) -> serialization_header -> min_local_deletion_time
-0xb6	b10110110	182	─── (parsing) -> serialization_header -> min_local_deletion_time
-0x2e	b00101110	 46	'.' (parsing) -> serialization_header -> min_local_deletion_time
+0x86	b10000110	134	─── (parsing) -> serialization_header -> min_local_deletion_time
+0x33	b00110011	 51	'3' (parsing) -> serialization_header -> min_local_deletion_time
+0x14	b00010100	 20	─── (parsing) -> serialization_header -> min_local_deletion_time
 0x00	b00000000	  0	─── (parsing) -> serialization_header -> min_ttl
 0x29	b00101001	 41	')' (parsing) -> serialization_header -> partition_key_type -> name_length
 0x6f	b01101111	111	'o' (parsing) -> serialization_header -> partition_key_type -> name
@@ -5659,7 +5659,7 @@ Container:
 
 # Parsed Data.db:
 Container: 
-    partitions = [Container(partition_header=Container(key_len=4, key=b'\x00\x00\x00\x01', deletion_time=Container(local_deletion_time=2147483647, marked_for_delete_at=9223372036854775808)), unfiltereds=ListContainer([Container(row_flags=100, row=Container(clustering_block=None, serialized_row_body_size=76, row_body=Container(row_body_start=20, previous_unfiltered_size=18, timestamp_diff=7448, missing_columns=None, cells=ListContainer([Container(complex_deletion_time=Container(delta_mark_for_delete_at=7447, delta_local_deletion_time=0), items_count=3, items=ListContainer([Container(cell_flags=8, cell=Container(cell_path_length=16, cell_path=b'\x8f\x04\xf2@\xa0\xa8\x11\xee\xa4jm,\x86T]\x91', cell_value_len=4, cell_value=Container(cell_value=4))), Container(cell_flags=8, cell=Container(cell_path_length=16, cell_path=b'\x8f\x04\xf2A\xa0\xa8\x11\xee\xa4jm,\x86T]\x91', cell_value_len=4, cell_value=Container(cell_value=5))), Container(cell_flags=8, cell=Container(cell_path_length=16, cell_path=b'\x8f\x04\xf2B\xa0\xa8\x11\xee\xa4jm,\x86T]\x91', cell_value_len=4, cell_value=Container(cell_value=6)))]))])))), Container(row_flags=1, row=None)])), Container(partition_header=Container(key_len=4, key=b'\x00\x00\x00\x00', deletion_time=Container(local_deletion_time=2147483647, marked_for_delete_at=9223372036854775808)), unfiltereds=ListContainer([Container(row_flags=100, row=Container(clustering_block=None, serialized_row_body_size=74, row_body=Container(row_body_start=117, previous_unfiltered_size=18, timestamp_diff=1, missing_columns=None, cells=ListContainer([Container(complex_deletion_time=Container(delta_mark_for_delete_at=0, delta_local_deletion_time=0), items_count=3, items=ListContainer([Container(cell_flags=8, cell=Container(cell_path_length=16, cell_path=b'\x8f\x04V\x00\xa0\xa8\x11\xee\xa4jm,\x86T]\x91', cell_value_len=4, cell_value=Container(cell_value=1))), Container(cell_flags=8, cell=Container(cell_path_length=16, cell_path=b'\x8f\x04V\x01\xa0\xa8\x11\xee\xa4jm,\x86T]\x91', cell_value_len=4, cell_value=Container(cell_value=2))), Container(cell_flags=8, cell=Container(cell_path_length=16, cell_path=b'\x8f\x04V\x02\xa0\xa8\x11\xee\xa4jm,\x86T]\x91', cell_value_len=4, cell_value=Container(cell_value=3)))]))])))), Container(row_flags=1, row=None)]))]
+    partitions = [Container(partition_header=Container(key_len=4, key=b'\x00\x00\x00\x01', deletion_time=Container(local_deletion_time=2147483647, marked_for_delete_at=9223372036854775808)), unfiltereds=ListContainer([Container(row_flags=100, row=Container(clustering_block=None, serialized_row_body_size=76, row_body=Container(row_body_start=20, previous_unfiltered_size=18, timestamp_diff=8058, missing_columns=None, cells=ListContainer([Container(complex_deletion_time=Container(delta_mark_for_delete_at=8057, delta_local_deletion_time=0), items_count=3, items=ListContainer([Container(cell_flags=8, cell=Container(cell_path_length=16, cell_path=b'\x97g\x00 \xa1\x8b\x11\xee\xaaqm,\x86T]\x91', cell_value_len=4, cell_value=Container(cell_value=4))), Container(cell_flags=8, cell=Container(cell_path_length=16, cell_path=b'\x97g\x00!\xa1\x8b\x11\xee\xaaqm,\x86T]\x91', cell_value_len=4, cell_value=Container(cell_value=5))), Container(cell_flags=8, cell=Container(cell_path_length=16, cell_path=b'\x97g\x00"\xa1\x8b\x11\xee\xaaqm,\x86T]\x91', cell_value_len=4, cell_value=Container(cell_value=6)))]))])))), Container(row_flags=1, row=None)])), Container(partition_header=Container(key_len=4, key=b'\x00\x00\x00\x00', deletion_time=Container(local_deletion_time=2147483647, marked_for_delete_at=9223372036854775808)), unfiltereds=ListContainer([Container(row_flags=100, row=Container(clustering_block=None, serialized_row_body_size=74, row_body=Container(row_body_start=117, previous_unfiltered_size=18, timestamp_diff=1, missing_columns=None, cells=ListContainer([Container(complex_deletion_time=Container(delta_mark_for_delete_at=0, delta_local_deletion_time=0), items_count=3, items=ListContainer([Container(cell_flags=8, cell=Container(cell_path_length=16, cell_path=b'\x97f<\xd0\xa1\x8b\x11\xee\xaaqm,\x86T]\x91', cell_value_len=4, cell_value=Container(cell_value=1))), Container(cell_flags=8, cell=Container(cell_path_length=16, cell_path=b'\x97f<\xd1\xa1\x8b\x11\xee\xaaqm,\x86T]\x91', cell_value_len=4, cell_value=Container(cell_value=2))), Container(cell_flags=8, cell=Container(cell_path_length=16, cell_path=b'\x97f<\xd2\xa1\x8b\x11\xee\xaaqm,\x86T]\x91', cell_value_len=4, cell_value=Container(cell_value=3)))]))])))), Container(row_flags=1, row=None)]))]
 
 # Hex Data.db
 0x00	b00000000	  0	─── (parsing) -> partitions -> partition_header -> key_len
@@ -5683,24 +5683,24 @@ Container:
 0x64	b01100100	100	'd' (parsing) -> partitions -> unfiltereds -> row_flags
 0x4c	b01001100	 76	'L' (parsing) -> partitions -> unfiltereds -> row -> serialized_row_body_size
 0x12	b00010010	 18	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> previous_unfiltered_size
-0x9d	b10011101	157	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> timestamp_diff
-0x18	b00011000	 24	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> timestamp_diff
-0x9d	b10011101	157	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> complex_deletion_time -> delta_mark_for_delete_at
-0x17	b00010111	 23	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> complex_deletion_time -> delta_mark_for_delete_at
+0x9f	b10011111	159	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> timestamp_diff
+0x7a	b01111010	122	'z' (parsing) -> partitions -> unfiltereds -> row -> row_body -> timestamp_diff
+0x9f	b10011111	159	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> complex_deletion_time -> delta_mark_for_delete_at
+0x79	b01111001	121	'y' (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> complex_deletion_time -> delta_mark_for_delete_at
 0x00	b00000000	  0	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> complex_deletion_time -> delta_local_deletion_time
 0x03	b00000011	  3	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items_count
 0x08	b00001000	  8	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell_flags
 0x10	b00010000	 16	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path_length
-0x8f	b10001111	143	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
-0x04	b00000100	  4	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
-0xf2	b11110010	242	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
-0x40	b01000000	 64	'@' (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
-0xa0	b10100000	160	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
-0xa8	b10101000	168	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
+0x97	b10010111	151	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
+0x67	b01100111	103	'g' (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
+0x00	b00000000	  0	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
+0x20	b00100000	 32	' ' (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
+0xa1	b10100001	161	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
+0x8b	b10001011	139	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
 0x11	b00010001	 17	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
 0xee	b11101110	238	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
-0xa4	b10100100	164	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
-0x6a	b01101010	106	'j' (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
+0xaa	b10101010	170	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
+0x71	b01110001	113	'q' (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
 0x6d	b01101101	109	'm' (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
 0x2c	b00101100	 44	',' (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
 0x86	b10000110	134	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
@@ -5714,16 +5714,16 @@ Container:
 0x04	b00000100	  4	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_value -> cell_value
 0x08	b00001000	  8	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell_flags
 0x10	b00010000	 16	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path_length
-0x8f	b10001111	143	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
-0x04	b00000100	  4	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
-0xf2	b11110010	242	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
-0x41	b01000001	 65	'A' (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
-0xa0	b10100000	160	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
-0xa8	b10101000	168	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
+0x97	b10010111	151	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
+0x67	b01100111	103	'g' (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
+0x00	b00000000	  0	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
+0x21	b00100001	 33	'!' (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
+0xa1	b10100001	161	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
+0x8b	b10001011	139	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
 0x11	b00010001	 17	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
 0xee	b11101110	238	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
-0xa4	b10100100	164	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
-0x6a	b01101010	106	'j' (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
+0xaa	b10101010	170	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
+0x71	b01110001	113	'q' (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
 0x6d	b01101101	109	'm' (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
 0x2c	b00101100	 44	',' (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
 0x86	b10000110	134	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
@@ -5737,16 +5737,16 @@ Container:
 0x05	b00000101	  5	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_value -> cell_value
 0x08	b00001000	  8	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell_flags
 0x10	b00010000	 16	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path_length
-0x8f	b10001111	143	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
-0x04	b00000100	  4	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
-0xf2	b11110010	242	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
-0x42	b01000010	 66	'B' (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
-0xa0	b10100000	160	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
-0xa8	b10101000	168	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
+0x97	b10010111	151	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
+0x67	b01100111	103	'g' (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
+0x00	b00000000	  0	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
+0x22	b00100010	 34	'"' (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
+0xa1	b10100001	161	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
+0x8b	b10001011	139	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
 0x11	b00010001	 17	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
 0xee	b11101110	238	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
-0xa4	b10100100	164	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
-0x6a	b01101010	106	'j' (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
+0xaa	b10101010	170	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
+0x71	b01110001	113	'q' (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
 0x6d	b01101101	109	'm' (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
 0x2c	b00101100	 44	',' (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
 0x86	b10000110	134	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
@@ -5786,16 +5786,16 @@ Container:
 0x03	b00000011	  3	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items_count
 0x08	b00001000	  8	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell_flags
 0x10	b00010000	 16	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path_length
-0x8f	b10001111	143	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
-0x04	b00000100	  4	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
-0x56	b01010110	 86	'V' (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
-0x00	b00000000	  0	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
-0xa0	b10100000	160	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
-0xa8	b10101000	168	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
+0x97	b10010111	151	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
+0x66	b01100110	102	'f' (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
+0x3c	b00111100	 60	'<' (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
+0xd0	b11010000	208	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
+0xa1	b10100001	161	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
+0x8b	b10001011	139	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
 0x11	b00010001	 17	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
 0xee	b11101110	238	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
-0xa4	b10100100	164	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
-0x6a	b01101010	106	'j' (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
+0xaa	b10101010	170	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
+0x71	b01110001	113	'q' (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
 0x6d	b01101101	109	'm' (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
 0x2c	b00101100	 44	',' (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
 0x86	b10000110	134	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
@@ -5809,16 +5809,16 @@ Container:
 0x01	b00000001	  1	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_value -> cell_value
 0x08	b00001000	  8	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell_flags
 0x10	b00010000	 16	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path_length
-0x8f	b10001111	143	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
-0x04	b00000100	  4	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
-0x56	b01010110	 86	'V' (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
-0x01	b00000001	  1	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
-0xa0	b10100000	160	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
-0xa8	b10101000	168	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
+0x97	b10010111	151	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
+0x66	b01100110	102	'f' (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
+0x3c	b00111100	 60	'<' (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
+0xd1	b11010001	209	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
+0xa1	b10100001	161	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
+0x8b	b10001011	139	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
 0x11	b00010001	 17	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
 0xee	b11101110	238	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
-0xa4	b10100100	164	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
-0x6a	b01101010	106	'j' (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
+0xaa	b10101010	170	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
+0x71	b01110001	113	'q' (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
 0x6d	b01101101	109	'm' (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
 0x2c	b00101100	 44	',' (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
 0x86	b10000110	134	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
@@ -5832,16 +5832,16 @@ Container:
 0x02	b00000010	  2	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_value -> cell_value
 0x08	b00001000	  8	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell_flags
 0x10	b00010000	 16	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path_length
-0x8f	b10001111	143	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
-0x04	b00000100	  4	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
-0x56	b01010110	 86	'V' (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
-0x02	b00000010	  2	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
-0xa0	b10100000	160	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
-0xa8	b10101000	168	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
+0x97	b10010111	151	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
+0x66	b01100110	102	'f' (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
+0x3c	b00111100	 60	'<' (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
+0xd2	b11010010	210	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
+0xa1	b10100001	161	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
+0x8b	b10001011	139	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
 0x11	b00010001	 17	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
 0xee	b11101110	238	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
-0xa4	b10100100	164	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
-0x6a	b01101010	106	'j' (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
+0xaa	b10101010	170	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
+0x71	b01110001	113	'q' (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
 0x6d	b01101101	109	'm' (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
 0x2c	b00101100	 44	',' (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
 0x86	b10000110	134	─── (parsing) -> partitions -> unfiltereds -> row -> row_body -> cells -> items -> cell -> cell_path
