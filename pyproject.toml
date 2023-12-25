@@ -15,6 +15,7 @@ varint = "^1.0.2"
 construct = "^2.10.69"
 python-box = "^7.1.1"
 lark = "^1.1.8"
+cassandra-driver = "^3.29.0"
 
 
 [tool.poetry.group.dev.dependencies]
