@@ -1,3 +1,4 @@
+import argparse
 import socket
 import threading
 import sstable.utils
@@ -39,6 +40,9 @@ def start_tcp_server(ip, port):
         )
         client_handler.start()
 
+parser = argparse.ArgumentParser()
+parser.add_argument('-p', '--port', help='port to bind', required=True, type=int)
+args = parser.parse_args()
 if __name__ == '__main__':
-    start_tcp_server('0.0.0.0', 9090)
+    start_tcp_server('0.0.0.0', args.port)
 
