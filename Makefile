@@ -1,13 +1,13 @@
 POETRY := /home/linuxbrew/.linuxbrew/bin/poetry
 test:
-	$(POETRY) -vvv env use python3.10
-	$(POETRY) -vvv run pytest -x -s --cov=. --cov-report=html -v
-	$(POETRY) -vvv run python -m sstable.import | jq -s 'if length != 2 then error("Length is not 2, it is \(length)") else "2 rows dumped" end'
-	$(POETRY) -vvv run python -m sstable.dump test_data/cassandra3_data_want/sina_test/sina_table-*/ | jq -s 'if length != 7 then error("Length is not 7, it is \(length)") else "7 rows dumped" end'
-	$(POETRY) -vvv run python -m sstable.dump test_data/cassandra3_data_want/sina_test/has_all_types-*/ | jq -s 'if length != 5 then error("Length is not 5, it is \(length)") else "5 rows dumped" end'
+	$(POETRY) env use python3.10
+	$(POETRY) run pytest -x -s --cov=. --cov-report=html -v
+	$(POETRY) run python -m sstable.import | jq -s 'if length != 2 then error("Length is not 2, it is \(length)") else "2 rows dumped" end'
+	$(POETRY) run python -m sstable.dump test_data/cassandra3_data_want/sina_test/sina_table-*/ | jq -s 'if length != 7 then error("Length is not 7, it is \(length)") else "7 rows dumped" end'
+	$(POETRY) run python -m sstable.dump test_data/cassandra3_data_want/sina_test/has_all_types-*/ | jq -s 'if length != 5 then error("Length is not 5, it is \(length)") else "5 rows dumped" end'
 
 serve-coverage:
-	cd htmlcov && $(POETRY) -vvv run python -m http.server
+	cd htmlcov && $(POETRY) run python -m http.server
 
 old_parse_all: generate_parser parse
 
