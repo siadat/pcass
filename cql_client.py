@@ -1,5 +1,7 @@
+
 from cassandra.cluster import Cluster
 from cassandra.auth import PlainTextAuthProvider
+import argparse
 
 def connect_to_cassandra(hosts, port, username=None, password=None):
     if username and password:
@@ -14,19 +16,20 @@ def connect_to_cassandra(hosts, port, username=None, password=None):
 def execute_query(session, query):
     try:
         result = session.execute(query)
-        for row in result:
-            print(row)
+        return result
     except Exception as e:
         print("An error occurred:", e)
 
-if __name__ == '__main__':
-    # Set the connection details
-    hosts = ['127.0.0.1']  # List of hosts, add more if needed
-    port = 9090  # The port your server is listening on
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-H", "--host", default="127.0.0.1", help="The host to connect to.")
+    parser.add_argument("-p", "--port", type=int, default=9042, help="The port to connect to.")
+    args = parser.parse_args()
 
-    # Connect to Cassandra
-    session = connect_to_cassandra(hosts, port)
+    session = connect_to_cassandra([args.host], args.port)
 
-    # Execute a query
     query = "SELECT * FROM your_keyspace.your_table"
-    execute_query(session, query)
+    result = execute_query(session, query)
+    for row in result:
+        print(row)
+
