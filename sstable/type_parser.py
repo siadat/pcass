@@ -50,12 +50,16 @@ decimal_cell_value = construct.Struct(
 float_cell_value = construct.Struct(
     "cell_value" / construct.Float32b,
 )
+# not verified with Cassandra:
 sstable.utils.assert_equal(b"\x00\x00\x00\x00", float_cell_value.build({"cell_value": 0}))
+sstable.utils.assert_equal(b"\x40\x40\x00\x00", float_cell_value.build({"cell_value": 3.0}))
 
 double_cell_value = construct.Struct(
     "cell_value" / construct.Float64b,
 )
+# not verified with Cassandra:
 sstable.utils.assert_equal(b"\x00\x00\x00\x00\x00\x00\x00\x00", double_cell_value.build({"cell_value": 0}))
+sstable.utils.assert_equal(b"\x40\x08\x00\x00\x00\x00\x00\x00", double_cell_value.build({"cell_value": 3.0}))
 
 
 # Not tested with Cassnadra:
