@@ -1,6 +1,5 @@
 cassandra_data/
 __pycache__/
-
 drafts/
 apache-cassandra-3.0.29/
 .coverage
