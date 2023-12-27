@@ -73,10 +73,6 @@ def get_matches_for_pos(pos):
         return None
     # return " >> ".join(paths)
 
-
-def parse(filepath):
-    pass
-
 def pretty_hexdump(filepath, input_stream, last_parsed_pos, output_stream, err=None, err_pos=None, err_traceback=None, index=False):
     byts = input_stream.read()
     for i, byte in enumerate(byts[:last_parsed_pos]):

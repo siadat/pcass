@@ -6,6 +6,12 @@ test:
 	$(POETRY) run python -m sstable.dump test_data/cassandra3_data_want/sina_test/sina_table-*/ | jq -s 'if length != 7 then error("Length is not 7, it is \(length)") else "7 rows dumped" end'
 	$(POETRY) run python -m sstable.dump test_data/cassandra3_data_want/sina_test/has_all_types-*/ | jq -s 'if length != 5 then error("Length is not 5, it is \(length)") else "5 rows dumped" end'
 
+cql_server:
+	$(POETRY) run python -m cql_server
+
+cql_client:
+	$(POETRY) run python -m cql_client
+
 serve-coverage:
 	cd htmlcov && $(POETRY) run python -m http.server
 
@@ -48,6 +54,7 @@ cass_zig:
 		-v $(PWD)/cassandra-3.0.yaml:/etc/cassandra/cassandra.yaml \
 		-v $(PWD)/:/root/work:ro \
 		-v $(PWD)/cassandra_data:/var/lib/cassandra \
+		-p 9042:9042 \
 		--name cass_zig cassandra:3.0 || docker start cass_zig
 
 .PHONY: populate_rows

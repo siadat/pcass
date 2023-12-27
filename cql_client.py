@@ -1,17 +1,8 @@
 
 from cassandra.cluster import Cluster
 from cassandra.auth import PlainTextAuthProvider
+from cassandra import ProtocolVersion
 import argparse
-
-def connect_to_cassandra(hosts, port, username=None, password=None):
-    if username and password:
-        auth_provider = PlainTextAuthProvider(username=username, password=password)
-        cluster = Cluster(contact_points=hosts, port=port, auth_provider=auth_provider)
-    else:
-        cluster = Cluster(contact_points=hosts, port=port)
-
-    session = cluster.connect()
-    return session
 
 def execute_query(session, query):
     try:
@@ -26,10 +17,12 @@ if __name__ == "__main__":
     parser.add_argument("-p", "--port", type=int, default=9042, help="The port to connect to.")
     args = parser.parse_args()
 
-    session = connect_to_cassandra([args.host], args.port)
+    cluster = Cluster(contact_points=[args.host], port=args.port) # , protocol_version=ProtocolVersion.V4)
+    session = cluster.connect()
+    print(cluster.metadata.keyspaces)
 
-    query = "SELECT * FROM your_keyspace.your_table"
-    result = execute_query(session, query)
-    for row in result:
-        print(row)
+    # query = "SELECT * FROM your_keyspace.your_table"
+    # result = execute_query(session, query)
+    # for row in result:
+    #     print(row)
 
