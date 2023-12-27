@@ -1,6 +1,7 @@
 POETRY := /home/linuxbrew/.linuxbrew/bin/poetry
 test:
 	$(POETRY) env use python3.10
+	$(POETRY) run python -m cql_struct
 	$(POETRY) run pytest -x -s --cov=. --cov-report=html -v
 	$(POETRY) run python -m sstable.import | jq -s 'if length != 2 then error("Length is not 2, it is \(length)") else "2 rows dumped" end'
 	$(POETRY) run python -m sstable.dump test_data/cassandra3_data_want/sina_test/sina_table-*/ | jq -s 'if length != 7 then error("Length is not 7, it is \(length)") else "7 rows dumped" end'

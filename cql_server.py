@@ -59,7 +59,7 @@ def handle_OPTIONS(parsed_request):
         return cql_struct.frame.build({
             "version": 0x04 | cql_struct.RESPONSE_FLAG,
             "flags": 0x00,
-            "stream": 0x0000,
+            "stream": request.stream,
             "opcode": cql_struct.OpCode.SUPPORTED,
             "length": len(body),
             "body": body,
@@ -74,7 +74,7 @@ def handle_OPTIONS(parsed_request):
         return cql_struct.frame.build({
             "version": 0x04 | cql_struct.RESPONSE_FLAG,
             "flags": 0x00,
-            "stream": 0x0000,
+            "stream": request.stream,
             "opcode": cql_struct.OpCode.ERROR,
             "length": len(body),
             "body": body,
