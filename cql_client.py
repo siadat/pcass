@@ -19,10 +19,10 @@ if __name__ == "__main__":
 
     cluster = Cluster(contact_points=[args.host], port=args.port) # , protocol_version=ProtocolVersion.V4)
     session = cluster.connect()
-    print(cluster.metadata.keyspaces)
+    # print(cluster.metadata.keyspaces)
 
-    # query = "SELECT * FROM your_keyspace.your_table"
-    # result = execute_query(session, query)
-    # for row in result:
-    #     print(row)
+    query = "SELECT * FROM your_keyspace.your_table"
+    result = execute_query(session, query)
+    for row in result:
+        print(row)
 

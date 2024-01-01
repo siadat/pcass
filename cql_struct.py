@@ -1,6 +1,7 @@
 import construct
 import sstable.string_encoded
 import sstable.utils
+import sstable.greedy_range
 
 construct.setGlobalPrintFullStrings(sstable.utils.PRINT_FULL_STRING)
 
@@ -8,6 +9,160 @@ construct.setGlobalPrintFullStrings(sstable.utils.PRINT_FULL_STRING)
 # frame is a response.
 RESPONSE_FLAG = 0b10000000
 
+
+short_int = construct.Int16ub
+
+long_string = construct.Struct(
+    "length" / construct.Int32ub,
+    "string" / sstable.string_encoded.StringEncoded(construct.Bytes(construct.this.length), "utf-8"),
+)
+
+string_list = construct.Struct(
+    "count" / short_int,
+    "strings" / construct.Array(construct.this.count, long_string),
+)
+
+#  The first element of the body of a RESULT message is an [int] representing the
+#  `kind` of result. The rest of the body depends on the kind. The kind can be
+#  one of:
+#    0x0001    Void: for results carrying no information.
+#    0x0002    Rows: for results to select queries, returning a set of rows.
+#    0x0003    Set_keyspace: the result to a `use` query.
+#    0x0004    Prepared: result to a PREPARE message.
+#    0x0005    Schema_change: the result to a schema altering query.
+class ResultKind:
+    VOID          = 0x0001
+    ROWS          = 0x0002
+    SET_KEYSPACE  = 0x0003
+    PREPARED      = 0x0004
+    SCHEMA_CHANGE = 0x0005
+
+result_void = construct.Struct(
+    "kind" / construct.Int32ub,
+    "body" / construct.Bytes(0),
+)
+
+#  Indicates a set of rows. The rest of the body of a Rows result is:
+#    <metadata><rows_count><rows_content>
+#  where:
+#    - <metadata> is composed of:
+#        <flags><columns_count>[<paging_state>][<global_table_spec>?<col_spec_1>...<col_spec_n>]
+#      where:
+#        - <flags> is an [int]. The bits of <flags> provides information on the
+#          formatting of the remaining information. A flag is set if the bit
+#          corresponding to its `mask` is set. Supported flags are, given their
+#          mask:
+#            0x0001    Global_tables_spec: if set, only one table spec (keyspace
+#                      and table name) is provided as <global_table_spec>. If not
+#                      set, <global_table_spec> is not present.
+#            0x0002    Has_more_pages: indicates whether this is not the last
+#                      page of results and more should be retrieved. If set, the
+#                      <paging_state> will be present. The <paging_state> is a
+#                      [bytes] value that should be used in QUERY/EXECUTE to
+#                      continue paging and retrieve the remainder of the result for
+#                      this query (See Section 8 for more details).
+#            0x0004    No_metadata: if set, the <metadata> is only composed of
+#                      these <flags>, the <column_count> and optionally the
+#                      <paging_state> (depending on the Has_more_pages flag) but
+#                      no other information (so no <global_table_spec> nor <col_spec_i>).
+#                      This will only ever be the case if this was requested
+#                      during the query (see QUERY and RESULT messages).
+#        - <columns_count> is an [int] representing the number of columns selected
+#          by the query that produced this result. It defines the number of <col_spec_i>
+#          elements in and the number of elements for each row in <rows_content>.
+#        - <global_table_spec> is present if the Global_tables_spec is set in
+#          <flags>. It is composed of two [string] representing the
+#          (unique) keyspace name and table name the columns belong to.
+#        - <col_spec_i> specifies the columns returned in the query. There are
+#          <column_count> such column specifications that are composed of:
+#            (<ksname><tablename>)?<name><type>
+#          The initial <ksname> and <tablename> are two [string] and are only present
+#          if the Global_tables_spec flag is not set. The <column_name> is a
+#          [string] and <type> is an [option] that corresponds to the description
+#          (what this description is depends a bit on the context: in results to
+#          selects, this will be either the user chosen alias or the selection used
+#          (often a colum name, but it can be a function call too). In results to
+#          a PREPARE, this will be either the name of the corresponding bind variable
+#          or the column name for the variable if it is "anonymous") and type of
+#          the corresponding result. The option for <type> is either a native
+#          type (see below), in which case the option has no value, or a
+#          'custom' type, in which case the value is a [string] representing
+#          the fully qualified class name of the type represented. Valid option
+#          ids are:
+#            0x0000    Custom: the value is a [string], see above.
+#            0x0001    Ascii
+#            0x0002    Bigint
+#            0x0003    Blob
+#            0x0004    Boolean
+#            0x0005    Counter
+#            0x0006    Decimal
+#            0x0007    Double
+#            0x0008    Float
+#            0x0009    Int
+#            0x000B    Timestamp
+#            0x000C    Uuid
+#            0x000D    Varchar
+#            0x000E    Varint
+#            0x000F    Timeuuid
+#            0x0010    Inet
+#            0x0011    Date
+#            0x0012    Time
+#            0x0013    Smallint
+#            0x0014    Tinyint
+#            0x0020    List: the value is an [option], representing the type
+#                            of the elements of the list.
+#            0x0021    Map: the value is two [option], representing the types of the
+#                           keys and values of the map
+#            0x0022    Set: the value is an [option], representing the type
+#                            of the elements of the set
+#            0x0030    UDT: the value is <ks><udt_name><n><name_1><type_1>...<name_n><type_n>
+#                           where:
+#                              - <ks> is a [string] representing the keyspace name this
+#                                UDT is part of.
+#                              - <udt_name> is a [string] representing the UDT name.
+#                              - <n> is a [short] representing the number of fields of
+#                                the UDT, and thus the number of <name_i><type_i> pairs
+#                                following
+#                              - <name_i> is a [string] representing the name of the
+#                                i_th field of the UDT.
+#                              - <type_i> is an [option] representing the type of the
+#                                i_th field of the UDT.
+#            0x0031    Tuple: the value is <n><type_1>...<type_n> where <n> is a [short]
+#                             representing the number of values in the type, and <type_i>
+#                             are [option] representing the type of the i_th component
+#                             of the tuple
+#
+#    - <rows_count> is an [int] representing the number of rows present in this
+#      result. Those rows are serialized in the <rows_content> part.
+#    - <rows_content> is composed of <row_1>...<row_m> where m is <rows_count>.
+#      Each <row_i> is composed of <value_1>...<value_n> where n is
+#      <columns_count> and where <value_j> is a [bytes] representing the value
+#      returned for the jth column of the ith row. In other words, <rows_content>
+#      is composed of (<rows_count> * <columns_count>) [bytes].
+class ResultRowsFlags:
+    GLOBAL_TABLES_SPEC = 0x0001
+    HAS_MORE_PAGES     = 0x0002
+    NO_METADATA        = 0x0004
+
+result_rows = construct.Struct(
+    "kind" / construct.Int32ub,
+    "metadata" / construct.Struct(
+        "flags" / construct.Int32ub,
+        "columns_count" / construct.Int32ub,
+        "paging_state" / construct.If(lambda ctx: ctx.flags & ResultRowsFlags.HAS_MORE_PAGES, long_string),
+        "global_table_spec" / construct.If(lambda ctx: ctx.flags & ResultRowsFlags.GLOBAL_TABLES_SPEC and not ctx.flags & ResultRowsFlags.NO_METADATA, string_list),
+        "column_specs" / construct.If(lambda ctx: not ctx.flags & ResultRowsFlags.NO_METADATA,
+            construct.Array(construct.this.columns_count, construct.Struct(
+                "keyspace" / construct.If(lambda ctx: not ctx.flags & ResultRowsFlags.GLOBAL_TABLES_SPEC, long_string),
+                "table" / construct.If(lambda ctx: not ctx.flags & ResultRowsFlags.GLOBAL_TABLES_SPEC, long_string),
+                "name" / long_string,
+                "type" / construct.Int16ub,
+            ),
+        )),
+    ),
+    "rows_count" / construct.Int32ub,
+    "rows_content" / sstable.greedy_range.GreedyRangeWithExceptionHandling(construct.Byte),
+)
 
 #   Flags applying to this frame. The flags have the following meaning (described
 #   by the mask that allows selecting them):
@@ -259,7 +414,12 @@ frame = construct.Struct(
     "body" / construct.Bytes(construct.this.length),
 )
 
-short_int = construct.Int16ub
+query = construct.Struct(
+    "query" / long_string,
+    "consistency" / short_int,
+    "flags" / construct.Byte,
+    # TODO: the rest of the body depends on the flags
+)
 
 error = construct.Struct(
     "code" / construct.Int32ub,
