@@ -9,6 +9,7 @@ import sstable.string_encoded
 import sstable.sstable_decimal
 import sstable.dynamic_switch
 import sstable.uuid
+import sstable.type_parser
 
 construct.setGlobalPrintFullStrings(sstable.utils.PRINT_FULL_STRING)
 
@@ -75,7 +76,7 @@ simple_cell = construct.Struct(
     "cell" / construct.If(
         # TODO: 0x04 means empty value, e.g. empty '' string (and probably used for tombstones as well?)
         cell_has_non_empty_value,
-        sstable.dynamic_switch.DynamicSwitch(get_cell_type_func),
+        sstable.dynamic_switch.DynamicSwitch(get_cell_type_func, sstable.type_parser.parser.parse),
     ),
 )
 
@@ -88,7 +89,7 @@ complex_cell_item = construct.Struct(
     "cell" / construct.If(
         # TODO: 0x04 means empty value, e.g. empty '' string (and probably used for tombstones as well?)
         cell_has_non_empty_value,
-        sstable.dynamic_switch.DynamicSwitch(get_cell_type_func),
+        sstable.dynamic_switch.DynamicSwitch(get_cell_type_func, sstable.type_parser.parser.parse),
     ),
 )
 
@@ -109,7 +110,7 @@ clustering_cell = construct.Struct(
     # NOTE: ctx._index seems ok, I used to think it incremented globally
     # "key" / construct.Switch(lambda ctx: ctx._root._.sstable_statistics.serialization_header.clustering_key_types[ctx._index].name, java_type_to_construct),
     ### "key" / construct.Switch(get_clustering_key_type_func, java_type_to_construct),
-    "key" / sstable.dynamic_switch.DynamicSwitch(get_clustering_key_type_func),
+    "key" / sstable.dynamic_switch.DynamicSwitch(get_clustering_key_type_func, sstable.type_parser.parser.parse),
 )
 
 def has_complex_deletion(x):
