@@ -31,6 +31,18 @@ def bin(number):
 def bins(byte_array):
     return [bin(x) for x in byte_array]
 
+def hexstring_to_bytes(hexstring):
+    import io
+    import re
+    out_byte_stream = io.BytesIO()
+    for line in hexstring.splitlines():
+        # remove comments starting with #
+        line = line.split("#")[0]
+        # remove all whitespace characters using regex
+        line = re.sub(r"\s+", "", line)
+        out_byte_stream.write(bytes.fromhex(line))
+    return out_byte_stream.getvalue()
+
 def byte_repr(byte):
     if 32 <= byte <= 126:
         s = bytes([byte])
