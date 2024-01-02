@@ -219,7 +219,12 @@ result_rows = construct.Struct(
         )),
     ),
     "rows_count" / construct.Int32ub,
-    "rows_content" / sstable.greedy_range.GreedyRangeWithExceptionHandling(construct.Byte),
+    "rows_content" / construct.Array(construct.this.rows_count, construct.Struct(
+        "row" / construct.Array(construct.this._.metadata.columns_count, construct.Struct(
+            "column_length" / construct.Int32sb,
+            "column_value" / construct.If(lambda ctx: ctx.column_length>0, construct.Bytes(construct.this.column_length)),
+        )),
+    )),
 )
 
 #   Flags applying to this frame. The flags have the following meaning (described
@@ -598,28 +603,28 @@ def hexstring_to_bytes(hexstring):
     # print("hexstring_to_bytes", out_byte_stream.getvalue())
     return out_byte_stream.getvalue()
 
-# invalid_query_reponse_example = frame.parse(hexstring_to_bytes("""
-#     # original: 84000003000000002100002200001b756e636f6e66696775726564207461626c652070656572735f7632
-#     84 # version
-#     00 # flags
-#     0003 # stream
-#     00 # opcode
-#     body:
-#     00 00 00 21 # length
-#     00 00 22 00 # code = Invalid: The query is syntactically correct but invalid
-#     00 1b # message length
-#     756e636f6e66696775726564207461626c652070656572735f7632 # = "unconfigured table peers_v2"
-# """))
-# sstable.utils.assert_equal("unconfigured table peers_v2", invalid_query_reponse_example.body.message)
-# 
-# query_example = frame.parse(hexstring_to_bytes("""
-#     # 0400000407000000330000002c53454c454354202a2046524f4d2073797374656d2e6c6f63616c205748455245206b65793d276c6f63616c27000100
-#     04000004 07 000000330000002c53454c454354202a2046524f4d2073797374656d2e6c6f63616c205748455245206b65793d276c6f63616c27000100
-# """))
-# print(query_example)
-# sstable.utils.assert_equal("SELECT * FROM system.local WHERE key='local'", query_example.body.query.string)
-# sstable.utils.assert_equal(1, query_example.body.consistency)
-# sstable.utils.assert_equal(0, query_example.body.flags)
+invalid_query_reponse_example = frame.parse(hexstring_to_bytes("""
+    # original: 84000003000000002100002200001b756e636f6e66696775726564207461626c652070656572735f7632
+    84 # version
+    00 # flags
+    0003 # stream
+    00 # opcode
+    # body:
+    00 00 00 21 # length
+    00 00 22 00 # code = Invalid: The query is syntactically correct but invalid
+    00 1b # message length
+    756e636f6e66696775726564207461626c652070656572735f7632 # = "unconfigured table peers_v2"
+"""))
+sstable.utils.assert_equal("unconfigured table peers_v2", invalid_query_reponse_example.body.message)
+
+query_example = frame.parse(hexstring_to_bytes("""
+    # 0400000407000000330000002c53454c454354202a2046524f4d2073797374656d2e6c6f63616c205748455245206b65793d276c6f63616c27000100
+    04000004 07 000000330000002c53454c454354202a2046524f4d2073797374656d2e6c6f63616c205748455245206b65793d276c6f63616c27000100
+"""))
+print(query_example)
+sstable.utils.assert_equal("SELECT * FROM system.local WHERE key='local'", query_example.body.query.string)
+sstable.utils.assert_equal(1, query_example.body.consistency)
+sstable.utils.assert_equal(0, query_example.body.flags)
 
 sstable.positioned_construct.init()
 err = None
