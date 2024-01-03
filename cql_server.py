@@ -20,7 +20,10 @@ def handle_QUERY(parsed_request):
                 "flags": cql_struct.ResultRowsFlags.NO_METADATA,
                 "columns_count": 0,
                 "paging_state": None,
-                "global_table_spec": None,
+                "global_table_spec": {
+                    "keyspace": "system",
+                    "table": "local",
+                },
                 "column_specs": None,
             },
             "rows_count": 0,
@@ -130,7 +133,7 @@ def handle_client_connection(client_socket):
             sstable.positioned_construct.init()
             parsed_request = cql_struct.frame.parse(request)
             stream = io.BytesIO(request)
-            print(parsed_request)
+            print("parsed_request", parsed_request)
             response = b"NOT IMPLEMENTED"
             if parsed_request.opcode == cql_struct.OpCode.OPTIONS:
                 response = handle_OPTIONS(parsed_request)
