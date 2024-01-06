@@ -96,7 +96,11 @@ def convert_construct(x, depth=0):
     elif name == "Switch":
         cases = []
         for k, v in x.cases.items():
-            cases.append(prefix2 + f"(Case {k}\n{convert_construct(v, depth+2)})")
+            cases.append("\n".join([
+                prefix2 + f"(Case {k}",
+                convert_construct(v, depth+2),
+                prefix2 + ")",
+            ]))
         return "\n".join([
             prefix + "(" + name,
             convert_construct(x.keyfunc, depth+1),

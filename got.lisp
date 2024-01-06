@@ -26,7 +26,7 @@
                 )
                 (Field 'unfiltereds'
                     (RepeatUntil
-                        (Function <function <lambda> at 0x7fb1243300d0>)
+                        (Function <function <lambda> at 0x7fb57da900d0>)
                         (Struct
                             (Field 'row_flags'
                                 (Hex
@@ -39,7 +39,7 @@
                                     (Struct
                                         (Field 'clustering_block'
                                             (IfThenElse
-                                                (Function <function has_clustering_columns_func at 0x7fb124316ef0>)
+                                                (Function <function has_clustering_columns_func at 0x7fb57da76ef0>)
                                                 (Struct
                                                     (Field 'clustering_block_header'
                                                         (FormatField '>B')
@@ -50,7 +50,7 @@
                                                             (Struct
                                                                 (Field 'key'
                                                                     (DynamicSwitch
-                                                                        (Function <function get_clustering_key_type_func at 0x7fb124316dd0>)
+                                                                        (Function <function get_clustering_key_type_func at 0x7fb57da76dd0>)
                                                                         (Method <bound method Lark.parse of Lark(open('<string>'), parser='lalr', lexer='contextual', ...)>)
                                                                     )
                                                                 )
@@ -66,7 +66,7 @@
                                         )
                                         (Field 'row_body'
                                             (WithContext
-                                                {'overridden_row_flags': <function <lambda> at 0x7fb124317d00>}
+                                                {'overridden_row_flags': <function <lambda> at 0x7fb57da77d00>}
                                                 (Struct
                                                     (Field 'row_body_start'
                                                         (Tell)
@@ -79,19 +79,19 @@
                                                     )
                                                     (Field 'missing_columns'
                                                         (IfThenElse
-                                                            (Function <function has_missing_columns_func at 0x7fb124315ea0>)
+                                                            (Function <function has_missing_columns_func at 0x7fb57da75ea0>)
                                                             (EnabledColumns)
                                                             (Pass)
                                                         )
                                                     )
                                                     (Field 'cells'
                                                         (Array
-                                                            (Function <function <lambda> at 0x7fb124317880>)
+                                                            (Function <function <lambda> at 0x7fb57da77880>)
                                                             (Switch
-                                                                (Function <function has_complex_deletion at 0x7fb124316200>)
+                                                                (Function <function has_complex_deletion at 0x7fb57da76200>)
                                                                 (Case True
                                                                     (WithContext
-                                                                        {'missing_columns': <function <lambda> at 0x7fb124317910>, 'cell_index': <function <lambda> at 0x7fb1243179a0>}
+                                                                        {'missing_columns': <function <lambda> at 0x7fb57da77910>, 'cell_index': <function <lambda> at 0x7fb57da779a0>}
                                                                         (Struct
                                                                             (Field 'complex_deletion_time'
                                                                                 (Struct
@@ -110,7 +110,7 @@
                                                                                 (Array
                                                                                     (Path 'items_count')
                                                                                     (WithContext
-                                                                                        {'missing_columns': <function <lambda> at 0x7fb124316320>, 'cell_index': <function <lambda> at 0x7fb124316440>}
+                                                                                        {'missing_columns': <function <lambda> at 0x7fb57da76320>, 'cell_index': <function <lambda> at 0x7fb57da76440>}
                                                                                         (Struct
                                                                                             (Field 'cell_flags'
                                                                                                 (Hex
@@ -119,9 +119,9 @@
                                                                                             )
                                                                                             (Field 'cell'
                                                                                                 (IfThenElse
-                                                                                                    (Function <function cell_has_non_empty_value at 0x7fb1245b7400>)
+                                                                                                    (Function <function cell_has_non_empty_value at 0x7fb57ddbf760>)
                                                                                                     (DynamicSwitch
-                                                                                                        (Function <function get_cell_type_func at 0x7fb124316d40>)
+                                                                                                        (Function <function get_cell_type_func at 0x7fb57da76d40>)
                                                                                                         (Method <bound method Lark.parse of Lark(open('<string>'), parser='lalr', lexer='contextual', ...)>)
                                                                                                     )
                                                                                                     (Pass)
@@ -132,10 +132,11 @@
                                                                                 )
                                                                             )
                                                                         )
-                                                                    ))
+                                                                    )
+                                                                )
                                                                 (Case False
                                                                     (WithContext
-                                                                        {'missing_columns': <function <lambda> at 0x7fb124317a30>, 'cell_index': <function <lambda> at 0x7fb124317ac0>}
+                                                                        {'missing_columns': <function <lambda> at 0x7fb57da77a30>, 'cell_index': <function <lambda> at 0x7fb57da77ac0>}
                                                                         (Struct
                                                                             (Field 'cell_flags'
                                                                                 (Hex
@@ -144,16 +145,17 @@
                                                                             )
                                                                             (Field 'cell'
                                                                                 (IfThenElse
-                                                                                    (Function <function cell_has_non_empty_value at 0x7fb1245b7400>)
+                                                                                    (Function <function cell_has_non_empty_value at 0x7fb57ddbf760>)
                                                                                     (DynamicSwitch
-                                                                                        (Function <function get_cell_type_func at 0x7fb124316d40>)
+                                                                                        (Function <function get_cell_type_func at 0x7fb57da76d40>)
                                                                                         (Method <bound method Lark.parse of Lark(open('<string>'), parser='lalr', lexer='contextual', ...)>)
                                                                                     )
                                                                                     (Pass)
                                                                                 )
                                                                             )
                                                                         )
-                                                                    ))
+                                                                    )
+                                                                )
                                                             )
                                                         )
                                                     )
@@ -190,7 +192,7 @@
     )
     (Field 'validation_metadata'
         (IfThenElse
-            (Function <function metadata_exists.<locals>.fn at 0x7fb1243309d0>)
+            (Function <function metadata_exists.<locals>.fn at 0x7fb57da909d0>)
             (Struct
                 (Field 'partition_name'
                     (Struct
@@ -215,7 +217,7 @@
     )
     (Field 'compaction_metadata'
         (IfThenElse
-            (Function <function metadata_exists.<locals>.fn at 0x7fb124330b80>)
+            (Function <function metadata_exists.<locals>.fn at 0x7fb57da90b80>)
             (Struct
                 (Field 'length'
                     (FormatField '>L')
@@ -231,7 +233,7 @@
     )
     (Field 'statistics_metadata'
         (IfThenElse
-            (Function <function metadata_exists.<locals>.fn at 0x7fb124330d30>)
+            (Function <function metadata_exists.<locals>.fn at 0x7fb57da90d30>)
             (Struct
                 (Field 'parition_sizes'
                     (Struct
@@ -452,7 +454,7 @@
     )
     (Field 'serialization_header'
         (IfThenElse
-            (Function <function metadata_exists.<locals>.fn at 0x7fb124330ee0>)
+            (Function <function metadata_exists.<locals>.fn at 0x7fb57da90ee0>)
             (Struct
                 (Field 'min_timestamp'
                     (VarInt)
@@ -610,7 +612,8 @@
                             )
                         )
                     )
-                ))
+                )
+            )
             (Case 7
                 (Struct
                     (Field 'query'
@@ -633,7 +636,8 @@
                     (Field 'flags'
                         (FormatField '>B')
                     )
-                ))
+                )
+            )
             (Case 8
                 (Struct
                     (Field 'kind'
@@ -645,7 +649,8 @@
                             (Case 1
                                 (Bytes
                                     (Int 0)
-                                ))
+                                )
+                            )
                             (Case 2
                                 (Struct
                                     (Field 'metadata'
@@ -658,7 +663,7 @@
                                             )
                                             (Field 'paging_state'
                                                 (IfThenElse
-                                                    (Function <function <lambda> at 0x7fb1245b5ea0>)
+                                                    (Function <function <lambda> at 0x7fb57ddbdea0>)
                                                     (Struct
                                                         (Field 'length'
                                                             (FormatField '>L')
@@ -676,7 +681,7 @@
                                             )
                                             (Field 'global_table_spec'
                                                 (IfThenElse
-                                                    (Function <function <lambda> at 0x7fb1245b6200>)
+                                                    (Function <function <lambda> at 0x7fb57ddbe200>)
                                                     (Struct
                                                         (Field 'keyspace'
                                                             (Struct
@@ -712,13 +717,13 @@
                                             )
                                             (Field 'column_specs'
                                                 (IfThenElse
-                                                    (Function <function <lambda> at 0x7fb1245b63b0>)
+                                                    (Function <function <lambda> at 0x7fb57ddbe3b0>)
                                                     (Array
                                                         (Path 'columns_count')
                                                         (Struct
                                                             (Field 'keyspace'
                                                                 (IfThenElse
-                                                                    (Function <function <lambda> at 0x7fb1245b6710>)
+                                                                    (Function <function <lambda> at 0x7fb57ddbe710>)
                                                                     (Struct
                                                                         (Field 'length'
                                                                             (FormatField '>H')
@@ -736,7 +741,7 @@
                                                             )
                                                             (Field 'table'
                                                                 (IfThenElse
-                                                                    (Function <function <lambda> at 0x7fb1245b6680>)
+                                                                    (Function <function <lambda> at 0x7fb57ddbe680>)
                                                                     (Struct
                                                                         (Field 'length'
                                                                             (FormatField '>H')
@@ -773,8 +778,8 @@
                                                                     )
                                                                     (Field 'value'
                                                                         (DynamicSwitch
-                                                                            (Function <function <lambda> at 0x7fb1245b5d80>)
-                                                                            (Function <function <lambda> at 0x7fb1245b5f30>)
+                                                                            (Function <function <lambda> at 0x7fb57ddbdd80>)
+                                                                            (Function <function <lambda> at 0x7fb57ddbdf30>)
                                                                         )
                                                                     )
                                                                 )
@@ -802,7 +807,7 @@
                                                             )
                                                             (Field 'column_value'
                                                                 (IfThenElse
-                                                                    (Function <function <lambda> at 0x7fb1245b6b90>)
+                                                                    (Function <function <lambda> at 0x7fb57ddbeb90>)
                                                                     (Bytes
                                                                         (Path 'column_length')
                                                                     )
@@ -815,10 +820,12 @@
                                             )
                                         )
                                     )
-                                ))
+                                )
+                            )
                         )
                     )
-                ))
+                )
+            )
         )
     )
 )
