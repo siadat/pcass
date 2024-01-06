@@ -185,10 +185,13 @@ row_body_format = construct.Struct(
   ),
   # cells are repeated until the row body size is serialized_row_body_size
   # "cells" / construct.RepeatUntil(get_cell_repeat_until_func, simple_cell), # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/rows/BufferCell.java#L211
-  "cells" / construct.Array(lambda ctx: len(ctx.missing_columns) if ctx.missing_columns is not None else len(ctx._root._.sstable_statistics.serialization_header.regular_columns), construct.Switch(has_complex_deletion, {
-      True: sstable.with_context.WithContext(complex_cell, missing_columns=lambda ctx: ctx.missing_columns, cell_index=lambda ctx: ctx._index),
-      False: sstable.with_context.WithContext(simple_cell, missing_columns=lambda ctx: ctx.missing_columns, cell_index=lambda ctx: ctx._index),
-  }),
+  "cells" / construct.Array(
+      # TODO: write an s-expr lambda from which this Pythpn lambda is generatable:
+      lambda ctx: len(ctx.missing_columns) if ctx.missing_columns is not None else len(ctx._root._.sstable_statistics.serialization_header.regular_columns),
+      construct.Switch(has_complex_deletion, {
+          True: sstable.with_context.WithContext(complex_cell, missing_columns=lambda ctx: ctx.missing_columns, cell_index=lambda ctx: ctx._index),
+          False: sstable.with_context.WithContext(simple_cell, missing_columns=lambda ctx: ctx.missing_columns, cell_index=lambda ctx: ctx._index),
+      }),
   ), # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/rows/BufferCell.java#L211
 )
 unfiltered = construct.Struct(
@@ -211,7 +214,7 @@ unfiltered = construct.Struct(
                 has_clustering_columns_func,
                 construct.Struct(
                     "clustering_block_header" / construct.Int8ub, # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/ClusteringPrefix.java#L305
-                    "clustering_cells" / construct.Array(get_clustering_key_count_func, clustering_cell), # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/ClusteringPrefix.java#L310
+                    "clustering_cells" / construct.Array(construct.this._root._.sstable_statistics.serialization_header.clustering_key_count, clustering_cell), # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/ClusteringPrefix.java#L310
                 ),
             ),
             "serialized_row_body_size" / sstable.varint.VarInt(), # https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/db/rows/UnfilteredSerializer.java#L169
@@ -240,93 +243,3 @@ partition = construct.Struct(
 )
 
 data_format = construct.Struct("partitions" / sstable.greedy_range.GreedyRangeWithExceptionHandling(partition))
-
-import textwrap
-import inspect
-def convert_construct(x, depth=0):
-    prefix = "    " * depth
-    prefix2 = "    " * (depth+1)
-    name = x.__class__.__name__
-    if name == "Struct":
-        return "\n".join([
-            prefix + "(" + name,
-            "\n".join([convert_construct(subcon, depth+1) for subcon in x.subcons]),
-            prefix + ")",
-        ])
-    elif name == "Renamed":
-        name = "Field"
-        return "\n".join([
-            prefix + "(" + name + " " + repr(str(x.name)),
-            convert_construct(x.subcon,depth+1),
-            prefix + ")",
-        ])
-    elif name == "FormatField":
-        return prefix + "(" + name + " " + repr(str(x.fmtstr)) + ")"
-    elif name == "Bytes":
-        return prefix + "(" + name + " " + str(x.length) + ")"
-    elif name == "Array":
-        return "\n".join([
-            prefix + "(" + name,
-            prefix2 + f"{x.count}",
-            convert_construct(x.subcon,depth+1),
-            prefix + ")",
-        ])
-    elif name == "Pass":
-        return prefix + "(" + name + ")"
-    elif name == "Tell":
-        return prefix + "(" + name + ")"
-    elif name == "EnabledColumns":
-        return prefix + "(" + name + ")"
-    elif name == "VarInt":
-        return prefix + "(" + name + ")"
-    elif name == "WithContext":
-        return "\n".join([
-            prefix + "(" + name,
-            prefix2 + f"{x.kw_ctx_funcs}",
-            convert_construct(x.subcon,depth+1),
-            prefix + ")",
-        ])
-    elif name == "Hex":
-        return "\n".join([
-            prefix + "(" + name,
-            convert_construct(x.subcon,depth+1),
-            prefix + ")",
-        ])
-    elif name == "RepeatUntil":
-        return "\n".join([
-            prefix + "(" + name,
-            prefix2 + f"{x.predicate}",
-            convert_construct(x.subcon,depth+1),
-            prefix + ")",
-        ])
-    elif name == "Switch":
-        return "\n".join([
-            prefix + "(" + name,
-            prefix2 + f"{x.keyfunc}",
-            prefix + ")",
-        ])
-    elif name == "DynamicSwitch":
-        return "\n".join([
-            prefix + "(" + name,
-            prefix2 + f"{x.key_predicate}",
-            prefix2 + f"{x.value_func}",
-            prefix + ")",
-        ])
-    elif name == "GreedyRangeWithExceptionHandling":
-        return "\n".join([
-            prefix + "(" + name,
-            convert_construct(x.subcon,depth+1),
-            prefix + ")",
-        ])
-    elif name == "IfThenElse":
-        return "\n".join([
-            prefix + "(" + name,
-            prefix2 + f"{x.condfunc}",
-            convert_construct(x.thensubcon,depth+1),
-            convert_construct(x.elsesubcon,depth+1),
-            prefix + ")",
-        ])
-    else:
-        raise Exception(f"Unknown construct: {name}")
-
-print(convert_construct(data_format))
