@@ -4,7 +4,7 @@ pub fn main() !void {
     const stdout = std.io.getStdOut().writer();
 
     // Open the file for reading
-    const file = try std.fs.cwd().openFile("test.lisp", .{ .read = true });
+    const file = try std.fs.cwd().openFile("test.lisp", .{});
     defer file.close();
 
     // Create a buffer for reading data
@@ -12,7 +12,7 @@ pub fn main() !void {
 
     // Read from the file
     while (true) {
-        const bytesRead = try file.read(buffer[0..]);
+        const bytesRead = try file.reader().read(buffer[0..]);
         if (bytesRead == 0) break; // End of file reached
 
         // Process or print the read bytes
