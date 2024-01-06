@@ -6,6 +6,17 @@ import construct.expr
 import cql_struct
 import sstable.sstable_data
 import sstable.sstable_statistics
+import sstable.utils
+
+def joiner(prefixed_items):
+    if len(prefixed_items) == 3:
+        if len(prefixed_items[1].splitlines()) == 1:
+            return prefixed_items[0] + " " + prefixed_items[1].strip() + " " + prefixed_items[2].strip()
+        return "\n".join(prefixed_items)
+    return "\n".join(prefixed_items)
+
+sstable.utils.assert_equal(" a b c", joiner([" a", "    b", " c"]))
+sstable.utils.assert_equal("a\nb1\nb2\nc", joiner(["a", "b1\nb2", "c"]))
 
 def convert_construct(x, depth=0):
     #print("convert_construct", x, depth)
@@ -13,7 +24,7 @@ def convert_construct(x, depth=0):
     prefix2 = "    " * (depth+1)
     name = x.__class__.__name__
     if name == "Struct":
-        return "\n".join([
+        return joiner([
             prefix + "(" + name,
             "\n".join([convert_construct(subcon, depth+1) for subcon in x.subcons]),
             prefix + ")",
@@ -33,7 +44,7 @@ def convert_construct(x, depth=0):
         return prefix + "(" + name + " " + repr(field_names) + ")"
     elif name == "Renamed":
         name = "Field"
-        return "\n".join([
+        return joiner([
             prefix + "(" + name + " " + repr(str(x.name)),
             convert_construct(x.subcon,depth+1),
             prefix + ")",
@@ -41,7 +52,7 @@ def convert_construct(x, depth=0):
     elif name == "FormatField":
         return prefix + "(" + name + " " + repr(str(x.fmtstr)) + ")"
     elif name == "Bytes":
-        return "\n".join([
+        return joiner([
             prefix + "(" + name,
             convert_construct(x.length, depth+1),
             prefix + ")",
@@ -57,7 +68,7 @@ def convert_construct(x, depth=0):
         #field_names = ".".join(field_names)
         #print("1 Path", p, field_names)
 
-        return "\n".join([
+        return joiner([
             prefix + "(" + name,
             #prefix2 + f"(Path {repr(field_name)})",
             #prefix2 + f"(Path {repr(field_names)})",
@@ -74,20 +85,20 @@ def convert_construct(x, depth=0):
     elif name == "VarInt":
         return prefix + "(" + name + ")"
     elif name == "WithContext":
-        return "\n".join([
+        return joiner([
             prefix + "(" + name,
             prefix2 + f"{x.kw_ctx_funcs}",
             convert_construct(x.subcon,depth+1),
             prefix + ")",
         ])
     elif name == "Hex":
-        return "\n".join([
+        return joiner([
             prefix + "(" + name,
             convert_construct(x.subcon,depth+1),
             prefix + ")",
         ])
     elif name == "RepeatUntil":
-        return "\n".join([
+        return joiner([
             prefix + "(" + name,
             convert_construct(x.predicate,depth+1),
             convert_construct(x.subcon,depth+1),
@@ -101,27 +112,27 @@ def convert_construct(x, depth=0):
                 convert_construct(v, depth+2),
                 prefix2 + ")",
             ]))
-        return "\n".join([
+        return joiner([
             prefix + "(" + name,
             convert_construct(x.keyfunc, depth+1),
             "\n".join(cases),
             prefix + ")",
         ])
     elif name == "DynamicSwitch":
-        return "\n".join([
+        return joiner([
             prefix + "(" + name,
             convert_construct(x.key_predicate,depth+1),
             convert_construct(x.value_func,depth+1),
             prefix + ")",
         ])
     elif name == "GreedyRangeWithExceptionHandling":
-        return "\n".join([
+        return joiner([
             prefix + "(" + name,
             convert_construct(x.subcon,depth+1),
             prefix + ")",
         ])
     elif name == "IfThenElse":
-        return "\n".join([
+        return joiner([
             prefix + "(" + name,
             convert_construct(x.condfunc,depth+1),
             convert_construct(x.thensubcon,depth+1),
@@ -129,7 +140,7 @@ def convert_construct(x, depth=0):
             prefix + ")",
         ])
     elif name == "StringEncoded":
-        return "\n".join([
+        return joiner([
             prefix + "(" + name + " " + repr(str(x.encoding)),
             convert_construct(x.subcon,depth+1),
             prefix + ")",
