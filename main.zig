@@ -60,6 +60,7 @@ pub fn main() !void {
 
         // Process or print the read byte
         try stdout.print("0x{x:0>2} ", .{buffer[0]});
+        try stdout.print("{d: >3} ", .{buffer[0]});
         try stdout.print("'", .{});
         try stringEscape(buffer[0..], "'", .{}, stdout);
         try stdout.print("'", .{});
