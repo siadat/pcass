@@ -43,11 +43,16 @@ pub fn stringEscape(
     };
 }
 
+pub fn open() !std.fs.File {
+    const file = try std.fs.cwd().openFile("test.lisp", .{});
+    return file;
+}
+
 pub fn main() !void {
     const stdout = std.io.getStdOut().writer();
 
     // Open the file for reading
-    const file = try std.fs.cwd().openFile("test.lisp", .{});
+    const file = try open();
     defer file.close();
 
     // Create a buffer for a single byte
