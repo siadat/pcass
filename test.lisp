@@ -1,3 +1,3 @@
 (Struct
-    (Field 'version' (Hex (FormatField '>B') ) )
-)
+    (Field 
+      'version' (Hex (FormatField '>B') ) ))
