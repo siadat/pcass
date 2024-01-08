@@ -84,10 +84,24 @@ def convert_construct(x, depth=0):
         return prefix + "(" + name + ")"
     elif name == "VarInt":
         return prefix + "(" + name + ")"
+    elif name == "dict":
+        keyvalues = []
+        for key, value in x.items():
+            keyvalues.append("\n".join([
+                prefix2 + f"(Key {repr(key)}",
+                convert_construct(value, depth+2),
+                prefix2 + ")",
+            ]))
+        return joiner([
+            prefix + "(" + "Dict",
+            "\n".join(keyvalues),
+            prefix + ")",
+        ])
     elif name == "WithContext":
         return joiner([
             prefix + "(" + name,
-            prefix2 + f"{x.kw_ctx_funcs}",
+            #prefix2 + f"{x.kw_ctx_funcs}",
+            convert_construct(x.kw_ctx_funcs,depth+1),
             convert_construct(x.subcon,depth+1),
             prefix + ")",
         ])
