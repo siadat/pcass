@@ -1,6 +1,6 @@
 const std = @import("std");
 
-/// Sina: copied from https://github.com/ziglang/zig/blob/804cee3b93cb7084c16ee61d3bcb57f7d3c9f0bc/lib/std/zig/fmt.zig#L50-L50
+/// Sina: copied from https://github.com/ziglang/zig/blob/804cee3b93/lib/std/zig/fmt.zig#L50-L50
 /// Print the string as escaped contents of a double quoted or single-quoted string.
 /// Format `{}` treats contents as a double-quoted string.
 /// Format `{'}` treats contents as a single-quoted string.
