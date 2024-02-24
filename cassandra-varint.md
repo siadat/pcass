@@ -53,9 +53,9 @@ In other words:
 - `110xxxxx xxxxxxxx xxxxxxxx` means actual value is 2 byte, the whole varint is 3 bytes
 - `11111111 xxxxxxxx xxxxxxxx xxxxxxxx xxxxxxxx xxxxxxxx xxxxxxxx xxxxxxxx xxxxxxxx` means actual value is 8 byte, the whole varint is 9 bytes
 
-BUT ALSO:
+Another example:
 
-- `10010000` ... means actual value is 1 byte, the actual number starts after the zeros after 1, ie after "100", so, "1000" is the start of the actual value
+- `1001xxxx xxxxxxxx` ... prefix is `10`, actual value is `01xxxx xxxxxxxx`
 
 ## Play
 
