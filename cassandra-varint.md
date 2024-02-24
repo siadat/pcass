@@ -36,7 +36,7 @@ bytes (8 value bytes and one flag byte)
     1<<64     | OVERFLOW       |     OVERFLOW | OVERFLOW
 
 
-Another view of endoing 640:
+Another view of encoding 640:
 
     10000010 10000000
     *<--->{---------}
