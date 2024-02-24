@@ -1,3 +1,5 @@
+![alt text](https://github.com/siadat/public/blob/main/bytes.png)
+
 ## Running
 
 - (Delete old Cassandra data files, if it is the second+ time running)
