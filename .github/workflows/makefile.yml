@@ -12,8 +12,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    - run: pip install poetry
     - uses: actions/checkout@v3
-    - name: Install Poetry
-      run: pip install poetry
-    - name: Run tests
-      run: make test
+    - run: make install-dependencies
+    - run: make test
