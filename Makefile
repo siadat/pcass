@@ -1,4 +1,4 @@
-POETRY := /home/linuxbrew/.linuxbrew/bin/poetry
+POETRY := poetry
 test:
 	$(POETRY) env use python3.10
 	$(POETRY) run python -m cql_struct
