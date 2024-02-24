@@ -1,4 +1,5 @@
-![alt text](https://github.com/siadat/public/blob/main/bytes.png)
+![bits](https://github.com/siadat/public/blob/main/bytes.png)
+![tests](https://github.com/siadat/pcass/actions/workflows/makefile.yml/badge.svg)
 
 ## Running
 
