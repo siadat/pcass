@@ -11,7 +11,9 @@ test:
 
 .PHONY: install-dependencies
 install-dependencies:
-	$(POETRY) install
+	# --no-root is used to avoid attempting to install this package itself,
+	#  because it is not yet a package.
+	$(POETRY) install --no-root
 
 .PHONY: got.lisp
 got.lisp:
