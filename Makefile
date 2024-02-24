@@ -20,8 +20,6 @@ cql_client:
 serve-coverage:
 	cd htmlcov && $(POETRY) run python -m http.server
 
-old_parse_all: generate_parser parse
-
 parse:
 	bash parse_parallel.bash
 
@@ -29,11 +27,6 @@ apache-cassandra-3.0.29:
 	wget 'https://dlcdn.apache.org/cassandra/3.0.29/apache-cassandra-3.0.29-bin.tar.gz'
 	tar xvzf apache-cassandra-3.0.29-bin.tar.gz
 	rm apache-cassandra-3.0.29-bin.tar.gz
-
-generate_parser: vlq_base128_le.ksy vlq_base128_be.ksy
-	kaitai-struct-compiler --target python --opaque-types=true sstable-data-2.0.ksy
-
-all: populate_db old_parse_all
 
 .PHONY: populate_db
 populate_db: clean cass_zig
@@ -46,12 +39,6 @@ populate_db: clean cass_zig
 	cp populate_test_schema.cql test_data/cassandra3_data_want/
 
 # ====
-
-vlq_base128_le.ksy:
-	wget https://raw.githubusercontent.com/kaitai-io/kaitai_struct_formats/master/common/vlq_base128_le.ksy
-
-vlq_base128_be.ksy:
-	wget https://raw.githubusercontent.com/kaitai-io/kaitai_struct_formats/master/common/vlq_base128_be.ksy
 
 .PHONY: cass_zig
 cass_zig:
