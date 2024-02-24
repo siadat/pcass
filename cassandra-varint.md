@@ -10,7 +10,7 @@ bytes (8 value bytes and one flag byte)
               |                | including    |
               |                | start of the | rest of the
         value | hex            | actual value | value bit(s)
-        ------+----------------+-------------=+------------------
+        ------+----------------+--------------+------------------
             1 | 0x01           |  <NO PREFIX> | 00000001
             2 | 0x02           |  <NO PREFIX> | 00000010
           ... | ...            |          ... | ...
