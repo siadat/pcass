@@ -288,7 +288,7 @@ query = construct.Struct(
 
 frame = construct.Struct(
     # Version is not well documented in the protocol unfortunately.
-    # The new client sends version 66 (MAX_SUPPORTED) with OpCodes.OPTIONS as the first every request sent by the client.
+    # The new client sends version 66 == 0x42 (MAX_SUPPORTED) with OpCodes.OPTIONS as the first every request sent by the client.
     # Sources:
     #   https://docs.datastax.com/en/developer/python-driver/3.29/api/cassandra/cluster/#:~:text=protocol_version%20%3D%2066
     #   https://docs.datastax.com/en/developer/python-driver/3.29/api/cassandra/#cassandra.ProtocolVersion:~:text=by%20this%20driver.-,MAX_SUPPORTED%20%3D%2066,-Maximum%20protocol%20version
@@ -301,6 +301,7 @@ frame = construct.Struct(
         OpCode.ERROR: error,
         OpCode.QUERY: query,
         OpCode.RESULT: result,
+        # TODO? OpCode.READY: None,
     }),
 )
 
