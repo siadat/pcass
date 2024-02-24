@@ -66,36 +66,39 @@ def handle_STARTUP(parsed_request):
 
 def handle_OPTIONS(parsed_request):
     if parsed_request.version == 0x04:
+        body_keyvals = [
+            {
+                "length": len("CQL_VERSION"),
+                "key": "CQL_VERSION",
+                "values": {
+                    "count": 1,
+                    "strings": [
+                        {
+                            "length": len("3.4.0"),
+                            "string": "3.4.0",
+                        },
+                    ],
+                },
+            },
+            # https://github.com/apache/cassandra/blob/trunk/doc/native_protocol_v4.spec#L301
+            # > COMPRESSION ...This is optional; if not specified no compression will be used.
+            {
+                "length": len("COMPRESSION"),
+                "key": "COMPRESSION",
+                "values": {
+                    "count": 1,
+                    "strings": [
+                        {
+                            "length": len("snappy"),
+                            "string": "snappy",
+                        },
+                    ],
+                },
+            },
+        ]
         body = {
-            "count": 2,
-            "keyvals": [
-                {
-                    "length": len("CQL_VERSION"),
-                    "key": "CQL_VERSION",
-                    "values": {
-                        "count": 1,
-                        "strings": [
-                            {
-                                "length": len("3.4.0"),
-                                "string": "3.4.0",
-                            },
-                        ],
-                    },
-                },
-                {
-                    "length": len("COMPRESSION"),
-                    "key": "COMPRESSION",
-                    "values": {
-                        "count": 1,
-                        "strings": [
-                            {
-                                "length": len("snappy"),
-                                "string": "snappy",
-                            },
-                        ],
-                    },
-                },
-            ],
+            "count": len(body_keyvals),
+            "keyvals": body_keyvals,
         }
 
         return cql_struct.frame.build({
