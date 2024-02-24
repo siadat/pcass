@@ -13,7 +13,6 @@ def parse(stream):
     zeros_count = 0
     zero_padding = 0
     first_value_bits = []
-    # import pdb; pdb.set_trace()
 
     for i in range(8):
         index = 7 - i

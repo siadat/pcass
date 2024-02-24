@@ -96,10 +96,6 @@ def main():
     g = sstable.Sstable.from_file(args.file)
     print(yaml.dump(object_to_dict(g), Dumper=YamlDumper))
 
-    # from IPython import embed; embed()
-    # import pdb; pdb.set_trace()
-
-
     stream = g._io
     pos = stream.pos()
     # for key in sorted(global_position_map.keys(), key=lambda key: (key[0], -key[1])):
