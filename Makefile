@@ -15,6 +15,22 @@ install-dependencies:
 	#  because it is not yet a package.
 	$(POETRY) install --no-root
 
+docker-compose-up:
+	export SGTAG=v2 && \
+	export CASSTAG=4.0 && \
+	docker compose rm -f && \
+	docker compose up
+
+docker-compose-debug:
+	export SGTAG=v2 && \
+	export CASSTAG=4.0 && \
+	docker compose exec debugger bash
+
+docker-compose-restart-debug:
+	export SGTAG=v2 && \
+	export CASSTAG=4.0 && \
+	docker compose up -d --no-deps --force-recreate debugger
+
 .PHONY: got.lisp
 got.lisp:
 	poetry run python -m converter > got.lisp
