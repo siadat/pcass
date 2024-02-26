@@ -36,7 +36,7 @@ bytes (8 value bytes and one flag byte)
     1<<64     | OVERFLOW       |     OVERFLOW | OVERFLOW
 
 
-Another view of encoding 640:
+Another view of a number represented as a varint:
 
     11000010 00100000 00101000
     **&===== ======== ========
