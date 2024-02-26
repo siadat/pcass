@@ -48,7 +48,7 @@ Just for fun:
 * Search all versions, just for fun: https://sourcegraph.com/search?q=context:global+repo:%5Egithub%5C.com/apache/cassandra%24+rev:*refs/tags/cassandra-*+content:%22public+static+final+String+current_version+%3D%22&patternType=standard&sm=1&groupBy=path
 * Search for a specific version: https://sourcegraph.com/search?q=context:global+repo:%5Egithub%5C.com/apache/cassandra%24+rev:*refs/tags/cassandra-*+%28content:%27public+static+final+String+current_version+%3D+%22mc%22%27+OR+content:%27public+static+final+String+current_version+%3D+VERSION_MC%27%29&patternType=regexp&sm=1&groupBy=path
 
-## Dump example
+## SSTable dump example
 
 This example parses and dumps the SSTable files in
 [sina_test/has_all_types-9071b940a1c711eeae8c6d2c86545d91/](https://github.com/siadat/pcass/tree/ab737266c6ba846a568ac599a0b7fdf6a0b4488b/test_data/cassandra3_data_want/sina_test/has_all_types-9071b940a1c711eeae8c6d2c86545d91).
