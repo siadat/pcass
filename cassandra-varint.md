@@ -1,8 +1,5 @@
 ## Cassandra 3.0 SSTable unsigned varint
-Cassandra'a unsigned varint is an efficient way to encode uint64 (long) values.
-It provides an efficient way to serialize and deserialize small values in as
-small as a single byte (u8), while allowing uint64 values to be encoded in 9
-bytes (8 value bytes and one flag byte)
+Cassandra'a unsigned varint is an efficient way to encode uint64 (long) values in 1 to 9 bytes.
 
 ## Examples
 
