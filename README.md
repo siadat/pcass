@@ -54,7 +54,11 @@ See cassandra-varint.md
 
 ## Dump example
 
-This example parses and dumps the SSTable files in [./test_data/cassandra3_data_want/sina_test/has_all_types-9071b940a1c711eeae8c6d2c86545d91/](./test_data/cassandra3_data_want/sina_test/has_all_types-9071b940a1c711eeae8c6d2c86545d91/):
+This example parses and dumps the SSTable files in
+[sina_test/has_all_types-9071b940a1c711eeae8c6d2c86545d91/](https://github.com/siadat/pcass/tree/ab737266c6ba846a568ac599a0b7fdf6a0b4488b/test_data/cassandra3_data_want/sina_test/has_all_types-9071b940a1c711eeae8c6d2c86545d91).
+Here's the byte-by-byte representation of the parsed [Statistics.db](https://github.com/siadat/pcass/blob/ab737266c6ba846a568ac599a0b7fdf6a0b4488b/test_data/parsed/sina_test/has_all_types/me-1-big-Data.db.hex#L986)
+and [Data.db](https://github.com/siadat/pcass/blob/ab737266c6ba846a568ac599a0b7fdf6a0b4488b/test_data/parsed/sina_test/has_all_types/me-1-big-Data.db.hex#L6436).
+
 ```
 poetry run python -m sstable.dump test_data/cassandra3_data_want/sina_test/has_all_types-*/ | jq .
 ```
