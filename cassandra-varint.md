@@ -6,10 +6,10 @@ bytes (8 value bytes and one flag byte)
 
 ## Examples
 
-|           |                | prefix bits  |
-|           |                | including    |
-|           |                | start of the | rest of the
-|     value | hex            | actual value | value bit(s)
+|     value | hex            | prefix bits  | rest of the
+|           |                | including    | value bit(s)
+|           |                | start of the |
+|           |                | actual value |
 |-----------|----------------|--------------|------------------
 |         1 | 0x01           |  <NO PREFIX> | 00000001
 |         2 | 0x02           |  <NO PREFIX> | 00000010
