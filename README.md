@@ -54,7 +54,7 @@ See cassandra-varint.md
 
 ## Dump example
 
-This example parses and dumps the SSTable files in ./test_data/cassandra3_data_want/sina_test/has_all_types-9071b940a1c711eeae8c6d2c86545d91/:
+This example parses and dumps the SSTable files in [./test_data/cassandra3_data_want/sina_test/has_all_types-9071b940a1c711eeae8c6d2c86545d91/](./test_data/cassandra3_data_want/sina_test/has_all_types-9071b940a1c711eeae8c6d2c86545d91/):
 ```
 poetry run python -m sstable.dump test_data/cassandra3_data_want/sina_test/has_all_types-*/ | jq .
 ```
