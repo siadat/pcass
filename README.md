@@ -51,3 +51,336 @@ Just for fun:
 ## Varint
 
 See cassandra-varint.md
+
+## Dump example
+
+```
+poetry run python -m sstable.dump test_data/cassandra3_data_want/sina_test/has_all_types-*/ | jq .
+```
+```json
+{
+  "partition_key_value": "00000001",
+  "cells": [
+    {
+      "name": "asciicol",
+      "value": "__!'$#@!~\""
+    },
+    {
+      "name": "bigintcol",
+      "value": 9223372036854775807
+    },
+    {
+      "name": "blobcol",
+      "value": "ffffffffffffffffff"
+    },
+    {
+      "name": "booleancol",
+      "value": 1
+    },
+    {
+      "name": "decimalcol",
+      "value": 1E-14
+    },
+    {
+      "name": "doublecol",
+      "value": 9999999.999
+    },
+    {
+      "name": "floatcol",
+      "value": 100000.0
+    },
+    {
+      "name": "intcol",
+      "value": 2147483647
+    },
+    {
+      "name": "smallintcol",
+      "value": 32767
+    },
+    {
+      "name": "textcol",
+      "value": "∭Ƕ⑮ฑ➳❏'"
+    },
+    {
+      "name": "timestampcol",
+      "value": -631152000000
+    },
+    {
+      "name": "tinyintcol",
+      "value": "7f"
+    },
+    {
+      "name": "uuidcol",
+      "value": "ffffffffffffffffffffffffffffffff"
+    },
+    {
+      "name": "varcharcol",
+      "value": "newline->\n<-"
+    },
+    {
+      "name": "varintcol",
+      "value": 9
+    }
+  ]
+}
+{
+  "partition_key_value": "00000000",
+  "cells": [
+    {
+      "name": "asciicol",
+      "value": "abcdefg"
+    },
+    {
+      "name": "bigintcol",
+      "value": 1234567890123456789
+    },
+    {
+      "name": "blobcol",
+      "value": "000102030405fffefd"
+    },
+    {
+      "name": "booleancol",
+      "value": 1
+    },
+    {
+      "name": "decimalcol",
+      "value": 19952.118820000003
+    },
+    {
+      "name": "doublecol",
+      "value": 1.0
+    },
+    {
+      "name": "floatcol",
+      "value": -2.0999999046325684
+    },
+    {
+      "name": "intcol",
+      "value": -12
+    },
+    {
+      "name": "smallintcol",
+      "value": 32767
+    },
+    {
+      "name": "textcol",
+      "value": "Voilá!"
+    },
+    {
+      "name": "timestampcol",
+      "value": 1337000000000
+    },
+    {
+      "name": "tinyintcol",
+      "value": "7f"
+    },
+    {
+      "name": "uuidcol",
+      "value": "bd1924e16af844aeb5e1f24131dbd460"
+    },
+    {
+      "name": "varcharcol",
+      "value": "\""
+    },
+    {
+      "name": "varintcol",
+      "value": 10000000000000000000000000
+    }
+  ]
+}
+{
+  "partition_key_value": "00000002",
+  "cells": [
+    {
+      "name": "asciicol",
+      "value": null
+    },
+    {
+      "name": "bigintcol",
+      "value": 0
+    },
+    {
+      "name": "blobcol",
+      "value": null
+    },
+    {
+      "name": "booleancol",
+      "value": 0
+    },
+    {
+      "name": "decimalcol",
+      "value": 0.0
+    },
+    {
+      "name": "doublecol",
+      "value": 0.0
+    },
+    {
+      "name": "floatcol",
+      "value": 0.0
+    },
+    {
+      "name": "intcol",
+      "value": 0
+    },
+    {
+      "name": "smallintcol",
+      "value": 0
+    },
+    {
+      "name": "textcol",
+      "value": null
+    },
+    {
+      "name": "timestampcol",
+      "value": 0
+    },
+    {
+      "name": "tinyintcol",
+      "value": "00"
+    },
+    {
+      "name": "uuidcol",
+      "value": "00000000000000000000000000000000"
+    },
+    {
+      "name": "varcharcol",
+      "value": null
+    },
+    {
+      "name": "varintcol",
+      "value": 0
+    }
+  ]
+}
+{
+  "partition_key_value": "00000004",
+  "cells": [
+    {
+      "name": "asciicol",
+      "value": null
+    },
+    {
+      "name": "bigintcol",
+      "value": null
+    },
+    {
+      "name": "blobcol",
+      "value": null
+    },
+    {
+      "name": "booleancol",
+      "value": null
+    },
+    {
+      "name": "decimalcol",
+      "value": null
+    },
+    {
+      "name": "doublecol",
+      "value": null
+    },
+    {
+      "name": "floatcol",
+      "value": null
+    },
+    {
+      "name": "intcol",
+      "value": null
+    },
+    {
+      "name": "smallintcol",
+      "value": 0
+    },
+    {
+      "name": "textcol",
+      "value": null
+    },
+    {
+      "name": "timestampcol",
+      "value": null
+    },
+    {
+      "name": "tinyintcol",
+      "value": "00"
+    },
+    {
+      "name": "uuidcol",
+      "value": null
+    },
+    {
+      "name": "varcharcol",
+      "value": null
+    },
+    {
+      "name": "varintcol",
+      "value": null
+    }
+  ]
+}
+{
+  "partition_key_value": "00000003",
+  "cells": [
+    {
+      "name": "asciicol",
+      "value": "'''"
+    },
+    {
+      "name": "bigintcol",
+      "value": -9223372036854775808
+    },
+    {
+      "name": "blobcol",
+      "value": "80"
+    },
+    {
+      "name": "booleancol",
+      "value": 0
+    },
+    {
+      "name": "decimalcol",
+      "value": 10.0
+    },
+    {
+      "name": "doublecol",
+      "value": -1004.1
+    },
+    {
+      "name": "floatcol",
+      "value": 100000000.0
+    },
+    {
+      "name": "intcol",
+      "value": -2147483648
+    },
+    {
+      "name": "smallintcol",
+      "value": 32767
+    },
+    {
+      "name": "textcol",
+      "value": "龍馭鬱"
+    },
+    {
+      "name": "timestampcol",
+      "value": 2147526840000
+    },
+    {
+      "name": "tinyintcol",
+      "value": "7f"
+    },
+    {
+      "name": "uuidcol",
+      "value": "ffffffffffff1fff8fffffffffffffff"
+    },
+    {
+      "name": "varcharcol",
+      "value": "'"
+    },
+    {
+      "name": "varintcol",
+      "value": 299485009821345068724781056
+    }
+  ]
+}
+```
