@@ -1,10 +1,7 @@
-## Tests
-
-![tests](https://github.com/siadat/pcass/actions/workflows/makefile.yml/badge.svg)
-
-![bits](https://github.com/siadat/public/blob/main/bytes.png)
 
 ## How to run
+
+![tests](https://github.com/siadat/pcass/actions/workflows/makefile.yml/badge.svg)
 
 - (Delete old Cassandra data files, if it is the second+ time running)
 - Start Cassandra
@@ -393,3 +390,6 @@ poetry run python -m sstable.dump test_data/cassandra3_data_want/sina_test/has_a
 
 See [./cassandra-varint.md](./cassandra-varint.md).
 
+## Just for fun
+
+![bits](https://github.com/siadat/public/blob/main/bytes.png)
