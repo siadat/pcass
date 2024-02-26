@@ -38,13 +38,13 @@ bytes (8 value bytes and one flag byte)
 
 Another view of encoding 640:
 
-    10000010 10000000
-    *<--->{---------}
+    11000010 00100000 00101000
+    **&===== ======== ========
 
     Legend:
-    *           = 1 byte will follow
-    <--->       = 0s paddings
-    {---------} = actual value
+    *: bits used to count the number of bytes that will follow
+    &: the separator 0
+    =: bits used for representing the actual value
 
 In other words:
 
@@ -63,8 +63,11 @@ Another example:
 $ poetry run python
 >>> from sstable import utils
 >>> from sstable import varint
+>>> import io
 >>> utils.bins(varint.build(1))
 ['00000001']
+>>> varint.parse(io.BytesIO(bytes([0b11100010, 0b00001000, 0b00000000, 0b00000000])))
+34078720
 ```
 
 
