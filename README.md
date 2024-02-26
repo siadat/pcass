@@ -54,6 +54,7 @@ See cassandra-varint.md
 
 ## Dump example
 
+This example parses and dumps the SSTable files in [test_data/cassandra3_data_want/sina_test/has_all_types-*/]:
 ```
 poetry run python -m sstable.dump test_data/cassandra3_data_want/sina_test/has_all_types-*/ | jq .
 ```
