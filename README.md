@@ -1,3 +1,4 @@
+![bits](https://github.com/siadat/public/blob/main/bytes.png)
 
 ## How to run
 
@@ -389,7 +390,3 @@ poetry run python -m sstable.dump test_data/cassandra3_data_want/sina_test/has_a
 ## Varint
 
 See [./cassandra-varint.md](./cassandra-varint.md).
-
-## Just for fun
-
-![bits](https://github.com/siadat/public/blob/main/bytes.png)
