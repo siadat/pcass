@@ -73,26 +73,42 @@ cass_zig:
 		-p 9042:9042 \
 		--name cass_zig cassandra:3.0 || docker start cass_zig
 
+.PHONY: cass4_zig
+cass4_zig: cassandra-4.1.4.yaml
+	docker run -d \
+		-v $(PWD)/cassandra-4.1.4.yaml:/etc/cassandra/cassandra.yaml \
+		-v $(PWD)/:/root/work:ro \
+		-v $(PWD)/cassandra_data:/var/lib/cassandra \
+		-p 9042:9042 \
+		--name cass4_zig cassandra:5.0 || docker start cass4_zig
+
+.PHONY: cass5_zig
+cass5_zig: cassandra-5.0-beta1.yaml
+	docker run -d \
+		-v $(PWD)/cassandra-5.0-beta1.yaml:/etc/cassandra/cassandra.yaml \
+		-v $(PWD)/:/root/work:ro \
+		-v $(PWD)/cassandra_data:/var/lib/cassandra \
+		-p 9042:9042 \
+		--name cass5_zig cassandra:5.0 || docker start cass5_zig
+
+cassandra-5.0-beta1.yaml:
+	wget -O cassandra-5.0-beta1.yaml https://raw.githubusercontent.com/apache/cassandra/cassandra-5.0-beta1/conf/cassandra.yaml
+
+cassandra-4.1.4.yaml:
+	wget -O cassandra-4.1.4.yaml https://raw.githubusercontent.com/apache/cassandra/cassandra-4.1.4/conf/cassandra.yaml
+
 .PHONY: populate_rows
 populate_rows:
 	docker exec -it cass_zig /root/work/startup.bash
 
-.PHONY: stop
-stop:
-	docker stop -f cass_zig
-
 .PHONY: clean
 clean:
-	docker rm -f cass_zig
+	docker rm -f cass_zig cass5_zig
 	sudo rm -rf ./cassandra_data
 
 .PHONY: bash
 bash:
-	docker exec -it cass_zig bash
-
-.PHONY: logs
-logs:
-	docker logs -f cass_zig
+	docker exec -it cass4_zig cass5_zig bash
 
 .PHONY: consume
 consume:
