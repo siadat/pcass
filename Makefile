@@ -80,7 +80,7 @@ cass4_zig: cassandra-4.1.4.yaml
 		-v $(PWD)/:/root/work:ro \
 		-v $(PWD)/cassandra_data:/var/lib/cassandra \
 		-p 9042:9042 \
-		--name cass4_zig cassandra:5.0 || docker start cass4_zig
+		--name cass4_zig cassandra:4.1.4 || docker start cass4_zig
 
 .PHONY: cass5_zig
 cass5_zig: cassandra-5.0-beta1.yaml
@@ -103,7 +103,7 @@ populate_rows:
 
 .PHONY: clean
 clean:
-	docker rm -f cass_zig cass5_zig
+	docker rm -f cass_zig cass4_zig cass5_zig
 	sudo rm -rf ./cassandra_data
 
 .PHONY: bash
