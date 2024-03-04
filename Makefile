@@ -31,6 +31,9 @@ docker-compose-restart-debug:
 	export CASSTAG=4.0 && \
 	docker compose up -d --no-deps --force-recreate debugger
 
+zig:
+	zig build --summary all
+
 .PHONY: got.lisp
 got.lisp:
 	poetry run python -m converter > got.lisp
