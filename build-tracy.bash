@@ -19,8 +19,6 @@ brew list emscripten > /dev/null || brew install emscripten
 	export EM_CACHE=$HOME/.emscripten_cache
 	rm -rf $HOME/.emscripten_cache
 
-	export CAPSTONE_DEBUG=1
-	export CAPSTONE_ARCHS="wasm"
 	emcmake cmake -B build/
 	cmake --build build/ --target install
         find $HOME/.emscripten_cache | grep capstone
