@@ -4,6 +4,9 @@ drafts/
 apache-cassandra-3.0.29/
 .coverage
 
+# Vim sessions
+*.vim
+
 # zig
 zig-cache/
 zig-out/
