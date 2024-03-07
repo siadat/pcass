@@ -6,6 +6,7 @@ brew list emscripten > /dev/null || brew install emscripten
 (
 	# build capstone
 	rm -rf capstone/
+	# TODO: try 5.0.1
 	git clone --branch=4.0.2 --depth=1 git@github.com:capstone-engine/capstone.git
 	cd capstone/
 

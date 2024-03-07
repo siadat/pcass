@@ -32,7 +32,16 @@ docker-compose-restart-debug:
 	docker compose up -d --no-deps --force-recreate debugger
 
 zig:
-	zig build --summary all
+	export nothing=nothing ;\
+		export TRACY_PORT=5454; \
+		zig build run -Dtracy=tracy --summary all
+
+tracy.zig:
+	# https://github.com/ziglang/zig/blob/aa7d16aba1f0b3a9e816684618d16cb1d178a6d3/src/tracy.zig
+	wget https://raw.githubusercontent.com/ziglang/zig/aa7d16aba1f0b3a9e816684618d16cb1d178a6d3/src/tracy.zig
+
+serve-tracy:
+	sudo python3 serve-tracy.py # tracy/profiler/build/wasm/httpd.py
 
 .PHONY: got.lisp
 got.lisp:
