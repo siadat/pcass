@@ -39,16 +39,19 @@ pub fn main() !void {
         }
     }
 
+    var byte_count: u64 = 0;
+    defer std.log.info("total bytes: {d}", .{byte_count});
     while (true) {
         var buf: [3]u8 = undefined;
         const n = try client.stream.reader().read(&buf);
+        byte_count += n;
         if (n == 0) {
             break;
         }
-        var s = std.ArrayList(u8).init(gpa.allocator());
-        defer s.deinit();
-        try escape(buf[0..n], &s);
-        std.log.info("read {d} bytes: \"{s}\"", .{ n, s.items });
+        // var s = std.ArrayList(u8).init(gpa.allocator());
+        // defer s.deinit();
+        // try escape(buf[0..n], &s);
+        // std.log.info("read {d} bytes: \"{s}\"", .{ n, s.items });
     }
     std.log.info("client disconnected: {any}", .{client.address});
 }
