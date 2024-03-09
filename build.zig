@@ -32,9 +32,18 @@ pub fn build(b: *std.Build) void {
 
         // On mingw, we need to opt into windows 7+ to get some features required by tracy.
         const tracy_c_flags: []const []const u8 = if (target.result.os.tag == .windows and target.result.abi == .gnu)
-            &[_][]const u8{ "-DTRACY_ENABLE=1", "-fno-sanitize=undefined", "-D_WIN32_WINNT=0x601" }
+            &[_][]const u8{
+                "-DTRACY_ENABLE=1",
+                "-DTRACY_FIBERS=1",
+                "-fno-sanitize=undefined",
+                "-D_WIN32_WINNT=0x601",
+            }
         else
-            &[_][]const u8{ "-DTRACY_ENABLE=1", "-fno-sanitize=undefined", "-DTRACY_TIMER_FALLBACK=ON" };
+            &[_][]const u8{
+                "-DTRACY_ENABLE=1",
+                // "-DTRACY_TIMER_FALLBACK=ON"
+                "-fno-sanitize=undefined",
+            };
 
         exe.addIncludePath(.{ .cwd_relative = tracy_path });
         exe.addCSourceFile(.{ .file = .{ .cwd_relative = client_cpp }, .flags = tracy_c_flags });
@@ -43,10 +52,6 @@ pub fn build(b: *std.Build) void {
         }
         exe.linkLibC();
     }
-
-    // exe_options.addOption(bool, "enable_tracy", false);
-    // exe_options.addOption(bool, "enable_tracy_callstack", false);
-    // exe_options.addOption(bool, "enable_tracy_allocation", false);
 
     b.installArtifact(exe);
 

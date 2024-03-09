@@ -10,3 +10,7 @@ apache-cassandra-3.0.29/
 # zig
 zig-cache/
 zig-out/
+
+# tracy and capstone
+tracy/
+capstone/

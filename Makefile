@@ -33,14 +33,20 @@ docker-compose-restart-debug:
 
 zig:
 	export nothing=nothing ;\
+		export TRACY_NO_INVARIANT_CHECK=1 \
 		export TRACY_PORT=5454; \
-		zig build run -Dtracy=tracy --summary all
+		export TRACY_CALLSTACK=1; \
+		zig build run \
+		 -Dtracy=./tracy \
+		 -Dtracy-allocation \
+		 -Dtracy-callstack \
+		 --summary all
 
 tracy.zig:
 	# https://github.com/ziglang/zig/blob/aa7d16aba1f0b3a9e816684618d16cb1d178a6d3/src/tracy.zig
 	wget https://raw.githubusercontent.com/ziglang/zig/aa7d16aba1f0b3a9e816684618d16cb1d178a6d3/src/tracy.zig
 
-start-tracy-capture:
+capture-tracy:
 	@# First start the capture process
 	@# Then start the TCP server
 	@# Then feed input using nc
@@ -48,8 +54,13 @@ start-tracy-capture:
 	@# Then download ~/public/trace.tracy and open in https://tracy.nereid.pl/
 	LD_LIBRARY_PATH=./capstone ./tracy/capture/build/unix/capture-release -f -o ~/public/trace.tracy -a localhost -p 5454
 
-feed-input:
-	yes 'hello world!' | head -c 10M | nc -N localhost 8080
+test-tracy:
+	sudo apt-get install libdebuginfod-dev
+	cd tracy && make -C test/ clean all
+	./test/tracy_test
+
+send-test-bytes:
+	yes 'hello world!' | head -c 1M | nc -N localhost 8080
 
 serve-tracy:
 	sudo python3 serve-tracy.py # tracy/profiler/build/wasm/httpd.py
