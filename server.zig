@@ -95,6 +95,7 @@ test "test server" {
     const allocator = std.testing.allocator;
     std.testing.log_level = std.log.Level.info;
 
+    // TODO: encapsulate allocation and assignment into a function?
     const srv = try allocator.create(Server); // create in heap and return pointer
     defer allocator.destroy(srv); // removing this will leak memory
 
