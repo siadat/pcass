@@ -22,7 +22,7 @@ const Server = struct {
     net_server: net.Server = undefined,
 
     fn newServer() !Server {
-        const port = 0;
+        const port = 8080;
         const address = try net.Address.parseIp("127.0.0.1", port);
         std.log.info("Address: {}", .{address});
         const s = try address.listen(.{ .reuse_address = true });
