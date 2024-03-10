@@ -98,8 +98,8 @@ test "test server" {
     var srv = try Server.newServer();
     defer srv.deinit(); // removing this does not memory leak, because this is just setting the field values to 'undefined'
 
-    const S = struct {
-        fn clientFn(server_address: net.Address) !void {
+    const TestClient = struct {
+        fn send(server_address: net.Address) !void {
             const socket = try net.tcpConnectToAddress(server_address);
             defer socket.close();
 
@@ -107,7 +107,7 @@ test "test server" {
         }
     };
 
-    const t = try std.Thread.spawn(.{}, S.clientFn, .{srv.net_server.listen_address});
+    const t = try std.Thread.spawn(.{}, TestClient.send, .{srv.net_server.listen_address});
     defer t.join(); // TODO: is there any way to assert whether that thread is completed before the main process exits? I mean, if I forget to free allocated memory it will be detectable as a memory leak, but this is not detectable.
 
     var ret = std.ArrayList(u8).init(allocator);
