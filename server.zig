@@ -2,7 +2,7 @@ const std = @import("std");
 const net = std.net;
 const tracy = @import("tracy.zig");
 
-// TODO: use a writer as in stringEscape,
+// TODO: use a writer as in stringEscape in escaper.zig,
 // because the escaped string is only used for loggingin
 pub fn escape(input: []u8, ret: *std.ArrayList(u8)) !void {
     try ret.append('"');
