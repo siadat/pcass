@@ -60,7 +60,7 @@ pub fn main() !void {
     const trace = tracy.trace(@src());
     defer trace.end();
 
-    var srv = try Server.newServer(8080);
+    var srv = try Server.newServer(9042);
     defer srv.deinit();
 
     // copied from https://sourcegraph.com/github.com/zigtools/zls@dd307c59bf32e2cec323235c776e07fa36efb465/-/blob/src/main.zig?L235-236
