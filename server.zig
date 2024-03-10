@@ -44,7 +44,7 @@ const Server = struct {
         while (true) {
             const n = try client.stream.reader().read(&buf);
             if (n == 0) return;
-            std.log.warn("read {d} bytes: \"{s}\"", .{ n, buf[0..n] });
+            std.log.info("read {d} bytes: \"{s}\"", .{ n, buf[0..n] });
             try ret.appendSlice(buf[0..n]);
         }
     }
@@ -93,6 +93,7 @@ pub fn main() !void {
 
 test "test server" {
     const allocator = std.testing.allocator;
+    std.testing.log_level = std.log.Level.info;
 
     const srv = try allocator.create(Server); // create in heap and return pointer
     defer allocator.destroy(srv); // removing this will leak memory
