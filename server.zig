@@ -115,6 +115,7 @@ test "test server" {
     defer ret.deinit();
 
     try srv.accept(&ret); // this needs to be a pointer, because append
-    try std.testing.expectEqual(@as(usize, 12), ret.items.len);
-    try std.testing.expectEqualSlices(u8, "Hello world!", ret.items);
+    const want = "Hello world!";
+    try std.testing.expectEqual(@as(usize, want.len), ret.items.len);
+    try std.testing.expectEqualSlices(u8, want, ret.items);
 }
