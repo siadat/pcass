@@ -86,8 +86,6 @@ pub fn main() !void {
 }
 
 test "test server" {
-    const allocator = std.testing.allocator;
-    _ = allocator;
     std.testing.log_level = std.log.Level.info;
 
     var srv = try Server.newServer(0);
