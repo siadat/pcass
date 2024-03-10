@@ -95,11 +95,7 @@ test "test server" {
     const allocator = std.testing.allocator;
     std.testing.log_level = std.log.Level.info;
 
-    // TODO: encapsulate allocation and assignment into a function?
-    const srv = try allocator.create(Server); // create in heap and return pointer
-    defer allocator.destroy(srv); // removing this will leak memory
-
-    srv.* = try Server.newServer();
+    var srv = try Server.newServer();
     defer srv.deinit(); // removing this does not memory leak, because this is just setting the field values to 'undefined'
 
     const S = struct {
