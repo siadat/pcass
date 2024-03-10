@@ -4,7 +4,7 @@ const tracy = @import("tracy.zig");
 
 // TODO: use a writer as in stringEscape in escaper.zig,
 // because the escaped string is only used for loggingin
-pub fn escape(input: []u8, ret: *std.ArrayList(u8)) !void {
+pub fn escapeString(input: []u8, ret: *std.ArrayList(u8)) !void {
     try ret.append('"');
     for (input) |c| {
         switch (c) {
@@ -20,6 +20,25 @@ pub fn escape(input: []u8, ret: *std.ArrayList(u8)) !void {
         }
     }
     try ret.append('"'); // TODO: I want to run this in a defer, however, 'try' is not allowed in a defer
+}
+
+pub fn prettyByte(
+    byte: u8,
+) [4]u8 {
+    switch (byte) {
+        '\n' => return [_]u8{ '\'', '\\', 'n', '\'' },
+        '\r' => return [_]u8{ '\'', '\\', 'r', '\'' },
+        '\t' => return [_]u8{ '\'', '\\', 't', '\'' },
+        '\'' => return [_]u8{ '\'', '\\', '\'', '\'' },
+        // 39 is the ASCII code for the single quote, which is already covered above
+        32...38, 40...126 => return [_]u8{
+            '\'',
+            byte,
+            '\'',
+            0,
+        },
+        else => return [_]u8{ '-', '-', '-', '-' },
+    }
 }
 
 const Server = struct {
@@ -50,7 +69,9 @@ const Server = struct {
         while (true) {
             const n = try client.stream.reader().read(&buf);
             if (n == 0) return;
-            std.log.info("read {d} bytes: \"{s}\"", .{ n, buf[0..n] });
+            for (buf[0..n]) |c| {
+                std.log.info("read byte: 0x{x:0>2} {d: >3} {s}", .{ c, c, prettyByte(c) });
+            }
             try ret.appendSlice(buf[0..n]);
         }
     }
@@ -83,7 +104,7 @@ pub fn main() !void {
     var escaped_buf = std.ArrayList(u8).init(inner_allocator);
     defer escaped_buf.deinit();
 
-    _ = try escape(buf.items, &escaped_buf);
+    _ = try escapeString(buf.items, &escaped_buf);
     std.log.info("Client sent: {s}", .{escaped_buf.items});
 }
 
