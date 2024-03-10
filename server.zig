@@ -39,7 +39,7 @@ const Server = struct {
     }
 
     fn accept(self: *@This(), ret: *std.ArrayList(u8)) !void {
-        var client = try self.net_server.accept(); // TODO: why does this work even though accept requires a pointer and net_server is not a pointer, only server (parent) is a pointer
+        var client = try self.net_server.accept();
         defer client.stream.close();
 
         std.log.info("client connected: {any}", .{client.address});
@@ -82,7 +82,7 @@ pub fn main() !void {
     var escaped_buf = std.ArrayList(u8).init(inner_allocator);
     defer escaped_buf.deinit();
 
-    try escape(buf.items, &escaped_buf);
+    _ = try escape(buf.items, &escaped_buf);
     std.log.info("Client sent: {s}", .{escaped_buf.items});
 }
 
@@ -91,19 +91,18 @@ test "test server" {
     std.testing.log_level = std.log.Level.info;
 
     var srv = try Server.newServer();
-    defer srv.deinit(); // removing this does not memory leak, because this is just setting the field values to 'undefined'
+    defer srv.deinit();
 
     const TestClient = struct {
         fn send(server_address: net.Address) !void {
             const socket = try net.tcpConnectToAddress(server_address);
             defer socket.close();
-
             _ = try socket.writer().writeAll("Hello world!");
         }
     };
 
     const t = try std.Thread.spawn(.{}, TestClient.send, .{srv.net_server.listen_address});
-    defer t.join(); // TODO: is there any way to assert whether that thread is completed before the main process exits? I mean, if I forget to free allocated memory it will be detectable as a memory leak, but this is not detectable.
+    defer t.join();
 
     var ret = std.ArrayList(u8).init(allocator);
     defer ret.deinit();
