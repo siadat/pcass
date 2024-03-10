@@ -23,8 +23,7 @@ pub fn escape(input: []u8, ret: *std.ArrayList(u8)) !void {
 const Server = struct {
     net_server: net.Server,
 
-    fn newServer() !Server {
-        const port = 8080;
+    fn newServer(port: u16) !Server {
         const address = try net.Address.parseIp("127.0.0.1", port);
         std.log.info("Address: {}", .{address});
         const s = try address.listen(.{ .reuse_address = true });
@@ -59,7 +58,7 @@ pub fn main() !void {
     const trace = tracy.trace(@src());
     defer trace.end();
 
-    var srv = try Server.newServer();
+    var srv = try Server.newServer(8080);
     defer srv.deinit();
 
     // copied from https://sourcegraph.com/github.com/zigtools/zls@dd307c59bf32e2cec323235c776e07fa36efb465/-/blob/src/main.zig?L235-236
@@ -90,7 +89,7 @@ test "test server" {
     const allocator = std.testing.allocator;
     std.testing.log_level = std.log.Level.info;
 
-    var srv = try Server.newServer();
+    var srv = try Server.newServer(0);
     defer srv.deinit();
 
     const TestClient = struct {
