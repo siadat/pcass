@@ -11,6 +11,6 @@ apache-cassandra-3.0.29/
 zig-cache/
 zig-out/
 
-# tracy and capstone
+# tracy and capstone (capstone is a dependency of tracy)
 tracy/
 capstone/
