@@ -18,16 +18,46 @@ pub fn escape(input: []u8, ret: *std.ArrayList(u8)) !void {
     }
 }
 
+const Server = struct {
+    net_server: net.Server = undefined,
+
+    fn newServer() !Server {
+        const port = 0;
+        const address = try net.Address.parseIp("127.0.0.1", port);
+        std.log.info("Address: {}", .{address});
+        const s = try address.listen(.{ .reuse_address = true });
+
+        return .{
+            .net_server = s,
+        };
+    }
+
+    fn deinit(self: *@This()) void {
+        self.net_server.deinit();
+    }
+
+    fn accept(self: *@This(), ret: *std.ArrayList(u8)) !void {
+        var client = try self.net_server.accept(); // TODO: why does this work even though accept requires a pointer and net_server is not a pointer, only server (parent) is a pointer
+        defer client.stream.close();
+
+        var buf: [5]u8 = undefined;
+        while (true) {
+            const n = try client.stream.reader().read(&buf);
+            if (n == 0) return;
+            std.log.warn("read {d} bytes: \"{s}\"", .{ n, buf[0..n] });
+            try ret.appendSlice(buf[0..n]);
+        }
+    }
+};
+
 pub fn main() !void {
     const trace = tracy.trace(@src());
     defer trace.end();
 
-    const address = try net.Address.parseIp("127.0.0.1", 8080);
-    std.log.info("Address: {}", .{address});
+    var srv = try Server.newServer();
+    defer srv.deinit();
 
-    var server = try address.listen(.{ .reuse_address = true });
-
-    var client = try server.accept();
+    var client = try srv.net_server.accept();
     defer client.stream.close();
     std.log.info("client connected: {any}", .{client.address});
 
@@ -59,4 +89,32 @@ pub fn main() !void {
         std.log.info("read {d} bytes: \"{s}\"", .{ n, s.items });
     }
     std.log.info("client disconnected: {any}", .{client.address});
+}
+
+test "test server" {
+    const allocator = std.testing.allocator;
+
+    const srv = try allocator.create(Server); // create in heap and return pointer
+    defer allocator.destroy(srv); // removing this will leak memory
+
+    srv.* = try Server.newServer();
+    defer srv.deinit(); // removing this does not memory leak, because this is just setting the field values to 'undefined'
+
+    const S = struct {
+        fn clientFn(server_address: net.Address) !void {
+            const socket = try net.tcpConnectToAddress(server_address);
+            defer socket.close();
+
+            _ = try socket.writer().writeAll("Hello world!");
+        }
+    };
+    const t = try std.Thread.spawn(.{}, S.clientFn, .{srv.net_server.listen_address});
+    defer t.join();
+
+    var ret = std.ArrayList(u8).init(allocator);
+    defer ret.deinit();
+
+    try srv.accept(&ret); // this needs to be a pointer, because append
+    try std.testing.expectEqual(@as(usize, 12), ret.items.len);
+    try std.testing.expectEqualSlices(u8, "Hello world!", ret.items);
 }

@@ -31,7 +31,10 @@ docker-compose-restart-debug:
 	export CASSTAG=4.0 && \
 	docker compose up -d --no-deps --force-recreate debugger
 
-zig:
+zig-test:
+	zig build test --summary all
+
+zig-run:
 	TRACY_NO_INVARIANT_CHECK=1 \
 	TRACY_PORT=5454 \
 	TRACY_CALLSTACK=1 \
