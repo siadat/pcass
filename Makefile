@@ -31,7 +31,7 @@ docker-compose-restart-debug:
 	export CASSTAG=4.0 && \
 	docker compose up -d --no-deps --force-recreate debugger
 
-zig-test:
+test-zig:
 	zig build test --summary all --verbose
 
 zig-run:
