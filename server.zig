@@ -3,6 +3,7 @@ const net = std.net;
 const tracy = @import("tracy.zig");
 
 pub fn escape(input: []u8, ret: *std.ArrayList(u8)) !void {
+    try ret.append('"');
     for (input) |c| {
         switch (c) {
             '"', '\\' => {
@@ -16,6 +17,7 @@ pub fn escape(input: []u8, ret: *std.ArrayList(u8)) !void {
             else => try ret.append(c),
         }
     }
+    try ret.append('"'); // TODO: I want to run this in a defer, however, 'try' is not allowed in a defer
 }
 
 const Server = struct {
@@ -40,6 +42,9 @@ const Server = struct {
         var client = try self.net_server.accept(); // TODO: why does this work even though accept requires a pointer and net_server is not a pointer, only server (parent) is a pointer
         defer client.stream.close();
 
+        std.log.info("client connected: {any}", .{client.address});
+        defer std.log.info("client disconnected: {any}", .{client.address});
+
         var buf: [5]u8 = undefined;
         while (true) {
             const n = try client.stream.reader().read(&buf);
@@ -57,38 +62,28 @@ pub fn main() !void {
     var srv = try Server.newServer();
     defer srv.deinit();
 
-    var client = try srv.net_server.accept();
-    defer client.stream.close();
-    std.log.info("client connected: {any}", .{client.address});
-
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    // copied from https://sourcegraph.com/github.com/zigtools/zls@dd307c59bf32e2cec323235c776e07fa36efb465/-/blob/src/main.zig?L235-236
+    var allocator_state = std.heap.GeneralPurposeAllocator(.{ .stack_trace_frames = 10 }){};
+    var tracy_state = if (tracy.enable_allocation) tracy.tracyAllocator(allocator_state.allocator()) else void{};
+    const inner_allocator: std.mem.Allocator = if (tracy.enable_allocation) tracy_state.allocator() else allocator_state.allocator();
     defer {
-        const deinit_status = gpa.deinit();
+        const deinit_status = allocator_state.deinit();
         if (deinit_status == .leak) {
             std.log.err("There is memory leak\n", .{});
         }
     }
 
-    // copied from https://sourcegraph.com/github.com/zigtools/zls@dd307c59bf32e2cec323235c776e07fa36efb465/-/blob/src/main.zig?L235-236
-    var allocator_state = std.heap.GeneralPurposeAllocator(.{ .stack_trace_frames = 10 }){};
-    var tracy_state = if (tracy.enable_allocation) tracy.tracyAllocator(allocator_state.allocator()) else void{};
-    const inner_allocator: std.mem.Allocator = if (tracy.enable_allocation) tracy_state.allocator() else allocator_state.allocator();
+    var buf = std.ArrayList(u8).init(inner_allocator);
+    defer buf.deinit();
+    defer std.log.info("total bytes: {d}", .{buf.items.len});
 
-    var byte_count: u64 = 0;
-    defer std.log.info("total bytes: {d}", .{byte_count});
-    while (true) {
-        var buf: [3]u8 = undefined;
-        const n = try client.stream.reader().read(&buf);
-        byte_count += n;
-        if (n == 0) {
-            break;
-        }
-        var s = std.ArrayList(u8).init(inner_allocator);
-        defer s.deinit();
-        try escape(buf[0..n], &s);
-        std.log.info("read {d} bytes: \"{s}\"", .{ n, s.items });
-    }
-    std.log.info("client disconnected: {any}", .{client.address});
+    try srv.accept(&buf);
+
+    var escaped_buf = std.ArrayList(u8).init(inner_allocator);
+    defer escaped_buf.deinit();
+
+    try escape(buf.items, &escaped_buf);
+    std.log.info("Client sent: {s}", .{escaped_buf.items});
 }
 
 test "test server" {

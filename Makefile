@@ -62,7 +62,7 @@ test-tracy:
 	./test/tracy_test
 
 send-test-bytes:
-	yes 'hello world!' | head -c 128 | nc -N localhost 8080
+	yes 'hello world!' | head -c 20 | nc -N localhost 8080
 
 .PHONY: got.lisp
 got.lisp:
