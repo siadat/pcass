@@ -2,26 +2,6 @@ const std = @import("std");
 const net = std.net;
 const tracy = @import("tracy.zig");
 
-// TODO: use a writer as in stringEscape in escaper.zig,
-// because the escaped string is only used for loggingin
-pub fn escapeString(input: []u8, ret: *std.ArrayList(u8)) !void {
-    try ret.append('"');
-    for (input) |c| {
-        switch (c) {
-            '"', '\\' => {
-                try ret.append('\\');
-                try ret.append(c);
-            },
-            '\n' => {
-                try ret.append('\\');
-                try ret.append('n');
-            },
-            else => try ret.append(c),
-        }
-    }
-    try ret.append('"'); // TODO: I want to run this in a defer, however, 'try' is not allowed in a defer
-}
-
 pub fn prettyByte(
     byte: u8,
 ) [4]u8 {
@@ -30,7 +10,7 @@ pub fn prettyByte(
         '\r' => return [_]u8{ '\'', '\\', 'r', '\'' },
         '\t' => return [_]u8{ '\'', '\\', 't', '\'' },
         '\'' => return [_]u8{ '\'', '\\', '\'', '\'' },
-        // 39 is the ASCII code for the single quote, which is already covered above
+        // NOTE: 39 is the ASCII code for the single quote, which is already covered above
         32...38, 40...126 => return [_]u8{
             '\'',
             byte,
@@ -58,22 +38,26 @@ const Server = struct {
         self.net_server.deinit();
     }
 
-    fn accept(self: *@This(), ret: *std.ArrayList(u8)) !void {
+    fn accept(self: *@This()) !usize {
         var client = try self.net_server.accept();
         defer client.stream.close();
 
         std.log.info("client connected: {any}", .{client.address});
         defer std.log.info("client disconnected: {any}", .{client.address});
 
+        var total_bytes_count: usize = 0;
+        defer std.log.info("total bytes: {d}", .{total_bytes_count});
+
         var buf: [16]u8 = undefined;
         while (true) {
             const n = try client.stream.reader().read(&buf);
-            if (n == 0) return;
+            if (n == 0) return total_bytes_count;
             for (buf[0..n]) |c| {
                 std.log.info("read byte: 0x{x:0>2} {d: >3} {s}", .{ c, c, prettyByte(c) });
             }
-            try ret.appendSlice(buf[0..n]);
+            total_bytes_count += n;
         }
+        return total_bytes_count;
     }
 };
 
@@ -97,40 +81,30 @@ pub fn main() !void {
 
     var buf = std.ArrayList(u8).init(inner_allocator);
     defer buf.deinit();
-    defer std.log.info("total bytes: {d}", .{buf.items.len});
 
-    try srv.accept(&buf);
-
-    var escaped_buf = std.ArrayList(u8).init(inner_allocator);
-    defer escaped_buf.deinit();
-
-    _ = try escapeString(buf.items, &escaped_buf);
-    std.log.info("Client sent: {s}", .{escaped_buf.items});
+    _ = try srv.accept();
 }
 
 test "test server" {
     const allocator = std.testing.allocator;
+    _ = allocator;
     std.testing.log_level = std.log.Level.info;
 
     var srv = try Server.newServer(0);
     defer srv.deinit();
+    const want = "Hello world!";
 
     const TestClient = struct {
         fn send(server_address: net.Address) !void {
             const socket = try net.tcpConnectToAddress(server_address);
             defer socket.close();
-            _ = try socket.writer().writeAll("Hello world!");
+            _ = try socket.writer().writeAll(want);
         }
     };
 
     const t = try std.Thread.spawn(.{}, TestClient.send, .{srv.net_server.listen_address});
     defer t.join();
 
-    var ret = std.ArrayList(u8).init(allocator);
-    defer ret.deinit();
-
-    try srv.accept(&ret); // this needs to be a pointer, because append
-    const want = "Hello world!";
-    try std.testing.expectEqual(@as(usize, want.len), ret.items.len);
-    try std.testing.expectEqualSlices(u8, want, ret.items);
+    const got = try srv.accept();
+    try std.testing.expectEqual(@as(usize, want.len), got);
 }
