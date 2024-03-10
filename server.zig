@@ -21,7 +21,7 @@ pub fn escape(input: []u8, ret: *std.ArrayList(u8)) !void {
 }
 
 const Server = struct {
-    net_server: net.Server = undefined,
+    net_server: net.Server,
 
     fn newServer() !Server {
         const port = 8080;
