@@ -21,8 +21,13 @@ pub fn prettyByte(
     }
 }
 
+const StateMachine = struct {
+    //
+};
+
 const Server = struct {
     net_server: net.Server,
+    state_machine: StateMachine,
 
     fn newServer(port: u16) !Server {
         const address = try net.Address.parseIp("127.0.0.1", port);
@@ -31,6 +36,7 @@ const Server = struct {
 
         return .{
             .net_server = s,
+            .state_machine = StateMachine{},
         };
     }
 
@@ -52,10 +58,11 @@ const Server = struct {
         while (true) {
             const n = try client.stream.reader().read(&buf);
             if (n == 0) return total_bytes_count;
-            for (buf[0..n]) |c| {
-                std.log.info("read byte: 0x{x:0>2} {d: >3} {s}", .{ c, c, prettyByte(c) });
+            defer total_bytes_count += n;
+
+            for (1.., buf[0..n]) |i, c| {
+                std.log.info("read byte {d}/{d}: 0x{x:0>2} {d: >3} {s}", .{ i, buf.len, c, c, prettyByte(c) });
             }
-            total_bytes_count += n;
         }
         return total_bytes_count;
     }
