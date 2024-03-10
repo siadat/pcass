@@ -16,3 +16,4 @@ jobs:
     - uses: actions/checkout@v4
     - run: make install-dependencies
     - run: make test
+    # TODO: `make test-zig zig-run`
