@@ -62,9 +62,6 @@ test-tracy:
 send-test-bytes:
 	yes 'hello world!' | head -c 1M | nc -N localhost 8080
 
-serve-tracy:
-	sudo python3 serve-tracy.py # tracy/profiler/build/wasm/httpd.py
-
 .PHONY: got.lisp
 got.lisp:
 	poetry run python -m converter > got.lisp
@@ -76,7 +73,7 @@ cql_client:
 	$(POETRY) run python -m cql_client
 
 serve-coverage:
-	cd htmlcov && $(POETRY) run python -m http.server
+	cd htmlcov && timeout 1h $(POETRY) run python -m http.server
 
 parse:
 	bash parse_parallel.bash
