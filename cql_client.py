@@ -24,4 +24,3 @@ if __name__ == "__main__":
     result = execute_query(session, query)
     for row in result:
         print(row)
-
