@@ -46,7 +46,7 @@ const Server = struct {
         std.log.info("client connected: {any}", .{client.address});
         defer std.log.info("client disconnected: {any}", .{client.address});
 
-        var buf: [5]u8 = undefined;
+        var buf: [16]u8 = undefined;
         while (true) {
             const n = try client.stream.reader().read(&buf);
             if (n == 0) return;
