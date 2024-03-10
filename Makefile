@@ -32,15 +32,14 @@ docker-compose-restart-debug:
 	docker compose up -d --no-deps --force-recreate debugger
 
 zig:
-	export nothing=nothing ;\
-		export TRACY_NO_INVARIANT_CHECK=1 \
-		export TRACY_PORT=5454; \
-		export TRACY_CALLSTACK=1; \
-		zig build run \
-		 -Dtracy=./tracy \
-		 -Dtracy-allocation \
-		 -Dtracy-callstack \
-		 --summary all
+	TRACY_NO_INVARIANT_CHECK=1 \
+	TRACY_PORT=5454 \
+	TRACY_CALLSTACK=1 \
+	zig build run \
+		-Dtracy=./tracy \
+		-Dtracy-allocation \
+		-Dtracy-callstack \
+		--summary all
 
 tracy.zig:
 	# https://github.com/ziglang/zig/blob/aa7d16aba1f0b3a9e816684618d16cb1d178a6d3/src/tracy.zig
