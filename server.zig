@@ -3,7 +3,6 @@ const net = std.net;
 const tracy = @import("tracy.zig");
 
 pub fn escape(input: []u8, ret: *std.ArrayList(u8)) !void {
-    std.time.sleep(1000_000_000);
     for (input) |c| {
         switch (c) {
             '"', '\\' => {

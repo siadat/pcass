@@ -21,7 +21,7 @@ pub fn main() !void {
         try stdout.print("0x{x:0>2} ", .{buffer[0]});
         try stdout.print("{d: >3} ", .{buffer[0]});
         try stdout.print("'", .{});
-        try escaper.stringEscape(buffer[0..], "'", .{}, stdout);
+        try escaper.stringEscape(buffer[0..], "'", stdout);
         try stdout.print("'", .{});
         try stdout.print("\n", .{});
     }

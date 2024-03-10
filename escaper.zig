@@ -1,16 +1,15 @@
 const std = @import("std");
 
-/// Copied from https://github.com/ziglang/zig/blob/804cee3b93/lib/std/zig/fmt.zig#L50-L50
+/// Forked from https://github.com/ziglang/zig/blob/804cee3b93/lib/std/zig/fmt.zig#L50-L50
+///
 /// Print the string as escaped contents of a double quoted or single-quoted string.
 /// Format `{}` treats contents as a double-quoted string.
 /// Format `{'}` treats contents as a single-quoted string.
 pub fn stringEscape(
     bytes: []const u8,
     comptime fmt: []const u8,
-    options: std.fmt.FormatOptions,
     writer: anytype,
 ) !void {
-    _ = options;
     for (bytes) |byte| switch (byte) {
         '\n' => try writer.writeAll("\\n"),
         '\r' => try writer.writeAll("\\r"),
