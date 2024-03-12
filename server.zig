@@ -45,14 +45,9 @@ const FrameHeader = packed struct {
                 var buf: [16]u8 = undefined;
                 buf[0] = std.mem.asBytes(&self.version)[0];
                 buf[1] = std.mem.asBytes(&self.flags)[0];
-
-                const stream = std.mem.asBytes(&@byteSwap(self.stream));
-                std.mem.copyForwards(u8, buf[2..4], stream);
-
+                std.mem.copyForwards(u8, buf[2..4], std.mem.asBytes(&@byteSwap(self.stream)));
                 buf[4] = std.mem.asBytes(&self.opcode)[0];
-
-                const length = std.mem.asBytes(&@byteSwap(self.length));
-                std.mem.copyForwards(u8, buf[5..9], length);
+                std.mem.copyForwards(u8, buf[5..9], std.mem.asBytes(&@byteSwap(self.length)));
 
                 // NOTE: if you return the slice buf[0..] instead of buf, it will be incorrect, because
                 // the array exists on the stack and is deallocated when the function returns,
