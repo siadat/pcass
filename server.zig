@@ -39,10 +39,10 @@ const FrameHeader = packed struct {
     fn asBytes(
         self: *const FrameHeader,
         comptime endian: std.builtin.Endian,
-    ) [16]u8 {
+    ) [@sizeOf(FrameHeader)]u8 {
         switch (endian) {
             .little => {
-                var buf: [16]u8 = undefined;
+                var buf: [@sizeOf(FrameHeader)]u8 = undefined;
                 inline for (std.meta.fields(FrameHeader)) |f| {
                     std.mem.copyForwards(
                         u8,
@@ -63,7 +63,7 @@ const FrameHeader = packed struct {
 
     fn fromBytes(
         self: *FrameHeader,
-        buf: [16]u8,
+        buf: [@sizeOf(FrameHeader)]u8,
         endian: std.builtin.Endian,
     ) void {
         switch (endian) {
