@@ -41,14 +41,13 @@ const FrameHeader = packed struct {
 
 fn fromBigEndianBytes(
     comptime T: type,
-    comptime endian: std.builtin.Endian,
+    comptime target_endian: std.builtin.Endian,
     self: *T,
     buf: [@sizeOf(T)]u8,
 ) void {
-    // In CQL, frame is big-endian (network byte order) https://github.com/apache/cassandra/blob/5d4bcc797af/doc/native_protocol_v5.spec#L232
-    // So, we need to convert it to little-endian on little-endian machines
-    switch (endian) {
-        .little => {
+    switch (builtin.target.cpu.arch.endian()) {
+        target_endian => self.* = std.mem.bytesAsValue(T, &buf).*,
+        else => {
             inline for (std.meta.fields(T)) |f| {
                 // set each field
                 @field(self, f.name) = @byteSwap(
@@ -59,7 +58,6 @@ fn fromBigEndianBytes(
                 );
             }
         },
-        .big => self.* = std.mem.bytesAsValue(T, &buf).*,
     }
 }
 
@@ -192,7 +190,7 @@ test "let's see how struct bytes work" {
         .opcode = 0,
         .length = 0,
     };
-    fromBigEndianBytes(FrameHeader, builtin.target.cpu.arch.endian(), &frame2, buf);
+    fromBigEndianBytes(FrameHeader, std.builtin.Endian.big, &frame2, buf);
     std.log.info("frame2: {any}", .{frame2});
     try std.testing.expectEqual(frame1, frame2);
 }
