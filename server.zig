@@ -30,6 +30,8 @@ const StateMachine = struct {
 // In CQL, frame is big-endian (network byte order) https://github.com/apache/cassandra/blob/5d4bcc797af/doc/native_protocol_v5.spec#L232
 // So, we need to convert it to little-endian on little-endian machines
 const FrameHeader = packed struct {
+    const Self = @This();
+
     version: u8,
     flags: u8,
     stream: i16,
@@ -37,16 +39,16 @@ const FrameHeader = packed struct {
     length: u32,
 
     fn asBytes(
-        self: *const FrameHeader,
+        self: *const Self,
         comptime endian: std.builtin.Endian,
-    ) [@sizeOf(FrameHeader)]u8 {
+    ) [@sizeOf(Self)]u8 {
         switch (endian) {
             .little => {
-                var buf: [@sizeOf(FrameHeader)]u8 = undefined;
-                inline for (std.meta.fields(FrameHeader)) |f| {
+                var buf: [@sizeOf(Self)]u8 = undefined;
+                inline for (std.meta.fields(Self)) |f| {
                     std.mem.copyForwards(
                         u8,
-                        buf[@offsetOf(FrameHeader, f.name) .. @offsetOf(FrameHeader, f.name) + @sizeOf(f.type)],
+                        buf[@offsetOf(Self, f.name) .. @offsetOf(Self, f.name) + @sizeOf(f.type)],
                         std.mem.asBytes(&@byteSwap(@field(self, f.name))),
                     );
                 }
@@ -62,23 +64,23 @@ const FrameHeader = packed struct {
     }
 
     fn fromBytes(
-        self: *FrameHeader,
-        buf: [@sizeOf(FrameHeader)]u8,
+        self: *Self,
+        buf: [@sizeOf(Self)]u8,
         endian: std.builtin.Endian,
     ) void {
         switch (endian) {
             .little => {
-                inline for (std.meta.fields(FrameHeader)) |f| {
+                inline for (std.meta.fields(Self)) |f| {
                     // set each field
                     @field(self, f.name) = @byteSwap(
                         std.mem.bytesAsValue(
                             f.type,
-                            buf[@offsetOf(FrameHeader, f.name) .. @offsetOf(FrameHeader, f.name) + @sizeOf(f.type)],
+                            buf[@offsetOf(Self, f.name) .. @offsetOf(Self, f.name) + @sizeOf(f.type)],
                         ).*,
                     );
                 }
             },
-            .big => self.* = std.mem.bytesAsValue(FrameHeader, &buf).*,
+            .big => self.* = std.mem.bytesAsValue(Self, &buf).*,
         }
     }
 
