@@ -43,11 +43,13 @@ const FrameHeader = packed struct {
         switch (endian) {
             .little => {
                 var buf: [16]u8 = undefined;
-                buf[0] = std.mem.asBytes(&self.version)[0];
-                buf[1] = std.mem.asBytes(&self.flags)[0];
-                std.mem.copyForwards(u8, buf[2..4], std.mem.asBytes(&@byteSwap(self.stream)));
-                buf[4] = std.mem.asBytes(&self.opcode)[0];
-                std.mem.copyForwards(u8, buf[5..9], std.mem.asBytes(&@byteSwap(self.length)));
+                inline for (std.meta.fields(FrameHeader)) |f| {
+                    std.mem.copyForwards(
+                        u8,
+                        buf[@offsetOf(FrameHeader, f.name) .. @offsetOf(FrameHeader, f.name) + @sizeOf(f.type)],
+                        std.mem.asBytes(&@byteSwap(@field(self, f.name))),
+                    );
+                }
 
                 // NOTE: if you return the slice buf[0..] instead of buf, it will be incorrect, because
                 // the array exists on the stack and is deallocated when the function returns,
