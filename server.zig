@@ -27,68 +27,69 @@ const StateMachine = struct {
 };
 
 // https://github.com/apache/cassandra/blob/5d4bcc797af/doc/native_protocol_v5.spec#L220-L225
-// In CQL, frame is big-endian (network byte order) https://github.com/apache/cassandra/blob/5d4bcc797af/doc/native_protocol_v5.spec#L232
-// So, we need to convert it to little-endian on little-endian machines
 const FrameHeader = packed struct {
-    const Self = @This();
-
     version: u8,
     flags: u8,
     stream: i16,
     opcode: u8,
     length: u32,
-
-    fn asBytes(
-        self: *const Self,
-        comptime endian: std.builtin.Endian,
-    ) [@sizeOf(Self)]u8 {
-        switch (endian) {
-            .little => {
-                var buf: [@sizeOf(Self)]u8 = undefined;
-                inline for (std.meta.fields(Self)) |f| {
-                    std.mem.copyForwards(
-                        u8,
-                        buf[@offsetOf(Self, f.name) .. @offsetOf(Self, f.name) + @sizeOf(f.type)],
-                        std.mem.asBytes(&@byteSwap(@field(self, f.name))),
-                    );
-                }
-
-                // NOTE: if you return the slice buf[0..] instead of buf, it will be incorrect, because
-                // the array exists on the stack and is deallocated when the function returns,
-                // so the slice will point to invalid memory.
-                // This would be dine in Go, because Go can place that array on the heap, but in Zig it is bad.
-                return buf;
-            },
-            .big => return std.mem.asBytes(self),
-        }
-    }
-
-    fn fromBytes(
-        self: *Self,
-        buf: [@sizeOf(Self)]u8,
-        endian: std.builtin.Endian,
-    ) void {
-        switch (endian) {
-            .little => {
-                inline for (std.meta.fields(Self)) |f| {
-                    // set each field
-                    @field(self, f.name) = @byteSwap(
-                        std.mem.bytesAsValue(
-                            f.type,
-                            buf[@offsetOf(Self, f.name) .. @offsetOf(Self, f.name) + @sizeOf(f.type)],
-                        ).*,
-                    );
-                }
-            },
-            .big => self.* = std.mem.bytesAsValue(Self, &buf).*,
-        }
-    }
-
     // comptime {
     //     @compileLog(@sizeOf(FrameHeader));
     //     // std.debug.assert(@sizeOf(FrameHeader) == 12);
     // }
 };
+
+fn fromBytes(
+    comptime T: type,
+    comptime endian: std.builtin.Endian,
+    self: *T,
+    buf: [@sizeOf(T)]u8,
+) void {
+    // In CQL, frame is big-endian (network byte order) https://github.com/apache/cassandra/blob/5d4bcc797af/doc/native_protocol_v5.spec#L232
+    // So, we need to convert it to little-endian on little-endian machines
+    switch (endian) {
+        .little => {
+            inline for (std.meta.fields(T)) |f| {
+                // set each field
+                @field(self, f.name) = @byteSwap(
+                    std.mem.bytesAsValue(
+                        f.type,
+                        buf[@offsetOf(T, f.name) .. @offsetOf(T, f.name) + @sizeOf(f.type)],
+                    ).*,
+                );
+            }
+        },
+        .big => self.* = std.mem.bytesAsValue(T, &buf).*,
+    }
+}
+
+fn asBytes(
+    comptime T: type,
+    comptime endian: std.builtin.Endian,
+    self: T,
+) [@sizeOf(T)]u8 {
+    // In CQL, frame is big-endian (network byte order) https://github.com/apache/cassandra/blob/5d4bcc797af/doc/native_protocol_v5.spec#L232
+    // So, we need to convert it to little-endian on little-endian machines
+    switch (endian) {
+        .little => {
+            var buf: [@sizeOf(T)]u8 = undefined;
+            inline for (std.meta.fields(T)) |f| {
+                std.mem.copyForwards(
+                    u8,
+                    buf[@offsetOf(T, f.name) .. @offsetOf(T, f.name) + @sizeOf(f.type)],
+                    std.mem.asBytes(&@byteSwap(@field(self, f.name))),
+                );
+            }
+
+            // NOTE: if you return the slice buf[0..] instead of buf, it will be incorrect, because
+            // the array exists on the stack and is deallocated when the function returns,
+            // so the slice will point to invalid memory.
+            // This would be dine in Go, because Go can place that array on the heap, but in Zig it is bad.
+            return buf;
+        },
+        .big => return std.mem.asBytes(self),
+    }
+}
 
 const Server = struct {
     net_server: net.Server,
@@ -169,7 +170,7 @@ test "let's see how struct bytes work" {
         .opcode = 4,
         .length = 5,
     };
-    const buf = frame1.asBytes(builtin.target.cpu.arch.endian());
+    const buf = asBytes(FrameHeader, builtin.target.cpu.arch.endian(), frame1);
     for (1.., buf) |i, c| {
         std.log.info("frame1 byte {d: >2}/{d}: 0x{x:0>2} {d: >3} {s}", .{ i, buf.len, c, c, prettyByte(c) });
     }
@@ -191,7 +192,7 @@ test "let's see how struct bytes work" {
         .opcode = 0,
         .length = 0,
     };
-    frame2.fromBytes(buf, builtin.target.cpu.arch.endian());
+    fromBytes(FrameHeader, builtin.target.cpu.arch.endian(), &frame2, buf);
     std.log.info("frame2: {any}", .{frame2});
     try std.testing.expectEqual(frame1, frame2);
 }
