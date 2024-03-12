@@ -39,7 +39,7 @@ const FrameHeader = packed struct {
     // }
 };
 
-fn fromBytes(
+fn fromBigEndianBytes(
     comptime T: type,
     comptime endian: std.builtin.Endian,
     self: *T,
@@ -63,7 +63,7 @@ fn fromBytes(
     }
 }
 
-fn asBytes(
+fn asBigEndianBytes(
     comptime T: type,
     comptime endian: std.builtin.Endian,
     self: T,
@@ -170,7 +170,7 @@ test "let's see how struct bytes work" {
         .opcode = 4,
         .length = 5,
     };
-    const buf = asBytes(FrameHeader, builtin.target.cpu.arch.endian(), frame1);
+    const buf = asBigEndianBytes(FrameHeader, builtin.target.cpu.arch.endian(), frame1);
     for (1.., buf) |i, c| {
         std.log.info("frame1 byte {d: >2}/{d}: 0x{x:0>2} {d: >3} {s}", .{ i, buf.len, c, c, prettyByte(c) });
     }
@@ -192,7 +192,7 @@ test "let's see how struct bytes work" {
         .opcode = 0,
         .length = 0,
     };
-    fromBytes(FrameHeader, builtin.target.cpu.arch.endian(), &frame2, buf);
+    fromBigEndianBytes(FrameHeader, builtin.target.cpu.arch.endian(), &frame2, buf);
     std.log.info("frame2: {any}", .{frame2});
     try std.testing.expectEqual(frame1, frame2);
 }
