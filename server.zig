@@ -67,12 +67,23 @@ const FrameHeader = packed struct {
         }
     }
 
-    // fn fromBytes(buf: *align(@alignOf(FrameHeader)) const [@sizeOf(FrameHeader)]u8) *const FrameHeader {
-    //     var got = std.mem.bytesAsValue(FrameHeader, buf);
-    //     got.stream = @byteSwap(got.stream);
-    //     got.length = @byteSwap(got.length);
-    //     return got;
-    // }
+    fn fromBytes(
+        self: *FrameHeader,
+        buf: [16]u8,
+        endian: std.builtin.Endian,
+    ) void {
+        switch (endian) {
+            .little => {
+                self.version = buf[0];
+                self.flags = buf[1];
+                self.stream = @byteSwap(std.mem.bytesAsValue(i16, buf[2..4]).*);
+                self.stream = @byteSwap(std.mem.bytesAsValue(i16, buf[2..4]).*);
+                self.opcode = buf[4];
+                self.length = @byteSwap(std.mem.bytesAsValue(u32, buf[5..9]).*);
+            },
+            .big => self.* = std.mem.bytesAsValue(FrameHeader, &buf).*,
+        }
+    }
 
     // comptime {
     //     @compileLog(@sizeOf(FrameHeader));
@@ -174,8 +185,15 @@ test "let's see how struct bytes work" {
     try std.testing.expectEqual(0, buf[7]);
     try std.testing.expectEqual(5, buf[8]);
 
-    // const frame2 = FrameHeader.fromBytes(buf);
-    // try std.testing.expectEqual(frame1, frame2.*);
+    var frame2 = FrameHeader{
+        .version = 0,
+        .flags = 0,
+        .stream = 0,
+        .opcode = 0,
+        .length = 0,
+    };
+    frame2.fromBytes(buf, builtin.target.cpu.arch.endian());
+    try std.testing.expectEqual(frame1, frame2);
 }
 
 test "test server" {
