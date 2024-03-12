@@ -188,6 +188,7 @@ test "let's see how struct bytes work" {
         .length = 0,
     };
     frame2.fromBytes(buf, builtin.target.cpu.arch.endian());
+    std.log.info("frame2: {any}", .{frame2});
     try std.testing.expectEqual(frame1, frame2);
 }
 
