@@ -32,7 +32,7 @@ docker-compose-restart-debug:
 	docker compose up -d --no-deps --force-recreate debugger
 
 test-zig:
-	zig build test --summary all --verbose
+	zig build test --summary all --verbose # --verbose-llvm-ir
 
 zig-run:
 	TRACY_NO_INVARIANT_CHECK=1 \
