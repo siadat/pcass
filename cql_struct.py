@@ -294,7 +294,7 @@ frame = construct.Struct(
     #   https://docs.datastax.com/en/developer/python-driver/3.29/api/cassandra/#cassandra.ProtocolVersion:~:text=by%20this%20driver.-,MAX_SUPPORTED%20%3D%2066,-Maximum%20protocol%20version
     "version" / construct.Hex(construct.Byte),
     "flags" / construct.Hex(construct.Byte),
-    "stream" / construct.Int16ub,
+    "stream" / construct.Int16sb,
     "opcode" / construct.Hex(construct.Byte),
     "length" / construct.Int32ub,
     "body" / construct.Switch(construct.this.opcode, {

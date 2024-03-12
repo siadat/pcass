@@ -1,6 +1,7 @@
 const std = @import("std");
 const net = std.net;
 const tracy = @import("tracy.zig");
+const builtin = @import("builtin");
 
 pub fn prettyByte(
     byte: u8,
@@ -23,6 +24,60 @@ pub fn prettyByte(
 
 const StateMachine = struct {
     //
+};
+
+// https://github.com/apache/cassandra/blob/5d4bcc797af/doc/native_protocol_v5.spec#L220-L225
+// In CQL, frame is big-endian (network byte order) https://github.com/apache/cassandra/blob/5d4bcc797af/doc/native_protocol_v5.spec#L232
+// So, we need to convert it to little-endian on little-endian machines
+const FrameHeader = packed struct {
+    version: u8,
+    flags: u8,
+    stream: i16,
+    opcode: u8,
+    length: u32,
+
+    fn asBytes(
+        self: *const FrameHeader,
+        comptime endian: std.builtin.Endian,
+    ) [16]u8 {
+        switch (endian) {
+            .little => {
+                var buf: [16]u8 = undefined;
+                buf[0] = std.mem.asBytes(&self.version)[0];
+                buf[1] = std.mem.asBytes(&self.flags)[0];
+
+                const stream = std.mem.asBytes(&@byteSwap(self.stream));
+                buf[2] = stream[0];
+                buf[3] = stream[1];
+
+                buf[4] = std.mem.asBytes(&self.opcode)[0];
+
+                const length = std.mem.asBytes(&@byteSwap(self.length));
+                buf[5] = length[0];
+                buf[6] = length[1];
+                buf[7] = length[2];
+                buf[8] = length[3];
+                // NOTE: if you return the slice buf[0..] instead of buf, it will be incorrect, because
+                // the array exists on the stack and is deallocated when the function returns,
+                // so the slice will point to invalid memory.
+                // This would be dine in Go, because Go can place that array on the heap, but in Zig it is bad.
+                return buf;
+            },
+            .big => return std.mem.asBytes(self),
+        }
+    }
+
+    // fn fromBytes(buf: *align(@alignOf(FrameHeader)) const [@sizeOf(FrameHeader)]u8) *const FrameHeader {
+    //     var got = std.mem.bytesAsValue(FrameHeader, buf);
+    //     got.stream = @byteSwap(got.stream);
+    //     got.length = @byteSwap(got.length);
+    //     return got;
+    // }
+
+    // comptime {
+    //     @compileLog(@sizeOf(FrameHeader));
+    //     // std.debug.assert(@sizeOf(FrameHeader) == 12);
+    // }
 };
 
 const Server = struct {
@@ -60,8 +115,11 @@ const Server = struct {
             if (n == 0) return total_bytes_count;
             defer total_bytes_count += n;
 
+            const frame = std.mem.bytesAsValue(FrameHeader, buf[0..@sizeOf(FrameHeader)]);
+            std.log.info("received byte: {any}", .{frame});
+
             for (1.., buf[0..n]) |i, c| {
-                std.log.info("read byte {d}/{d}: 0x{x:0>2} {d: >3} {s}", .{ i, buf.len, c, c, prettyByte(c) });
+                std.log.info("read byte {d: >2}/{d}: 0x{x:0>2} {d: >3} {s}", .{ i, buf.len, c, c, prettyByte(c) });
             }
         }
         return total_bytes_count;
@@ -90,6 +148,34 @@ pub fn main() !void {
     defer buf.deinit();
 
     _ = try srv.accept();
+}
+
+test "let's see how struct bytes work" {
+    std.testing.log_level = std.log.Level.info;
+    const frame1 = FrameHeader{
+        .version = 1,
+        .flags = 2,
+        .stream = 3,
+        .opcode = 4,
+        .length = 5,
+    };
+    const buf = frame1.asBytes(builtin.target.cpu.arch.endian());
+    for (1.., buf) |i, c| {
+        std.log.info("frame1 byte {d: >2}/{d}: 0x{x:0>2} {d: >3} {s}", .{ i, buf.len, c, c, prettyByte(c) });
+    }
+
+    try std.testing.expectEqual(1, buf[0]);
+    try std.testing.expectEqual(2, buf[1]);
+    try std.testing.expectEqual(0, buf[2]);
+    try std.testing.expectEqual(3, buf[3]);
+    try std.testing.expectEqual(4, buf[4]);
+    try std.testing.expectEqual(0, buf[5]);
+    try std.testing.expectEqual(0, buf[6]);
+    try std.testing.expectEqual(0, buf[7]);
+    try std.testing.expectEqual(5, buf[8]);
+
+    // const frame2 = FrameHeader.fromBytes(buf);
+    // try std.testing.expectEqual(frame1, frame2.*);
 }
 
 test "test server" {
