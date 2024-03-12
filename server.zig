@@ -47,16 +47,13 @@ const FrameHeader = packed struct {
                 buf[1] = std.mem.asBytes(&self.flags)[0];
 
                 const stream = std.mem.asBytes(&@byteSwap(self.stream));
-                buf[2] = stream[0];
-                buf[3] = stream[1];
+                std.mem.copyForwards(u8, buf[2..4], stream);
 
                 buf[4] = std.mem.asBytes(&self.opcode)[0];
 
                 const length = std.mem.asBytes(&@byteSwap(self.length));
-                buf[5] = length[0];
-                buf[6] = length[1];
-                buf[7] = length[2];
-                buf[8] = length[3];
+                std.mem.copyForwards(u8, buf[5..9], length);
+
                 // NOTE: if you return the slice buf[0..] instead of buf, it will be incorrect, because
                 // the array exists on the stack and is deallocated when the function returns,
                 // so the slice will point to invalid memory.
