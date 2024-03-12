@@ -69,7 +69,6 @@ const FrameHeader = packed struct {
                 self.version = buf[0];
                 self.flags = buf[1];
                 self.stream = @byteSwap(std.mem.bytesAsValue(i16, buf[2..4]).*);
-                self.stream = @byteSwap(std.mem.bytesAsValue(i16, buf[2..4]).*);
                 self.opcode = buf[4];
                 self.length = @byteSwap(std.mem.bytesAsValue(u32, buf[5..9]).*);
             },
