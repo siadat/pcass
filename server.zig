@@ -72,7 +72,12 @@ const FrameHeader = packed struct {
                 // self.opcode = @byteSwap(std.mem.bytesAsValue(@TypeOf(self.opcode), buf[4..5]).*);
                 // self.length = @byteSwap(std.mem.bytesAsValue(@TypeOf(self.length), buf[5..9]).*);
                 inline for (std.meta.fields(FrameHeader)) |f| {
-                    @field(self, f.name) = @byteSwap(std.mem.bytesAsValue(f.type, buf[@offsetOf(FrameHeader, f.name) .. @offsetOf(FrameHeader, f.name) + @sizeOf(f.type)]).*);
+                    @field(self, f.name) = @byteSwap(
+                        std.mem.bytesAsValue(
+                            f.type,
+                            buf[@offsetOf(FrameHeader, f.name) .. @offsetOf(FrameHeader, f.name) + @sizeOf(f.type)],
+                        ).*,
+                    );
                 }
             },
             .big => self.* = std.mem.bytesAsValue(FrameHeader, &buf).*,
