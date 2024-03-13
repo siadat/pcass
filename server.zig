@@ -63,6 +63,7 @@ fn fromBytes(
 
 fn asBytes(
     comptime T: type,
+    comptime struct_endian: std.builtin.Endian,
     self: T,
 ) [@sizeOf(T)]u8 {
     // In CQL, frame is big-endian (network byte order) https://github.com/apache/cassandra/blob/5d4bcc797af/doc/native_protocol_v5.spec#L232
@@ -72,8 +73,8 @@ fn asBytes(
     // You can verify that the other branch is not analysed by adding a @compileError
     switch (comptime builtin.target.cpu.arch.endian()) {
         // Note that this is toBytes, not asBytes, because we want to return an array
-        .big => return std.mem.toBytes(self),
-        .little => {
+        struct_endian => return std.mem.toBytes(self),
+        else => {
             var buf: [@sizeOf(T)]u8 = undefined;
             inline for (std.meta.fields(T)) |f| {
                 std.mem.copyForwards(
@@ -166,7 +167,7 @@ test "let's see how struct bytes work" {
         .opcode = 4,
         .length = 5,
     };
-    const buf = asBytes(FrameHeader, frame1);
+    const buf = asBytes(FrameHeader, std.builtin.Endian.big, frame1);
     for (1.., buf) |i, c| {
         std.log.info("frame1 byte {d: >2}/{d}: 0x{x:0>2} {d: >3} {s}", .{ i, buf.len, c, c, prettyByte(c) });
     }
