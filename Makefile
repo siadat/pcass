@@ -32,13 +32,13 @@ docker-compose-restart-debug:
 	docker compose up -d --no-deps --force-recreate debugger
 
 test-zig:
-	zig build test --summary all --verbose # --verbose-llvm-ir
+	zig build test --summary all --verbose -freference-trace # --verbose-llvm-ir
 
 zig-run:
 	TRACY_NO_INVARIANT_CHECK=1 \
 	TRACY_PORT=5454 \
 	TRACY_CALLSTACK=1 \
-	zig build run --verbose \
+	zig build run -freference-trace --verbose \
 		-Dtracy=./tracy \
 		-Dtracy-allocation \
 		-Dtracy-callstack \

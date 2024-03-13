@@ -61,14 +61,14 @@ fn fromBytes(
     }
 }
 
-fn asBigEndianBytes(
+fn asBytes(
     comptime T: type,
-    comptime endian: std.builtin.Endian,
     self: T,
 ) [@sizeOf(T)]u8 {
     // In CQL, frame is big-endian (network byte order) https://github.com/apache/cassandra/blob/5d4bcc797af/doc/native_protocol_v5.spec#L232
     // So, we need to convert it to little-endian on little-endian machines
-    switch (endian) {
+    switch (builtin.target.cpu.arch.endian()) {
+        .big => return std.mem.toBytes(self),
         .little => {
             var buf: [@sizeOf(T)]u8 = undefined;
             inline for (std.meta.fields(T)) |f| {
@@ -85,7 +85,6 @@ fn asBigEndianBytes(
             // This would be dine in Go, because Go can place that array on the heap, but in Zig it is bad.
             return buf;
         },
-        .big => return std.mem.asBytes(self),
     }
 }
 
@@ -168,7 +167,7 @@ test "let's see how struct bytes work" {
         .opcode = 4,
         .length = 5,
     };
-    const buf = asBigEndianBytes(FrameHeader, builtin.target.cpu.arch.endian(), frame1);
+    const buf = asBytes(FrameHeader, frame1);
     for (1.., buf) |i, c| {
         std.log.info("frame1 byte {d: >2}/{d}: 0x{x:0>2} {d: >3} {s}", .{ i, buf.len, c, c, prettyByte(c) });
     }
