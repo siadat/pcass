@@ -33,10 +33,6 @@ const FrameHeader = packed struct {
     stream: i16,
     opcode: u8,
     length: u32,
-    // comptime {
-    //     @compileLog(@sizeOf(FrameHeader));
-    //     // std.debug.assert(@sizeOf(FrameHeader) == 12);
-    // }
 };
 
 fn fromBytes(
