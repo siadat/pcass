@@ -67,7 +67,10 @@ fn asBytes(
 ) [@sizeOf(T)]u8 {
     // In CQL, frame is big-endian (network byte order) https://github.com/apache/cassandra/blob/5d4bcc797af/doc/native_protocol_v5.spec#L232
     // So, we need to convert it to little-endian on little-endian machines
-    switch (builtin.target.cpu.arch.endian()) { // TODO: this is known at compile time, so we can use comptime
+
+    // The comptime switch is used to avoid the runtime overhead of checking the endianness of the machine
+    // You can verify that the other branch is not analysed by adding a @compileError
+    switch (comptime builtin.target.cpu.arch.endian()) {
         .big => return std.mem.toBytes(self),
         .little => {
             var buf: [@sizeOf(T)]u8 = undefined;
