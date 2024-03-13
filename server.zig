@@ -67,7 +67,7 @@ fn asBytes(
 ) [@sizeOf(T)]u8 {
     // In CQL, frame is big-endian (network byte order) https://github.com/apache/cassandra/blob/5d4bcc797af/doc/native_protocol_v5.spec#L232
     // So, we need to convert it to little-endian on little-endian machines
-    switch (builtin.target.cpu.arch.endian()) {
+    switch (builtin.target.cpu.arch.endian()) { // TODO: this is known at compile time, so we can use comptime
         .big => return std.mem.toBytes(self),
         .little => {
             var buf: [@sizeOf(T)]u8 = undefined;
@@ -78,11 +78,6 @@ fn asBytes(
                     std.mem.asBytes(&@byteSwap(@field(self, f.name))),
                 );
             }
-
-            // NOTE: if you return the slice buf[0..] instead of buf, it will be incorrect, because
-            // the array exists on the stack and is deallocated when the function returns,
-            // so the slice will point to invalid memory.
-            // This would be dine in Go, because Go can place that array on the heap, but in Zig it is bad.
             return buf;
         },
     }
