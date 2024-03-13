@@ -71,6 +71,7 @@ fn asBytes(
     // The comptime switch is used to avoid the runtime overhead of checking the endianness of the machine
     // You can verify that the other branch is not analysed by adding a @compileError
     switch (comptime builtin.target.cpu.arch.endian()) {
+        // Note that this is toBytes, not asBytes, because we want to return an array
         .big => return std.mem.toBytes(self),
         .little => {
             var buf: [@sizeOf(T)]u8 = undefined;
