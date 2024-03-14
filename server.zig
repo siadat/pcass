@@ -38,10 +38,10 @@ const FrameHeader = packed struct {
 fn fromBytes(
     comptime T: type,
     comptime target_endian: std.builtin.Endian,
-    self: *T,
     buf: []const u8,
+    self: *T,
 ) void {
-    switch (builtin.target.cpu.arch.endian()) {
+    switch (comptime builtin.target.cpu.arch.endian()) {
         target_endian => self.* = std.mem.bytesAsValue(T, buf).*,
         else => {
             inline for (std.meta.fields(T)) |f| {
@@ -123,10 +123,10 @@ const Server = struct {
             fromBytes(
                 FrameHeader,
                 std.builtin.Endian.big,
-                &frame,
                 buf[0..@sizeOf(FrameHeader)],
+                &frame,
             );
-            std.log.info("received byte: {any}", .{frame});
+            std.log.info("received frame: {any}", .{frame});
 
             for (1.., buf[0..n]) |i, c| {
                 std.log.info("read byte {d: >2}/{d}: 0x{x:0>2} {d: >3} {s}", .{ i, buf.len, c, c, prettyByte(c) });
@@ -194,8 +194,8 @@ test "let's see how struct bytes work" {
     fromBytes(
         FrameHeader,
         std.builtin.Endian.big,
-        &frame2,
         buf[0..],
+        &frame2,
     );
     std.log.info("frame2: {any}", .{frame2});
     try std.testing.expectEqual(frame1, frame2);
