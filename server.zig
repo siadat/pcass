@@ -195,8 +195,15 @@ const CqlServer = struct {
                 .opcode = 0x00, // Opcode.Error,
                 .length = body.len,
             };
-            try client.stream.writer().writeAll(toBytes(FrameHeader, std.builtin.Endian.big, resp_frame)[0..]);
-            // try client.stream.writer().writeAll(body[0..]);
+
+            try client.stream.writer().writeAll(
+                toBytes(
+                    FrameHeader,
+                    std.builtin.Endian.big,
+                    resp_frame,
+                )[0..],
+            );
+            try client.stream.writer().writeAll(body[0..]);
             // try client.stream.writer().writeAll(message);
             // 84000000000000006b0000000a0065496e76616c6964206f7220756e737570706f727465642070726f746f636f6c2076657273696f6e20283636293b20746865206c6f7765737420737570706f727465642076657273696f6e206973203320616e64207468652067726561746573742069732034
         }
@@ -287,9 +294,18 @@ test "test initial cql handshake" {
                 .opcode = 0x05,
                 .length = 0,
             };
-            _ = try socket.writer().writeAll(toBytes(FrameHeader, std.builtin.Endian.big, frame1)[0..]);
+            _ = try socket.writer().writeAll(
+                toBytes(
+                    FrameHeader,
+                    std.builtin.Endian.big,
+                    frame1,
+                )[0..],
+            );
             const got = try socket.reader().readStructEndian(FrameHeader, std.builtin.Endian.big);
             std.log.info("got: {any}", .{got});
+
+            const got2 = try socket.reader().readStructEndian(ErrorBody, std.builtin.Endian.big);
+            std.log.info("got2: {any}", .{got2});
         }
     };
 
