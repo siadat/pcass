@@ -3,6 +3,47 @@ const net = std.net;
 const tracy = @import("tracy.zig");
 const builtin = @import("builtin");
 
+// enum for version 4 and 5:
+const Opcode = enum(u8) {
+    Error = 0x00,
+    Startup = 0x01,
+    Ready = 0x02,
+    Authenticate = 0x03,
+    Options = 0x05,
+    Supported = 0x06,
+    Query = 0x07,
+    Result = 0x08,
+    Prepare = 0x09,
+    Execute = 0x0A,
+    Register = 0x0B,
+    Event = 0x0C,
+    Batch = 0x0D,
+    AuthChallenge = 0x0E,
+    AuthResponse = 0x0F,
+    AuthSuccess = 0x10,
+};
+
+const ErrorCode = enum(u32) {
+    SERVER_ERROR = 0x0000,
+    PROTOCOL_ERROR = 0x000A,
+    AUTH_ERROR = 0x0100,
+    UNAVAILABLE = 0x1000,
+    OVERLOADED = 0x1001,
+    IS_BOOTSTRAPPING = 0x1002,
+    TRUNCATE_ERROR = 0x1003,
+    WRITE_TIMEOUT = 0x1100,
+    READ_TIMEOUT = 0x1200,
+    READ_FAILURE = 0x1300,
+    FUNCTION_FAILURE = 0x1400,
+    WRITE_FAILURE = 0x1500,
+    SYNTAX_ERROR = 0x2000,
+    UNAUTHORIZED = 0x2100,
+    INVALID = 0x2200,
+    CONFIG_ERROR = 0x2300,
+    ALREADY_EXISTS = 0x2400,
+    UNPREPARED = 0x2500,
+};
+
 pub fn prettyByte(
     byte: u8,
 ) [4]u8 {
@@ -31,10 +72,17 @@ const FrameHeader = packed struct {
     version: u8,
     flags: u8,
     stream: i16,
-    opcode: u8,
+    opcode: u8, // TODO: Opcode,
     length: u32,
 };
 
+const ErrorBody = packed struct {
+    code: u32, // TODO ErrorCode,
+    length: u16,
+    // TONDO: message: []const u8,
+};
+
+// TODO: consier using io.Reader.readStructEndian?
 fn fromBytes(
     comptime T: type,
     comptime target_endian: std.builtin.Endian,
@@ -57,7 +105,7 @@ fn fromBytes(
     }
 }
 
-fn asBytes(
+fn toBytes(
     comptime T: type,
     comptime struct_endian: std.builtin.Endian,
     self: T,
@@ -103,7 +151,7 @@ const CqlServer = struct {
         self.net_server.deinit();
     }
 
-    fn accept(self: *@This()) !usize {
+    fn acceptClient(self: *@This()) !void {
         var client = try self.net_server.accept();
         defer client.stream.close();
 
@@ -116,23 +164,43 @@ const CqlServer = struct {
         var buf: [@sizeOf(FrameHeader)]u8 = undefined;
         while (true) {
             const n = try client.stream.reader().read(&buf);
-            if (n == 0) return total_bytes_count;
+            if (n == 0) return; // total_bytes_count;
             defer total_bytes_count += n;
 
-            var frame: FrameHeader = undefined;
+            var req_frame: FrameHeader = undefined;
             fromBytes(
                 FrameHeader,
                 std.builtin.Endian.big,
                 buf[0..@sizeOf(FrameHeader)],
-                &frame,
+                &req_frame,
             );
-            std.log.info("received frame: {any}", .{frame});
+            std.log.info("received frame: {any}", .{req_frame});
 
             for (1.., buf[0..n]) |i, c| {
                 std.log.info("read byte {d: >2}/{d}: 0x{x:0>2} {d: >3} {s}", .{ i, buf.len, c, c, prettyByte(c) });
             }
+
+            // message = f'Invalid or unsupported protocol version ({parsed_request.version}); the lowest supported version is 3 and the greatest is 4'
+            const message = "Invalid or unsupported protocol version (?); the lowest supported version is 3 and the greatest is 4";
+            const resp_body = ErrorBody{
+                .code = 0x000A, // TODO: ErrorCode.PROTOCOL_ERROR,
+                .length = message.len,
+                // .message = message,
+            };
+            const body = toBytes(ErrorBody, std.builtin.Endian.big, resp_body);
+            const resp_frame = FrameHeader{
+                .version = 0x05 | 0x80, // 0b10000000,
+                .flags = 0x00,
+                .stream = 0,
+                .opcode = 0x00, // Opcode.Error,
+                .length = body.len,
+            };
+            try client.stream.writer().writeAll(toBytes(FrameHeader, std.builtin.Endian.big, resp_frame)[0..]);
+            // try client.stream.writer().writeAll(body[0..]);
+            // try client.stream.writer().writeAll(message);
+            // 84000000000000006b0000000a0065496e76616c6964206f7220756e737570706f727465642070726f746f636f6c2076657273696f6e20283636293b20746865206c6f7765737420737570706f727465642076657273696f6e206973203320616e64207468652067726561746573742069732034
         }
-        return total_bytes_count;
+        // return total_bytes_count;
     }
 };
 
@@ -157,7 +225,7 @@ pub fn main() !void {
     var buf = std.ArrayList(u8).init(inner_allocator);
     defer buf.deinit();
 
-    _ = try srv.accept();
+    try srv.acceptClient();
 }
 
 test "let's see how struct bytes work" {
@@ -166,10 +234,10 @@ test "let's see how struct bytes work" {
         .version = 1,
         .flags = 2,
         .stream = 3,
-        .opcode = 4,
+        .opcode = 4, // TODO: Opcode.AuthSuccess,
         .length = 5,
     };
-    const buf = asBytes(FrameHeader, std.builtin.Endian.big, frame1);
+    const buf = toBytes(FrameHeader, std.builtin.Endian.big, frame1);
     for (1.., buf) |i, c| {
         std.log.info("frame1 byte {d: >2}/{d}: 0x{x:0>2} {d: >3} {s}", .{ i, buf.len, c, c, prettyByte(c) });
     }
@@ -178,7 +246,7 @@ test "let's see how struct bytes work" {
     try std.testing.expectEqual(2, buf[1]);
     try std.testing.expectEqual(0, buf[2]);
     try std.testing.expectEqual(3, buf[3]);
-    try std.testing.expectEqual(4, buf[4]);
+    try std.testing.expectEqual(4, buf[4]); // 0x10, buf[4]);
     try std.testing.expectEqual(0, buf[5]);
     try std.testing.expectEqual(0, buf[6]);
     try std.testing.expectEqual(0, buf[7]);
@@ -188,7 +256,7 @@ test "let's see how struct bytes work" {
         .version = 0,
         .flags = 0,
         .stream = 0,
-        .opcode = 0,
+        .opcode = 4, // TODO: Opcode.Error,
         .length = 0,
     };
     fromBytes(
@@ -201,24 +269,32 @@ test "let's see how struct bytes work" {
     try std.testing.expectEqual(frame1, frame2);
 }
 
-test "test server" {
+test "test initial cql handshake" {
     std.testing.log_level = std.log.Level.info;
 
     var srv = try CqlServer.newServer(0);
     defer srv.deinit();
-    const want = "Hello world!";
 
-    const TestClient = struct {
+    const TestCqlClient = struct {
         fn send(server_address: net.Address) !void {
             const socket = try net.tcpConnectToAddress(server_address);
             defer socket.close();
-            _ = try socket.writer().writeAll(want);
+
+            const frame1 = FrameHeader{
+                .version = 0x42,
+                .flags = 0,
+                .stream = 0,
+                .opcode = 0x05,
+                .length = 0,
+            };
+            _ = try socket.writer().writeAll(toBytes(FrameHeader, std.builtin.Endian.big, frame1)[0..]);
+            const got = try socket.reader().readStructEndian(FrameHeader, std.builtin.Endian.big);
+            std.log.info("got: {any}", .{got});
         }
     };
 
-    const t = try std.Thread.spawn(.{}, TestClient.send, .{srv.net_server.listen_address});
+    const t = try std.Thread.spawn(.{}, TestCqlClient.send, .{srv.net_server.listen_address});
     defer t.join();
 
-    const got = try srv.accept();
-    try std.testing.expectEqual(@as(usize, want.len), got);
+    try srv.acceptClient();
 }
