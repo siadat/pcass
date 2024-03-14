@@ -84,11 +84,11 @@ fn asBytes(
     }
 }
 
-const Server = struct {
+const CqlServer = struct {
     net_server: net.Server,
     state_machine: StateMachine,
 
-    fn newServer(port: u16) !Server {
+    fn newServer(port: u16) !CqlServer {
         const address = try net.Address.parseIp("127.0.0.1", port);
         std.log.info("Address: {}", .{address});
         const s = try address.listen(.{ .reuse_address = true });
@@ -140,7 +140,7 @@ pub fn main() !void {
     const trace = tracy.trace(@src());
     defer trace.end();
 
-    var srv = try Server.newServer(9042);
+    var srv = try CqlServer.newServer(9042);
     defer srv.deinit();
 
     // copied from https://sourcegraph.com/github.com/zigtools/zls@dd307c59bf32e2cec323235c776e07fa36efb465/-/blob/src/main.zig?L235-236
@@ -204,7 +204,7 @@ test "let's see how struct bytes work" {
 test "test server" {
     std.testing.log_level = std.log.Level.info;
 
-    var srv = try Server.newServer(0);
+    var srv = try CqlServer.newServer(0);
     defer srv.deinit();
     const want = "Hello world!";
 
