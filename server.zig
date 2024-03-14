@@ -39,10 +39,10 @@ fn fromBytes(
     comptime T: type,
     comptime target_endian: std.builtin.Endian,
     self: *T,
-    buf: [@sizeOf(T)]u8,
+    buf: []const u8,
 ) void {
     switch (builtin.target.cpu.arch.endian()) {
-        target_endian => self.* = std.mem.bytesAsValue(T, &buf).*,
+        target_endian => self.* = std.mem.bytesAsValue(T, buf).*,
         else => {
             inline for (std.meta.fields(T)) |f| {
                 // set each field
@@ -113,13 +113,19 @@ const Server = struct {
         var total_bytes_count: usize = 0;
         defer std.log.info("total bytes: {d}", .{total_bytes_count});
 
-        var buf: [16]u8 = undefined;
+        var buf: [@sizeOf(FrameHeader)]u8 = undefined;
         while (true) {
             const n = try client.stream.reader().read(&buf);
             if (n == 0) return total_bytes_count;
             defer total_bytes_count += n;
 
-            const frame = std.mem.bytesAsValue(FrameHeader, buf[0..@sizeOf(FrameHeader)]);
+            var frame: FrameHeader = undefined;
+            fromBytes(
+                FrameHeader,
+                std.builtin.Endian.big,
+                &frame,
+                buf[0..@sizeOf(FrameHeader)],
+            );
             std.log.info("received byte: {any}", .{frame});
 
             for (1.., buf[0..n]) |i, c| {
@@ -185,7 +191,12 @@ test "let's see how struct bytes work" {
         .opcode = 0,
         .length = 0,
     };
-    fromBytes(FrameHeader, std.builtin.Endian.big, &frame2, buf);
+    fromBytes(
+        FrameHeader,
+        std.builtin.Endian.big,
+        &frame2,
+        buf[0..],
+    );
     std.log.info("frame2: {any}", .{frame2});
     try std.testing.expectEqual(frame1, frame2);
 }
