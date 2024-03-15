@@ -151,7 +151,7 @@ fn fromBytes(
                 @field(self, f.name) = @byteSwap(
                     std.mem.bytesAsValue(
                         f.type,
-                        buf[@offsetOf(T, f.name) .. @offsetOf(T, f.name) + @sizeOf(f.type)],
+                        buf[@offsetOf(T, f.name) .. @offsetOf(T, f.name) + @sizeOf(f.type)], // TODO: if another struct is nested, @sizeOf includes padding, so we need to calculate it manually
                     ).*,
                 );
             }
@@ -231,8 +231,11 @@ const CqlServer = struct {
         var buf: [@sizeOf(FrameHeader)]u8 = undefined;
         while (true) {
             const n = try client.stream.reader().read(&buf);
-            if (n == 0) return; // total_bytes_count;
+            if (n == 0) return;
             defer total_bytes_count += n;
+
+            // TODO: maybe we should use readStructEndian instead of fromBytes?
+            // const req_frame = try client.stream.reader().readStructEndian(FrameHeader, std.builtin.Endian.big);
 
             var req_frame: FrameHeader = undefined;
             fromBytes(
@@ -280,7 +283,6 @@ const CqlServer = struct {
             try client.stream.writer().writeAll(message);
             // 84000000000000006b0000000a0065496e76616c6964206f7220756e737570706f727465642070726f746f636f6c2076657273696f6e20283636293b20746865206c6f7765737420737570706f727465642076657273696f6e206973203320616e64207468652067726561746573742069732034
         }
-        // return total_bytes_count;
     }
 };
 
