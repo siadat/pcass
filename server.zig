@@ -321,50 +321,50 @@ pub fn main() !void {
     try srv.acceptClient();
 }
 
-// test "let's see how struct bytes work" {
-//     std.testing.log_level = std.log.Level.info;
-//     const frame1 = FrameHeader{
-//         .version = 1,
-//         .flags = 2,
-//         .stream = 3,
-//         .opcode = 4, // TODO: Opcode.AuthSuccess,
-//         .length = 5,
-//     };
-//     const buf = toBytes(
-//         FrameHeader,
-//         std.builtin.Endian.big,
-//         &frame1,
-//     );
-//     for (1.., buf) |i, c| {
-//         std.log.info("frame1 byte {d: >2}/{d}: 0x{x:0>2} {d: >3} {s}", .{ i, buf.len, c, c, prettyByte(c) });
-//     }
-//
-//     try std.testing.expectEqual(1, buf[0]);
-//     try std.testing.expectEqual(2, buf[1]);
-//     try std.testing.expectEqual(0, buf[2]);
-//     try std.testing.expectEqual(3, buf[3]);
-//     try std.testing.expectEqual(4, buf[4]); // 0x10, buf[4]);
-//     try std.testing.expectEqual(0, buf[5]);
-//     try std.testing.expectEqual(0, buf[6]);
-//     try std.testing.expectEqual(0, buf[7]);
-//     try std.testing.expectEqual(5, buf[8]);
-//
-//     var frame2 = FrameHeader{
-//         .version = 0,
-//         .flags = 0,
-//         .stream = 0,
-//         .opcode = 4, // TODO: Opcode.Error,
-//         .length = 0,
-//     };
-//     fromBytes(
-//         FrameHeader,
-//         std.builtin.Endian.big,
-//         buf[0..],
-//         &frame2,
-//     );
-//     std.log.info("frame2: {any}", .{frame2});
-//     try std.testing.expectEqual(frame1, frame2);
-// }
+test "let's see how struct bytes work" {
+    std.testing.log_level = std.log.Level.info;
+    const frame1 = FrameHeader{
+        .version = 1,
+        .flags = 2,
+        .stream = 3,
+        .opcode = 4, // TODO: Opcode.AuthSuccess,
+        .length = 5,
+    };
+    const buf = toBytes(
+        FrameHeader,
+        std.builtin.Endian.big,
+        &frame1,
+    );
+    for (1.., buf) |i, c| {
+        std.log.info("frame1 byte {d: >2}/{d}: 0x{x:0>2} {d: >3} {s}", .{ i, buf.len, c, c, prettyByte(c) });
+    }
+
+    try std.testing.expectEqual(1, buf[0]);
+    try std.testing.expectEqual(2, buf[1]);
+    try std.testing.expectEqual(0, buf[2]);
+    try std.testing.expectEqual(3, buf[3]);
+    try std.testing.expectEqual(4, buf[4]); // 0x10, buf[4]);
+    try std.testing.expectEqual(0, buf[5]);
+    try std.testing.expectEqual(0, buf[6]);
+    try std.testing.expectEqual(0, buf[7]);
+    try std.testing.expectEqual(5, buf[8]);
+
+    var frame2 = FrameHeader{
+        .version = 0,
+        .flags = 0,
+        .stream = 0,
+        .opcode = 4, // TODO: Opcode.Error,
+        .length = 0,
+    };
+    fromBytes(
+        FrameHeader,
+        std.builtin.Endian.big,
+        buf[0..],
+        &frame2,
+    );
+    std.log.info("frame2: {any}", .{frame2});
+    try std.testing.expectEqual(frame1, frame2);
+}
 
 test "test initial cql handshake" {
     std.testing.log_level = std.log.Level.info;
