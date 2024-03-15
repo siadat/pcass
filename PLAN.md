@@ -2,25 +2,25 @@ Messages as defined in [native_protocol_v5.md](https://raw.githubusercontent.com
 
 - Messages
   - Requests
-    [ ] STARTUP
-    [ ] AUTH_RESPONSE
-    [ ] OPTIONS
-    [ ] QUERY
-    [ ] PREPARE
-    [ ] EXECUTE
-    [ ] BATCH
-    [ ] REGISTER
+    - [ ] STARTUP
+    - [ ] AUTH_RESPONSE
+    - [ ] OPTIONS
+    - [ ] QUERY
+    - [ ] PREPARE
+    - [ ] EXECUTE
+    - [ ] BATCH
+    - [ ] REGISTER
   - Responses
-    [ ] ERROR
-    [ ] READY
-    [ ] AUTHENTICATE
-    [ ] SUPPORTED
-    [ ] RESULT
-      [ ] Void
-      [ ] Rows
-      [ ] Set_keyspace
-      [ ] Prepared
-      [ ] Schema_change
-    [ ] EVENT
-    [ ] AUTH_CHALLENGE
-    [ ] AUTH_SUCCESS
+    - [ ] ERROR
+    - [ ] READY
+    - [ ] AUTHENTICATE
+    - [ ] SUPPORTED
+    - [ ] RESULT
+      - [ ] Void
+      - [ ] Rows
+      - [ ] Set_keyspace
+      - [ ] Prepared
+      - [ ] Schema_change
+    - [ ] EVENT
+    - [ ] AUTH_CHALLENGE
+    - [ ] AUTH_SUCCESS
