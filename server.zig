@@ -74,7 +74,7 @@ fn prettyBytesWithAnnotatedStruct(comptime T: type, buf: [@sizeOf(T)]u8, logger:
     }
 }
 
-fn prettyStructBytes(comptime T: type, self: *const T, logger: anytype) void {
+fn prettyStructBytes(comptime T: type, self: *const T, logger: anytype, prefix: []const u8) void {
     // writer.print("BEGIN\n", .{}) catch unreachable;
     // defer writer.print("END\n", .{}) catch unreachable;
     const buf = std.mem.sliceAsBytes(@as(*const [1]T, self)[0..1]);
@@ -83,7 +83,8 @@ fn prettyStructBytes(comptime T: type, self: *const T, logger: anytype) void {
     inline for (std.meta.fields(T)) |f| {
         inline for (1.., buf[@offsetOf(T, f.name) .. @offsetOf(T, f.name) + @sizeOf(f.type)]) |fi, c| {
             i += 1;
-            logger.info("{d: >2}/{d}: 0x{x:0>2} {d: >3} {s} {s}.{s} {d}/{d}", .{
+            logger.info("{s} {d: >2}/{d}: 0x{x:0>2} {d: >3} {s} {s}.{s} {d}/{d}", .{
+                prefix,
                 i,
                 @offsetOf(T, last_field.name) + @sizeOf(last_field.type),
                 c,
@@ -155,6 +156,7 @@ fn fromBytes(
                     ).*,
                 );
             }
+            prettyStructBytes(T, self, std.log, "fromBytes");
         },
     }
 }
@@ -173,7 +175,7 @@ fn toBytes(
         // Note that this is toBytes, not asBytes, because we want to return an array
         struct_endian => return std.mem.toBytes(self),
         else => {
-            prettyStructBytes(T, self, std.log);
+            prettyStructBytes(T, self, std.log, "toBytes");
             var buf: [@sizeOf(T)]u8 = undefined;
             inline for (std.meta.fields(T)) |f| {
                 copyReverse(
