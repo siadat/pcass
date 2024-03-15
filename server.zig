@@ -3,6 +3,9 @@ const net = std.net;
 const tracy = @import("tracy.zig");
 const builtin = @import("builtin");
 
+const ResponseFlag = 0x80; // == 0b10000000
+const SupportedCqlVersion = 0x05;
+
 // enum for version 4 and 5:
 const Opcode = enum(u8) {
     Error = 0x00,
@@ -170,21 +173,6 @@ fn toBytes(
         // Note that this is toBytes, not asBytes, because we want to return an array
         struct_endian => return std.mem.toBytes(self),
         else => {
-            // TODO: we cannot use std.mem.byteSwapAllFields because enum values will be invalid:
-            // {
-            //     var buf: [@sizeOf(T)]u8 = undefined;
-            //     prettyStructBytes(T, self, std.log);
-            //     std.mem.byteSwapAllFields(T, self);
-            //     prettyStructBytes(T, self, std.log);
-            //     std.mem.copyForwards(
-            //         u8,
-            //         buf[0..@sizeOf(T)],
-            //         std.mem.sliceAsBytes(@as(*const [1]T, self)[0..1]),
-            //     );
-            //     std.mem.byteSwapAllFields(T, self);
-            //     return buf;
-            // }
-
             prettyStructBytes(T, self, std.log);
             var buf: [@sizeOf(T)]u8 = undefined;
             inline for (std.meta.fields(T)) |f| {
@@ -259,12 +247,11 @@ const CqlServer = struct {
                 std.log.info("read byte {d: >2}/{d}: 0x{x:0>2} {d: >3} {s}", .{ i, buf.len, c, c, prettyByte(c) });
             }
 
-            // message = f'Invalid or unsupported protocol version ({parsed_request.version}); the lowest supported version is 3 and the greatest is 4'
-            const message = "Invalid or unsupported protocol version (?); the lowest supported version is 3 and the greatest is 4";
+            const message = "Invalid or unsupported protocol version (?); the lowest supported version is 3 and the greatest is 4"; // TODO: replace ? with req_frame.version
 
             const body_len = @sizeOf(ErrorBody) + message.len; // TODO: sizeOf includes padding, so we need to calculate it manually
             const resp_frame = FrameHeader{
-                .version = 0x05 | 0x80, // 0b10000000,
+                .version = SupportedCqlVersion | ResponseFlag,
                 .flags = 0x00,
                 .stream = 0,
                 .opcode = 0x00, // Opcode.Error,
