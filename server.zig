@@ -46,8 +46,7 @@ const ErrorCode = enum(u32) {
     pub fn format(value: ErrorCode, comptime fmt: []const u8, options: std.fmt.FormatOptions, writer: anytype) !void {
         _ = options;
         _ = fmt;
-        _ = value;
-        try writer.writeAll("TODO: ErrorCode.format");
+        try writer.writeAll(@tagName(value));
     }
 };
 
