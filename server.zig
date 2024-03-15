@@ -194,7 +194,7 @@ fn toBytes(
                     std.mem.asBytes(&@field(self, f.name)),
                 );
             }
-            prettyBytesWithAnnotatedStruct(T, buf, std.log);
+            // prettyBytesWithAnnotatedStruct(T, buf, std.log);
             return buf;
         },
     }
