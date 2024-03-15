@@ -148,3 +148,5 @@ consume:
 	docker run -v $(PWD)/:/src/ -v $(PWD)/cdc_raw/:/cdc_raw/ --rm -it groovy:latest bash
 	# docker run -v $(PWD)/:/src/ --rm -it groovy:latest groovy /src/read-commitlog.groovy
 
+native_protocol_v5.spec:
+	wget https://raw.githubusercontent.com/apache/cassandra/cassandra-5.0-beta1/doc/native_protocol_v5.spec

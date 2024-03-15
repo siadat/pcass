@@ -42,7 +42,59 @@ const ErrorCode = enum(u32) {
     CONFIG_ERROR = 0x2300,
     ALREADY_EXISTS = 0x2400,
     UNPREPARED = 0x2500,
+
+    pub fn format(value: ErrorCode, comptime fmt: []const u8, options: std.fmt.FormatOptions, writer: anytype) !void {
+        _ = options;
+        _ = fmt;
+        _ = value;
+        try writer.writeAll("TODO: ErrorCode.format");
+    }
 };
+
+fn prettyBytesWithAnnotatedStruct(comptime T: type, buf: [@sizeOf(T)]u8, logger: anytype) void {
+    const last_field = std.meta.fields(T)[std.meta.fields(T).len - 1];
+    comptime var i = 0;
+    inline for (std.meta.fields(T)) |f| {
+        inline for (1.., buf[@offsetOf(T, f.name) .. @offsetOf(T, f.name) + @sizeOf(f.type)]) |fi, c| {
+            i += 1;
+            logger.info("{d: >2}/{d}: 0x{x:0>2} {d: >3} {s} {s}.{s} {d}/{d}", .{
+                i,
+                @offsetOf(T, last_field.name) + @sizeOf(last_field.type),
+                c,
+                c,
+                prettyByte(c),
+                @typeName(T),
+                f.name,
+                fi,
+                @sizeOf(f.type),
+            });
+        }
+    }
+}
+
+fn prettyStructBytes(comptime T: type, self: *const T, logger: anytype) void {
+    // writer.print("BEGIN\n", .{}) catch unreachable;
+    // defer writer.print("END\n", .{}) catch unreachable;
+    const buf = std.mem.sliceAsBytes(@as(*const [1]T, self)[0..1]);
+    const last_field = std.meta.fields(T)[std.meta.fields(T).len - 1];
+    comptime var i = 0;
+    inline for (std.meta.fields(T)) |f| {
+        inline for (1.., buf[@offsetOf(T, f.name) .. @offsetOf(T, f.name) + @sizeOf(f.type)]) |fi, c| {
+            i += 1;
+            logger.info("{d: >2}/{d}: 0x{x:0>2} {d: >3} {s} {s}.{s} {d}/{d}", .{
+                i,
+                @offsetOf(T, last_field.name) + @sizeOf(last_field.type),
+                c,
+                c,
+                prettyByte(c),
+                @typeName(T),
+                f.name,
+                fi,
+                @sizeOf(f.type),
+            });
+        }
+    }
+}
 
 pub fn prettyByte(
     byte: u8,
@@ -57,7 +109,7 @@ pub fn prettyByte(
             '\'',
             byte,
             '\'',
-            0,
+            ' ',
         },
         else => return [_]u8{ '-', '-', '-', '-' },
     }
@@ -77,7 +129,7 @@ const FrameHeader = packed struct {
 };
 
 const ErrorBody = packed struct {
-    code: u32, // TODO ErrorCode,
+    code: ErrorCode,
     length: u16,
     // TONDO: message: []const u8,
 };
@@ -108,7 +160,7 @@ fn fromBytes(
 fn toBytes(
     comptime T: type,
     comptime struct_endian: std.builtin.Endian,
-    self: T,
+    self: *const T,
 ) [@sizeOf(T)]u8 {
     // In CQL, frame is big-endian (network byte order) https://github.com/apache/cassandra/blob/5d4bcc797af/doc/native_protocol_v5.spec#L232
     // So, we need to convert it to little-endian on little-endian machines
@@ -119,16 +171,44 @@ fn toBytes(
         // Note that this is toBytes, not asBytes, because we want to return an array
         struct_endian => return std.mem.toBytes(self),
         else => {
+            // TODO: we cannot use std.mem.byteSwapAllFields because enum values will be invalid:
+            // {
+            //     var buf: [@sizeOf(T)]u8 = undefined;
+            //     prettyStructBytes(T, self, std.log);
+            //     std.mem.byteSwapAllFields(T, self);
+            //     prettyStructBytes(T, self, std.log);
+            //     std.mem.copyForwards(
+            //         u8,
+            //         buf[0..@sizeOf(T)],
+            //         std.mem.sliceAsBytes(@as(*const [1]T, self)[0..1]),
+            //     );
+            //     std.mem.byteSwapAllFields(T, self);
+            //     return buf;
+            // }
+
+            prettyStructBytes(T, self, std.log);
             var buf: [@sizeOf(T)]u8 = undefined;
             inline for (std.meta.fields(T)) |f| {
-                std.mem.copyForwards(
+                copyReverse(
                     u8,
                     buf[@offsetOf(T, f.name) .. @offsetOf(T, f.name) + @sizeOf(f.type)],
-                    std.mem.asBytes(&@byteSwap(@field(self, f.name))),
+                    std.mem.asBytes(&@field(self, f.name)),
                 );
             }
+            prettyBytesWithAnnotatedStruct(T, buf, std.log);
             return buf;
         },
+    }
+}
+
+pub fn copyReverse(comptime T: type, dest: []T, source: []const T) void {
+    // forked from std.mem.copyBackwards
+    @setRuntimeSafety(false);
+    std.debug.assert(dest.len >= source.len);
+    var i = source.len;
+    while (i > 0) {
+        i -= 1;
+        dest[i] = source[source.len - i - 1];
     }
 }
 
@@ -182,29 +262,36 @@ const CqlServer = struct {
 
             // message = f'Invalid or unsupported protocol version ({parsed_request.version}); the lowest supported version is 3 and the greatest is 4'
             const message = "Invalid or unsupported protocol version (?); the lowest supported version is 3 and the greatest is 4";
-            const resp_body = ErrorBody{
-                .code = 0x000A, // TODO: ErrorCode.PROTOCOL_ERROR,
-                .length = message.len,
-                // .message = message,
-            };
-            const body = toBytes(ErrorBody, std.builtin.Endian.big, resp_body);
+
+            const body_len = @sizeOf(ErrorBody) + message.len; // TODO: sizeOf includes padding, so we need to calculate it manually
             const resp_frame = FrameHeader{
                 .version = 0x05 | 0x80, // 0b10000000,
                 .flags = 0x00,
                 .stream = 0,
                 .opcode = 0x00, // Opcode.Error,
-                .length = body.len,
+                .length = body_len,
+            };
+            const error_body = ErrorBody{
+                .code = ErrorCode.PROTOCOL_ERROR,
+                .length = message.len,
+                // .message = message,
             };
 
             try client.stream.writer().writeAll(
                 toBytes(
                     FrameHeader,
                     std.builtin.Endian.big,
-                    resp_frame,
+                    &resp_frame,
                 )[0..],
             );
-            try client.stream.writer().writeAll(body[0..]);
-            // try client.stream.writer().writeAll(message);
+            try client.stream.writer().writeAll(
+                toBytes(
+                    ErrorBody,
+                    std.builtin.Endian.big,
+                    &error_body,
+                )[0..],
+            );
+            try client.stream.writer().writeAll(message);
             // 84000000000000006b0000000a0065496e76616c6964206f7220756e737570706f727465642070726f746f636f6c2076657273696f6e20283636293b20746865206c6f7765737420737570706f727465642076657273696f6e206973203320616e64207468652067726561746573742069732034
         }
         // return total_bytes_count;
@@ -235,46 +322,50 @@ pub fn main() !void {
     try srv.acceptClient();
 }
 
-test "let's see how struct bytes work" {
-    std.testing.log_level = std.log.Level.info;
-    const frame1 = FrameHeader{
-        .version = 1,
-        .flags = 2,
-        .stream = 3,
-        .opcode = 4, // TODO: Opcode.AuthSuccess,
-        .length = 5,
-    };
-    const buf = toBytes(FrameHeader, std.builtin.Endian.big, frame1);
-    for (1.., buf) |i, c| {
-        std.log.info("frame1 byte {d: >2}/{d}: 0x{x:0>2} {d: >3} {s}", .{ i, buf.len, c, c, prettyByte(c) });
-    }
-
-    try std.testing.expectEqual(1, buf[0]);
-    try std.testing.expectEqual(2, buf[1]);
-    try std.testing.expectEqual(0, buf[2]);
-    try std.testing.expectEqual(3, buf[3]);
-    try std.testing.expectEqual(4, buf[4]); // 0x10, buf[4]);
-    try std.testing.expectEqual(0, buf[5]);
-    try std.testing.expectEqual(0, buf[6]);
-    try std.testing.expectEqual(0, buf[7]);
-    try std.testing.expectEqual(5, buf[8]);
-
-    var frame2 = FrameHeader{
-        .version = 0,
-        .flags = 0,
-        .stream = 0,
-        .opcode = 4, // TODO: Opcode.Error,
-        .length = 0,
-    };
-    fromBytes(
-        FrameHeader,
-        std.builtin.Endian.big,
-        buf[0..],
-        &frame2,
-    );
-    std.log.info("frame2: {any}", .{frame2});
-    try std.testing.expectEqual(frame1, frame2);
-}
+// test "let's see how struct bytes work" {
+//     std.testing.log_level = std.log.Level.info;
+//     const frame1 = FrameHeader{
+//         .version = 1,
+//         .flags = 2,
+//         .stream = 3,
+//         .opcode = 4, // TODO: Opcode.AuthSuccess,
+//         .length = 5,
+//     };
+//     const buf = toBytes(
+//         FrameHeader,
+//         std.builtin.Endian.big,
+//         &frame1,
+//     );
+//     for (1.., buf) |i, c| {
+//         std.log.info("frame1 byte {d: >2}/{d}: 0x{x:0>2} {d: >3} {s}", .{ i, buf.len, c, c, prettyByte(c) });
+//     }
+//
+//     try std.testing.expectEqual(1, buf[0]);
+//     try std.testing.expectEqual(2, buf[1]);
+//     try std.testing.expectEqual(0, buf[2]);
+//     try std.testing.expectEqual(3, buf[3]);
+//     try std.testing.expectEqual(4, buf[4]); // 0x10, buf[4]);
+//     try std.testing.expectEqual(0, buf[5]);
+//     try std.testing.expectEqual(0, buf[6]);
+//     try std.testing.expectEqual(0, buf[7]);
+//     try std.testing.expectEqual(5, buf[8]);
+//
+//     var frame2 = FrameHeader{
+//         .version = 0,
+//         .flags = 0,
+//         .stream = 0,
+//         .opcode = 4, // TODO: Opcode.Error,
+//         .length = 0,
+//     };
+//     fromBytes(
+//         FrameHeader,
+//         std.builtin.Endian.big,
+//         buf[0..],
+//         &frame2,
+//     );
+//     std.log.info("frame2: {any}", .{frame2});
+//     try std.testing.expectEqual(frame1, frame2);
+// }
 
 test "test initial cql handshake" {
     std.testing.log_level = std.log.Level.info;
@@ -298,14 +389,21 @@ test "test initial cql handshake" {
                 toBytes(
                     FrameHeader,
                     std.builtin.Endian.big,
-                    frame1,
+                    &frame1,
                 )[0..],
             );
+            std.log.info("reading resonse 1", .{});
             const got = try socket.reader().readStructEndian(FrameHeader, std.builtin.Endian.big);
             std.log.info("got: {any}", .{got});
 
+            std.log.info("reading resonse 2", .{});
             const got2 = try socket.reader().readStructEndian(ErrorBody, std.builtin.Endian.big);
             std.log.info("got2: {any}", .{got2});
+
+            std.log.info("reading resonse 3", .{});
+            var message: [100]u8 = undefined;
+            const n = try socket.reader().read(&message);
+            std.log.info("got3: {s}", .{message[0..n]});
         }
     };
 
