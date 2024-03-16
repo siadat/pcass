@@ -231,7 +231,7 @@ const CqlServer = struct {
         self.net_server.deinit();
     }
 
-    fn acceptClient(self: *@This()) !void {
+    fn acceptClient(self: *@This(), allocator: std.mem.Allocator) !void {
         var client = try self.net_server.accept();
         defer client.stream.close();
 
@@ -279,21 +279,25 @@ const CqlServer = struct {
                 // .message = message,
             };
 
-            try client.stream.writer().writeAll(
+            var write_buf = std.ArrayList(u8).init(allocator);
+            defer write_buf.deinit();
+
+            try write_buf.writer().writeAll(
                 toBytes(
                     FrameHeader,
                     std.builtin.Endian.big,
                     &resp_frame,
                 )[0..],
             );
-            try client.stream.writer().writeAll(
+            try write_buf.writer().writeAll(
                 toBytes(
                     ErrorBody,
                     std.builtin.Endian.big,
                     &error_body,
                 )[0..],
             );
-            try client.stream.writer().writeAll(message);
+            try write_buf.writer().writeAll(message);
+            try client.stream.writer().writeAll(write_buf.items);
             // 84000000000000006b0000000a0065496e76616c6964206f7220756e737570706f727465642070726f746f636f6c2076657273696f6e20283636293b20746865206c6f7765737420737570706f727465642076657273696f6e206973203320616e64207468652067726561746573742069732034
         }
     }
@@ -320,7 +324,7 @@ pub fn main() !void {
     var buf = std.ArrayList(u8).init(inner_allocator);
     defer buf.deinit();
 
-    try srv.acceptClient();
+    try srv.acceptClient(inner_allocator);
 }
 
 test "let's see how struct bytes work" {
@@ -411,5 +415,5 @@ test "test initial cql handshake" {
     const t = try std.Thread.spawn(.{}, TestCqlClient.send, .{srv.net_server.listen_address});
     defer t.join();
 
-    try srv.acceptClient();
+    try srv.acceptClient(std.testing.allocator);
 }
