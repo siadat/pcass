@@ -163,11 +163,7 @@ fn fromBytes(
 }
 
 fn sizeOfNoPadding(comptime T: type) @TypeOf(@sizeOf(T)) {
-    var size: usize = 0;
-    inline for (std.meta.fields(T)) |f| {
-        size += @sizeOf(f.type);
-    }
-    return size;
+    return @bitSizeOf(T) / @bitSizeOf(u8);
 }
 
 fn toBytes(
