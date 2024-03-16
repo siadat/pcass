@@ -270,9 +270,6 @@ const CqlServer = struct {
 
             prettyBytes(buf[0..n], std.log, "received bytes");
 
-            // TODO: maybe we should use readStructEndian instead of fromBytes?
-            // const req_frame = try client.stream.reader().readStructEndian(FrameHeader, std.builtin.Endian.big);
-
             var req_frame: FrameHeader = undefined;
             fromBytes(
                 FrameHeader,
@@ -379,19 +376,9 @@ test "let's see how struct bytes work" {
         std.builtin.Endian.big,
         &frame1,
     );
-    for (1.., buf) |i, c| {
-        std.log.info("frame1 byte {d: >2}/{d}: 0x{x:0>2} {d: >3} {s}", .{ i, buf.len, c, c, prettyByte(c) });
-    }
-
-    try std.testing.expectEqual(1, buf[0]);
-    try std.testing.expectEqual(2, buf[1]);
-    try std.testing.expectEqual(0, buf[2]);
-    try std.testing.expectEqual(3, buf[3]);
-    try std.testing.expectEqual(4, buf[4]); // 0x10, buf[4]);
-    try std.testing.expectEqual(0, buf[5]);
-    try std.testing.expectEqual(0, buf[6]);
-    try std.testing.expectEqual(0, buf[7]);
-    try std.testing.expectEqual(5, buf[8]);
+    std.debug.assert(buf.len == sizeOfExcludingPadding(FrameHeader));
+    prettyBytes(buf[0..], std.log, "frame1");
+    try std.testing.expectEqual([9]u8{ 1, 2, 0, 3, 4, 0, 0, 0, 5 }, buf);
 
     var frame2 = FrameHeader{
         .version = 0,
@@ -435,13 +422,26 @@ test "test initial cql handshake" {
                     &frame1,
                 )[0..],
             );
+
             std.log.info("reading resonse 1", .{});
-            const got = try socket.reader().readStructEndian(FrameHeader, std.builtin.Endian.big);
-            std.log.info("got: {any}", .{got});
+            var buf: [sizeOfExcludingPadding(FrameHeader)]u8 = undefined;
+            var req_frame: FrameHeader = undefined;
+            fromBytes(
+                FrameHeader,
+                std.builtin.Endian.big,
+                buf[0..],
+                &req_frame,
+            );
 
             std.log.info("reading resonse 2", .{});
-            const got2 = try socket.reader().readStructEndian(ErrorBody, std.builtin.Endian.big);
-            std.log.info("got2: {any}", .{got2});
+            var buf2: [sizeOfExcludingPadding(ErrorBody)]u8 = undefined;
+            var error_body: ErrorBody = undefined;
+            fromBytes(
+                ErrorBody,
+                std.builtin.Endian.big,
+                buf2[0..],
+                &error_body,
+            );
 
             std.log.info("reading resonse 3", .{});
             var message: [100]u8 = undefined;
