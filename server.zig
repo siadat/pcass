@@ -181,7 +181,7 @@ fn toBytes(
         // TODO: we should not return the padding bytes
         struct_endian => return std.mem.toBytes(self)[0..sizeOfNoPadding(T)].*,
         else => {
-            // prettyStructBytes(T, self, std.log, "toBytes");
+            prettyStructBytes(T, self, std.log, "toBytes");
             var buf: [sizeOfNoPadding(T)]u8 = undefined;
             inline for (std.meta.fields(T)) |f| {
                 copyReverse(
@@ -190,7 +190,7 @@ fn toBytes(
                     std.mem.asBytes(&@field(self, f.name)),
                 );
             }
-            prettyBytesWithAnnotatedStruct(T, buf, std.log, "toBytes");
+            // prettyBytesWithAnnotatedStruct(T, buf, std.log, "toBytes");
             // prettyBytesWithAnnotatedStruct(T, std.mem.toBytes(self), std.log, "toBytesDEBUG");
             return buf;
         },
@@ -259,7 +259,7 @@ const CqlServer = struct {
             //     std.log.info("read byte {d: >2}/{d}: 0x{x:0>2} {d: >3} {s}", .{ i, buf.len, c, c, prettyByte(c) });
             // }
 
-            const message = "Invalid or unsupported protocol version (?); the lowest supported version is 3 and the greatest is 4"; // TODO: replace ? with req_frame.version
+            const message = "Invalid or unsupported protocol version (66); the lowest supported version is 3 and the greatest is 4"; // TODO: replace ? with req_frame.version
 
             const body_len = @sizeOf(ErrorBody) + message.len; // TODO: sizeOf includes padding, so we need to calculate it manually
             const resp_frame = FrameHeader{

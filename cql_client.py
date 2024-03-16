@@ -1,6 +1,11 @@
 from cassandra.cluster import Cluster
 from cassandra.auth import PlainTextAuthProvider
 from cassandra import ProtocolVersion
+
+# Let's see debug logs printed by the driver
+import logging
+logging.basicConfig(level=logging.DEBUG)
+
 import argparse
 
 def execute_query(session, query):
