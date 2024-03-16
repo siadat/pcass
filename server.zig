@@ -144,7 +144,6 @@ const ErrorBody = packed struct {
     // TONDO: message: []const u8,
 };
 
-// TODO: consier using io.Reader.readStructEndian?
 fn fromBytes(
     comptime T: type,
     comptime target_endian: std.builtin.Endian,
