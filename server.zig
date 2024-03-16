@@ -411,61 +411,61 @@ test "let's see how struct bytes work" {
     try std.testing.expectEqual(error_body1, error_body2);
 }
 
-// test "test initial cql handshake" {
-//     std.testing.log_level = std.log.Level.info;
-//
-//     var srv = try CqlServer.newServer(0);
-//     defer srv.deinit();
-//
-//     const TestCqlClient = struct {
-//         fn send(server_address: net.Address) !void {
-//             const socket = try net.tcpConnectToAddress(server_address);
-//             defer socket.close();
-//
-//             const frame1 = FrameHeader{
-//                 .version = 0x42,
-//                 .flags = 0,
-//                 .stream = 0,
-//                 .opcode = 0x05,
-//                 .length = 0,
-//             };
-//             _ = try socket.writer().writeAll(
-//                 toBytes(
-//                     FrameHeader,
-//                     std.builtin.Endian.big,
-//                     &frame1,
-//                 )[0..],
-//             );
-//
-//             std.log.info("reading resonse 1", .{});
-//             var buf: [sizeOfExcludingPadding(FrameHeader)]u8 = undefined;
-//             var req_frame: FrameHeader = undefined;
-//             fromBytes(
-//                 FrameHeader,
-//                 std.builtin.Endian.big,
-//                 buf[0..],
-//                 &req_frame,
-//             );
-//
-//             std.log.info("reading resonse 2", .{});
-//             var buf2: [sizeOfExcludingPadding(ErrorBody)]u8 = undefined;
-//             var error_body: ErrorBody = undefined;
-//             fromBytes(
-//                 ErrorBody,
-//                 std.builtin.Endian.big,
-//                 buf2[0..],
-//                 &error_body,
-//             );
-//
-//             std.log.info("reading resonse 3", .{});
-//             var message: [100]u8 = undefined;
-//             const n = try socket.reader().read(&message);
-//             std.log.info("got3: {s}", .{message[0..n]});
-//         }
-//     };
-//
-//     const t = try std.Thread.spawn(.{}, TestCqlClient.send, .{srv.net_server.listen_address});
-//     defer t.join();
-//
-//     try srv.acceptClient(std.testing.allocator);
-// }
+test "test initial cql handshake" {
+    std.testing.log_level = std.log.Level.info;
+
+    var srv = try CqlServer.newServer(0);
+    defer srv.deinit();
+
+    const TestCqlClient = struct {
+        fn send(server_address: net.Address) !void {
+            const socket = try net.tcpConnectToAddress(server_address);
+            defer socket.close();
+
+            const frame1 = FrameHeader{
+                .version = 0x42,
+                .flags = 0,
+                .stream = 0,
+                .opcode = 0x05,
+                .length = 0,
+            };
+            _ = try socket.writer().writeAll(
+                toBytes(
+                    FrameHeader,
+                    std.builtin.Endian.big,
+                    &frame1,
+                )[0..],
+            );
+
+            std.log.info("reading resonse 1", .{});
+            var buf: [sizeOfExcludingPadding(FrameHeader)]u8 = undefined;
+            var req_frame: FrameHeader = undefined;
+            fromBytes(
+                FrameHeader,
+                std.builtin.Endian.big,
+                buf[0..],
+                &req_frame,
+            );
+
+            std.log.info("reading resonse 2", .{});
+            var buf2: [sizeOfExcludingPadding(ErrorBody)]u8 = undefined;
+            var error_body: ErrorBody = undefined;
+            fromBytes(
+                ErrorBody,
+                std.builtin.Endian.big,
+                buf2[0..],
+                &error_body,
+            );
+
+            std.log.info("reading resonse 3", .{});
+            var message: [100]u8 = undefined;
+            const n = try socket.reader().read(&message);
+            std.log.info("got3: {s}", .{message[0..n]});
+        }
+    };
+
+    const t = try std.Thread.spawn(.{}, TestCqlClient.send, .{srv.net_server.listen_address});
+    defer t.join();
+
+    try srv.acceptClient(std.testing.allocator);
+}
