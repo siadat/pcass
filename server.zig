@@ -162,9 +162,9 @@ fn fromBytes(
     }
 }
 
-// TODO: rename to sizeOfExcludingPadding
 fn sizeOfExcludingPadding(comptime T: type) @TypeOf(@sizeOf(T)) {
-    return @bitSizeOf(T) / @bitSizeOf(u8);
+    // We are adding 7 bits, in case the result is not a multiple of 8
+    return (@bitSizeOf(T) + 7) / 8;
 }
 
 fn toBytes(
