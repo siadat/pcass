@@ -154,8 +154,7 @@ fn fromBytes(
         target_endian => self.* = std.mem.bytesAsValue(T, buf).*,
         else => {
             inline for (std.meta.fields(T)) |f| {
-                // set each field
-                const s = buf[@offsetOf(T, f.name) .. @offsetOf(T, f.name) + @sizeOf(f.type)]; // TODO: if another struct is nested, @sizeOf includes padding, so we need to calculate it manually
+                const s = buf[@offsetOf(T, f.name) .. @offsetOf(T, f.name) + @sizeOf(f.type)]; // TODO: if another struct is nested, @sizeOf includes padding, so we need to use sizeOfExcludingPadding
                 std.mem.reverse(u8, s);
                 @field(self, f.name) = std.mem.bytesAsValue(f.type, s).*;
             }
