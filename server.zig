@@ -231,12 +231,17 @@ const CqlServer = struct {
     fn acceptClient(self: *@This(), allocator: std.mem.Allocator) !void {
         std.log.info("waiting for next client...", .{});
         const client = try self.net_server.accept();
+        const multi_threaded = false;
 
-        _ = try std.Thread.spawn(
-            .{},
-            @This().handleClient,
-            .{ self, allocator, client },
-        );
+        if (multi_threaded) {
+            _ = try std.Thread.spawn(
+                .{},
+                @This().handleClient,
+                .{ self, allocator, client },
+            );
+        } else {
+            try self.handleClient(allocator, client);
+        }
     }
 
     fn handleClient(self: *@This(), allocator: std.mem.Allocator, client: net.Server.Connection) !void {
