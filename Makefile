@@ -10,6 +10,11 @@ test:
 	$(POETRY) run python -m sstable.dump test_data/cassandra3_data_want/sina_test/has_all_types-*/ | jq -s 'if length != 5 then error("Length is not 5, it is \(length)") else "5 rows dumped" end'
 
 run_all:
+	# :Term is just :term but without pty
+	# The problem with NeoVim's pty is that it breaks lines and it is not a
+	# normal buffer. The tradeoff is that I don't get colours, which I have
+	# disabled in my local OS in the first place, and I don't be able to
+	# run interactive programmes, which is fine.
 	nvim \
 		+':Term bash wait_until_cassandra_is_up.bash && bash tshark.bash' \
 		+':sp' \
