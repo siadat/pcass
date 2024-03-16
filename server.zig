@@ -53,6 +53,12 @@ const ErrorCode = enum(u32) {
     }
 };
 
+fn prettyBytes(buf: []const u8, logger: anytype, prefix: []const u8) void {
+    for (1.., buf) |i, c| {
+        logger.info("{s} {d: >2}/{d}: 0x{x:0>2} {d: >3} {s}", .{ prefix, i, buf.len, c, c, prettyByte(c) });
+    }
+}
+
 fn prettyBytesWithAnnotatedStruct(comptime T: type, buf: [sizeOfExcludingPadding(T)]u8, logger: anytype, prefix: []const u8) void {
     const last_field = std.meta.fields(T)[std.meta.fields(T).len - 1];
     comptime var i = 0;
@@ -262,6 +268,8 @@ const CqlServer = struct {
             if (n == 0) return;
             defer total_bytes_count += n;
 
+            prettyBytes(buf[0..n], std.log, "received bytes");
+
             // TODO: maybe we should use readStructEndian instead of fromBytes?
             // const req_frame = try client.stream.reader().readStructEndian(FrameHeader, std.builtin.Endian.big);
 
@@ -274,11 +282,7 @@ const CqlServer = struct {
             );
             std.log.info("received frame: {any}", .{req_frame});
 
-            // for (1.., buf[0..n]) |i, c| {
-            //     std.log.info("read byte {d: >2}/{d}: 0x{x:0>2} {d: >3} {s}", .{ i, buf.len, c, c, prettyByte(c) });
-            // }
-
-            const message = "Invalid or unsupported protocol version (66); the lowest supported version is 3 and the greatest is 4"; // TODO: replace ? with req_frame.version
+            const message = "Invalid or unsupported protocol version (66); the lowest supported version is 5 and the greatest is 5"; // TODO: replace ? with req_frame.version
 
             const body_len = sizeOfExcludingPadding(ErrorBody) + message.len; // TODO: sizeOf includes padding, so we need to calculate it manually
             const resp_frame = FrameHeader{
