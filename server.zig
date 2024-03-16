@@ -53,7 +53,7 @@ const ErrorCode = enum(u32) {
     }
 };
 
-fn prettyBytesWithAnnotatedStruct(comptime T: type, buf: [sizeOfNoPadding(T)]u8, logger: anytype, prefix: []const u8) void {
+fn prettyBytesWithAnnotatedStruct(comptime T: type, buf: [sizeOfExcludingPadding(T)]u8, logger: anytype, prefix: []const u8) void {
     const last_field = std.meta.fields(T)[std.meta.fields(T).len - 1];
     comptime var i = 0;
     inline for (std.meta.fields(T)) |f| {
@@ -163,7 +163,7 @@ fn fromBytes(
 }
 
 // TODO: rename to sizeOfExcludingPadding
-fn sizeOfNoPadding(comptime T: type) @TypeOf(@sizeOf(T)) {
+fn sizeOfExcludingPadding(comptime T: type) @TypeOf(@sizeOf(T)) {
     return @bitSizeOf(T) / @bitSizeOf(u8);
 }
 
@@ -171,7 +171,7 @@ fn toBytes(
     comptime T: type,
     comptime struct_endian: std.builtin.Endian,
     self: *const T,
-) [sizeOfNoPadding(T)]u8 {
+) [sizeOfExcludingPadding(T)]u8 {
     // In CQL, frame is big-endian (network byte order) https://github.com/apache/cassandra/blob/5d4bcc797af/doc/native_protocol_v5.spec#L232
     // So, we need to convert it to little-endian on little-endian machines
 
@@ -180,10 +180,10 @@ fn toBytes(
     switch (comptime builtin.target.cpu.arch.endian()) {
         // Note that this is toBytes, not asBytes, because we want to return an array
         // TODO: we should not return the padding bytes
-        struct_endian => return std.mem.toBytes(self)[0..sizeOfNoPadding(T)].*,
+        struct_endian => return std.mem.toBytes(self)[0..sizeOfExcludingPadding(T)].*,
         else => {
             prettyStructBytes(T, self, std.log, "toBytes");
-            var buf: [sizeOfNoPadding(T)]u8 = undefined;
+            var buf: [sizeOfExcludingPadding(T)]u8 = undefined;
             inline for (std.meta.fields(T)) |f| {
                 copyReverse(
                     u8,
@@ -252,7 +252,7 @@ const CqlServer = struct {
         while (true) {
             std.log.info("reading bytes...", .{});
 
-            var buf: [sizeOfNoPadding(FrameHeader)]u8 = undefined;
+            var buf: [sizeOfExcludingPadding(FrameHeader)]u8 = undefined;
             const n = try client.stream.reader().read(&buf);
             if (n == 0) return;
             defer total_bytes_count += n;
@@ -275,7 +275,7 @@ const CqlServer = struct {
 
             const message = "Invalid or unsupported protocol version (66); the lowest supported version is 3 and the greatest is 4"; // TODO: replace ? with req_frame.version
 
-            const body_len = sizeOfNoPadding(ErrorBody) + message.len; // TODO: sizeOf includes padding, so we need to calculate it manually
+            const body_len = sizeOfExcludingPadding(ErrorBody) + message.len; // TODO: sizeOf includes padding, so we need to calculate it manually
             const resp_frame = FrameHeader{
                 .version = SupportedCqlVersion | ResponseFlag,
                 .flags = 0x00,
