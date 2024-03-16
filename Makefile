@@ -9,6 +9,14 @@ test:
 	$(POETRY) run python -m sstable.dump test_data/cassandra3_data_want/sina_test/sina_table-*/ | jq -s 'if length != 7 then error("Length is not 7, it is \(length)") else "7 rows dumped" end'
 	$(POETRY) run python -m sstable.dump test_data/cassandra3_data_want/sina_test/has_all_types-*/ | jq -s 'if length != 5 then error("Length is not 5, it is \(length)") else "5 rows dumped" end'
 
+run_all:
+	nvim \
+		+':Term bash wait_until_cassandra_is_up.bash && bash tshark.bash' \
+		+':sp' \
+		+':Term bash wait_until_cassandra_is_up.bash && make cql_client' \
+		+':sp' \
+		+':Term make zig-run'
+
 .PHONY: install-dependencies
 install-dependencies:
 	# --no-root is used to avoid attempting to install this package itself,

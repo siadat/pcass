@@ -324,7 +324,9 @@ pub fn main() !void {
     var buf = std.ArrayList(u8).init(inner_allocator);
     defer buf.deinit();
 
-    try srv.acceptClient(inner_allocator);
+    while (true) {
+        try srv.acceptClient(inner_allocator);
+    }
 }
 
 test "let's see how struct bytes work" {
