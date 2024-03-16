@@ -17,9 +17,9 @@ run_all:
 	# run interactive programmes, which is fine.
 	nvim \
 		+':Term bash wait_until_cassandra_is_up.bash && bash tshark.bash' \
-		+':sp' \
+		+':vs' \
 		+':Term bash wait_until_cassandra_is_up.bash && make cql_client' \
-		+':sp' \
+		+':vs' \
 		+':Term make zig-run'
 
 .PHONY: install-dependencies

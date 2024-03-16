@@ -1,3 +1,4 @@
+set -x
 tshark -l -i lo -Y "tcp.port == 9042" -T fields -d tcp.port==9042,echo \
     -e ip.src \
     -e tcp.srcport \

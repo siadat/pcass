@@ -162,6 +162,7 @@ fn fromBytes(
     }
 }
 
+// TODO: rename to sizeOfExcludingPadding
 fn sizeOfNoPadding(comptime T: type) @TypeOf(@sizeOf(T)) {
     return @bitSizeOf(T) / @bitSizeOf(u8);
 }
@@ -228,7 +229,18 @@ const CqlServer = struct {
     }
 
     fn acceptClient(self: *@This(), allocator: std.mem.Allocator) !void {
-        var client = try self.net_server.accept();
+        std.log.info("waiting for next client...", .{});
+        const client = try self.net_server.accept();
+
+        _ = try std.Thread.spawn(
+            .{},
+            @This().handleClient,
+            .{ self, allocator, client },
+        );
+    }
+
+    fn handleClient(self: *@This(), allocator: std.mem.Allocator, client: net.Server.Connection) !void {
+        _ = self;
         defer client.stream.close();
 
         std.log.info("client connected: {any}", .{client.address});
@@ -237,8 +249,10 @@ const CqlServer = struct {
         var total_bytes_count: usize = 0;
         defer std.log.info("total bytes: {d}", .{total_bytes_count});
 
-        var buf: [@sizeOf(FrameHeader)]u8 = undefined;
         while (true) {
+            std.log.info("reading bytes...", .{});
+
+            var buf: [sizeOfNoPadding(FrameHeader)]u8 = undefined;
             const n = try client.stream.reader().read(&buf);
             if (n == 0) return;
             defer total_bytes_count += n;
@@ -250,7 +264,7 @@ const CqlServer = struct {
             fromBytes(
                 FrameHeader,
                 std.builtin.Endian.big,
-                buf[0..@sizeOf(FrameHeader)],
+                buf[0..],
                 &req_frame,
             );
             std.log.info("received frame: {any}", .{req_frame});
@@ -261,7 +275,7 @@ const CqlServer = struct {
 
             const message = "Invalid or unsupported protocol version (66); the lowest supported version is 3 and the greatest is 4"; // TODO: replace ? with req_frame.version
 
-            const body_len = @sizeOf(ErrorBody) + message.len; // TODO: sizeOf includes padding, so we need to calculate it manually
+            const body_len = sizeOfNoPadding(ErrorBody) + message.len; // TODO: sizeOf includes padding, so we need to calculate it manually
             const resp_frame = FrameHeader{
                 .version = SupportedCqlVersion | ResponseFlag,
                 .flags = 0x00,
