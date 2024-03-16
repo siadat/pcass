@@ -53,13 +53,14 @@ const ErrorCode = enum(u32) {
     }
 };
 
-fn prettyBytesWithAnnotatedStruct(comptime T: type, buf: [@sizeOf(T)]u8, logger: anytype) void {
+fn prettyBytesWithAnnotatedStruct(comptime T: type, buf: [sizeOfNoPadding(T)]u8, logger: anytype, prefix: []const u8) void {
     const last_field = std.meta.fields(T)[std.meta.fields(T).len - 1];
     comptime var i = 0;
     inline for (std.meta.fields(T)) |f| {
         inline for (1.., buf[@offsetOf(T, f.name) .. @offsetOf(T, f.name) + @sizeOf(f.type)]) |fi, c| {
             i += 1;
-            logger.info("{d: >2}/{d}: 0x{x:0>2} {d: >3} {s} {s}.{s} {d}/{d}", .{
+            logger.info("{s} {d: >2}/{d}: 0x{x:0>2} {d: >3} {s} {s}.{s} {d}/{d}", .{
+                prefix,
                 i,
                 @offsetOf(T, last_field.name) + @sizeOf(last_field.type),
                 c,
@@ -161,11 +162,19 @@ fn fromBytes(
     }
 }
 
+fn sizeOfNoPadding(comptime T: type) @TypeOf(@sizeOf(T)) {
+    var size: usize = 0;
+    inline for (std.meta.fields(T)) |f| {
+        size += @sizeOf(f.type);
+    }
+    return size;
+}
+
 fn toBytes(
     comptime T: type,
     comptime struct_endian: std.builtin.Endian,
     self: *const T,
-) [@sizeOf(T)]u8 {
+) [sizeOfNoPadding(T)]u8 {
     // In CQL, frame is big-endian (network byte order) https://github.com/apache/cassandra/blob/5d4bcc797af/doc/native_protocol_v5.spec#L232
     // So, we need to convert it to little-endian on little-endian machines
 
@@ -173,10 +182,11 @@ fn toBytes(
     // You can verify that the other branch is not analysed by adding a @compileError
     switch (comptime builtin.target.cpu.arch.endian()) {
         // Note that this is toBytes, not asBytes, because we want to return an array
-        struct_endian => return std.mem.toBytes(self),
+        // TODO: we should not return the padding bytes
+        struct_endian => return std.mem.toBytes(self)[0..sizeOfNoPadding(T)].*,
         else => {
-            prettyStructBytes(T, self, std.log, "toBytes");
-            var buf: [@sizeOf(T)]u8 = undefined;
+            // prettyStructBytes(T, self, std.log, "toBytes");
+            var buf: [sizeOfNoPadding(T)]u8 = undefined;
             inline for (std.meta.fields(T)) |f| {
                 copyReverse(
                     u8,
@@ -184,7 +194,8 @@ fn toBytes(
                     std.mem.asBytes(&@field(self, f.name)),
                 );
             }
-            // prettyBytesWithAnnotatedStruct(T, buf, std.log);
+            prettyBytesWithAnnotatedStruct(T, buf, std.log, "toBytes");
+            // prettyBytesWithAnnotatedStruct(T, std.mem.toBytes(self), std.log, "toBytesDEBUG");
             return buf;
         },
     }
@@ -248,9 +259,9 @@ const CqlServer = struct {
             );
             std.log.info("received frame: {any}", .{req_frame});
 
-            for (1.., buf[0..n]) |i, c| {
-                std.log.info("read byte {d: >2}/{d}: 0x{x:0>2} {d: >3} {s}", .{ i, buf.len, c, c, prettyByte(c) });
-            }
+            // for (1.., buf[0..n]) |i, c| {
+            //     std.log.info("read byte {d: >2}/{d}: 0x{x:0>2} {d: >3} {s}", .{ i, buf.len, c, c, prettyByte(c) });
+            // }
 
             const message = "Invalid or unsupported protocol version (?); the lowest supported version is 3 and the greatest is 4"; // TODO: replace ? with req_frame.version
 
