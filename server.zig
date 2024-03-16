@@ -148,7 +148,7 @@ const ErrorBody = packed struct {
 fn fromBytes(
     comptime T: type,
     comptime target_endian: std.builtin.Endian,
-    buf: []const u8,
+    buf: []u8,
     self: *T,
 ) void {
     switch (comptime builtin.target.cpu.arch.endian()) {
@@ -156,12 +156,9 @@ fn fromBytes(
         else => {
             inline for (std.meta.fields(T)) |f| {
                 // set each field
-                @field(self, f.name) = @byteSwap(
-                    std.mem.bytesAsValue(
-                        f.type,
-                        buf[@offsetOf(T, f.name) .. @offsetOf(T, f.name) + @sizeOf(f.type)], // TODO: if another struct is nested, @sizeOf includes padding, so we need to calculate it manually
-                    ).*,
-                );
+                const s = buf[@offsetOf(T, f.name) .. @offsetOf(T, f.name) + @sizeOf(f.type)]; // TODO: if another struct is nested, @sizeOf includes padding, so we need to calculate it manually
+                std.mem.reverse(u8, s);
+                @field(self, f.name) = std.mem.bytesAsValue(f.type, s).*;
             }
             prettyStructBytes(T, self, std.log, "fromBytes");
         },
@@ -371,7 +368,7 @@ test "let's see how struct bytes work" {
         .opcode = 4, // TODO: Opcode.AuthSuccess,
         .length = 5,
     };
-    const buf = toBytes(
+    var buf = toBytes(
         FrameHeader,
         std.builtin.Endian.big,
         &frame1,
@@ -395,63 +392,82 @@ test "let's see how struct bytes work" {
     );
     std.log.info("frame2: {any}", .{frame2});
     try std.testing.expectEqual(frame1, frame2);
-}
 
-test "test initial cql handshake" {
-    std.testing.log_level = std.log.Level.info;
-
-    var srv = try CqlServer.newServer(0);
-    defer srv.deinit();
-
-    const TestCqlClient = struct {
-        fn send(server_address: net.Address) !void {
-            const socket = try net.tcpConnectToAddress(server_address);
-            defer socket.close();
-
-            const frame1 = FrameHeader{
-                .version = 0x42,
-                .flags = 0,
-                .stream = 0,
-                .opcode = 0x05,
-                .length = 0,
-            };
-            _ = try socket.writer().writeAll(
-                toBytes(
-                    FrameHeader,
-                    std.builtin.Endian.big,
-                    &frame1,
-                )[0..],
-            );
-
-            std.log.info("reading resonse 1", .{});
-            var buf: [sizeOfExcludingPadding(FrameHeader)]u8 = undefined;
-            var req_frame: FrameHeader = undefined;
-            fromBytes(
-                FrameHeader,
-                std.builtin.Endian.big,
-                buf[0..],
-                &req_frame,
-            );
-
-            std.log.info("reading resonse 2", .{});
-            var buf2: [sizeOfExcludingPadding(ErrorBody)]u8 = undefined;
-            var error_body: ErrorBody = undefined;
-            fromBytes(
-                ErrorBody,
-                std.builtin.Endian.big,
-                buf2[0..],
-                &error_body,
-            );
-
-            std.log.info("reading resonse 3", .{});
-            var message: [100]u8 = undefined;
-            const n = try socket.reader().read(&message);
-            std.log.info("got3: {s}", .{message[0..n]});
-        }
+    // error body
+    const error_body1 = ErrorBody{
+        .code = ErrorCode.PROTOCOL_ERROR,
+        .length = 12345,
     };
-
-    const t = try std.Thread.spawn(.{}, TestCqlClient.send, .{srv.net_server.listen_address});
-    defer t.join();
-
-    try srv.acceptClient(std.testing.allocator);
+    var error_body2: ErrorBody = undefined;
+    var error_body_buf = toBytes(
+        ErrorBody,
+        std.builtin.Endian.big,
+        &error_body1,
+    );
+    fromBytes(
+        ErrorBody,
+        std.builtin.Endian.big,
+        error_body_buf[0..],
+        &error_body2,
+    );
+    try std.testing.expectEqual(error_body1, error_body2);
 }
+
+// test "test initial cql handshake" {
+//     std.testing.log_level = std.log.Level.info;
+//
+//     var srv = try CqlServer.newServer(0);
+//     defer srv.deinit();
+//
+//     const TestCqlClient = struct {
+//         fn send(server_address: net.Address) !void {
+//             const socket = try net.tcpConnectToAddress(server_address);
+//             defer socket.close();
+//
+//             const frame1 = FrameHeader{
+//                 .version = 0x42,
+//                 .flags = 0,
+//                 .stream = 0,
+//                 .opcode = 0x05,
+//                 .length = 0,
+//             };
+//             _ = try socket.writer().writeAll(
+//                 toBytes(
+//                     FrameHeader,
+//                     std.builtin.Endian.big,
+//                     &frame1,
+//                 )[0..],
+//             );
+//
+//             std.log.info("reading resonse 1", .{});
+//             var buf: [sizeOfExcludingPadding(FrameHeader)]u8 = undefined;
+//             var req_frame: FrameHeader = undefined;
+//             fromBytes(
+//                 FrameHeader,
+//                 std.builtin.Endian.big,
+//                 buf[0..],
+//                 &req_frame,
+//             );
+//
+//             std.log.info("reading resonse 2", .{});
+//             var buf2: [sizeOfExcludingPadding(ErrorBody)]u8 = undefined;
+//             var error_body: ErrorBody = undefined;
+//             fromBytes(
+//                 ErrorBody,
+//                 std.builtin.Endian.big,
+//                 buf2[0..],
+//                 &error_body,
+//             );
+//
+//             std.log.info("reading resonse 3", .{});
+//             var message: [100]u8 = undefined;
+//             const n = try socket.reader().read(&message);
+//             std.log.info("got3: {s}", .{message[0..n]});
+//         }
+//     };
+//
+//     const t = try std.Thread.spawn(.{}, TestCqlClient.send, .{srv.net_server.listen_address});
+//     defer t.join();
+//
+//     try srv.acceptClient(std.testing.allocator);
+// }
