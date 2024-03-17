@@ -274,6 +274,10 @@ const CqlServer = struct {
             );
             std.log.info("received frame: {any}", .{req_frame});
 
+            // const version_str: [2]u8 = undefined;
+            // std.fmt.format(version_str, "received frame: {any}\n", .{req_frame.version});
+            // const message = "Invalid or unsupported protocol version (" ++ version_str ++ "); the lowest supported version is 5 and the greatest is 5"; // TODO: replace ? with req_frame.version
+
             const message = "Invalid or unsupported protocol version (66); the lowest supported version is 5 and the greatest is 5"; // TODO: replace ? with req_frame.version
 
             const body_len = sizeOfExcludingPadding(ErrorBody) + message.len; // TODO: sizeOf includes padding, so we need to calculate it manually
@@ -284,29 +288,30 @@ const CqlServer = struct {
                 .opcode = 0x00, // Opcode.Error,
                 .length = body_len,
             };
+            try client.stream.writer().writeAll(
+                toBytes(
+                    FrameHeader,
+                    std.builtin.Endian.big,
+                    &resp_frame,
+                )[0..],
+            );
+
             const error_body = ErrorBody{
                 .code = ErrorCode.PROTOCOL_ERROR,
                 .length = message.len,
                 // .message = message,
             };
 
-            if (true) {
-                try client.stream.writer().writeAll(
-                    toBytes(
-                        FrameHeader,
-                        std.builtin.Endian.big,
-                        &resp_frame,
-                    )[0..],
-                );
-                try client.stream.writer().writeAll(
-                    toBytes(
-                        ErrorBody,
-                        std.builtin.Endian.big,
-                        &error_body,
-                    )[0..],
-                );
-                try client.stream.writer().writeAll(message);
-            } else {
+            try client.stream.writer().writeAll(
+                toBytes(
+                    ErrorBody,
+                    std.builtin.Endian.big,
+                    &error_body,
+                )[0..],
+            );
+            try client.stream.writer().writeAll(message);
+
+            if (false) {
                 var write_buf = std.ArrayList(u8).init(allocator);
                 defer write_buf.deinit();
 
@@ -414,7 +419,7 @@ test "let's see how struct bytes work" {
 test "test initial cql handshake" {
     std.testing.log_level = std.log.Level.info;
 
-    var srv = try CqlServer.newServer(0);
+    var srv = try CqlServer.newServer(9042);
     defer srv.deinit();
 
     const TestCqlClient = struct {
@@ -422,8 +427,8 @@ test "test initial cql handshake" {
             const socket = try net.tcpConnectToAddress(server_address);
             defer socket.close();
 
-            const frame1 = FrameHeader{
-                .version = 0x42,
+            const request_fram = FrameHeader{
+                .version = 0x66,
                 .flags = 0,
                 .stream = 0,
                 .opcode = 0x05,
@@ -433,22 +438,24 @@ test "test initial cql handshake" {
                 toBytes(
                     FrameHeader,
                     std.builtin.Endian.big,
-                    &frame1,
+                    &request_fram,
                 )[0..],
             );
 
             std.log.info("reading resonse 1", .{});
             var buf: [sizeOfExcludingPadding(FrameHeader)]u8 = undefined;
-            var req_frame: FrameHeader = undefined;
+            _ = try socket.reader().read(&buf);
+            var response_frame: FrameHeader = undefined;
             fromBytes(
                 FrameHeader,
                 std.builtin.Endian.big,
                 buf[0..],
-                &req_frame,
+                &response_frame,
             );
 
             std.log.info("reading resonse 2", .{});
             var buf2: [sizeOfExcludingPadding(ErrorBody)]u8 = undefined;
+            _ = try socket.reader().read(&buf2);
             var error_body: ErrorBody = undefined;
             fromBytes(
                 ErrorBody,
@@ -456,11 +463,15 @@ test "test initial cql handshake" {
                 buf2[0..],
                 &error_body,
             );
+            std.log.info("error_body={}", .{error_body});
 
             std.log.info("reading resonse 3", .{});
-            var message: [100]u8 = undefined;
-            const n = try socket.reader().read(&message);
-            std.log.info("got3: {s}", .{message[0..n]});
+
+            var message = try std.ArrayList(u8).initCapacity(std.testing.allocator, error_body.length);
+            defer message.deinit();
+
+            const n = try socket.reader().readAtLeast(message.items, 1);
+            std.log.info("got3 ({d} bytes): {s}", .{ n, message.items[0..n] });
         }
     };
 
