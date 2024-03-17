@@ -134,7 +134,7 @@ const FrameHeader = packed struct {
     version: u8,
     flags: u8,
     stream: i16,
-    opcode: u8, // TODO: Opcode,
+    opcode: Opcode,
     length: u32,
 };
 
@@ -285,7 +285,7 @@ const CqlServer = struct {
                 .version = SupportedCqlVersion | ResponseFlag,
                 .flags = 0x00,
                 .stream = 0,
-                .opcode = 0x00, // Opcode.Error,
+                .opcode = Opcode.Error,
                 .length = body_len,
             };
             try client.stream.writer().writeAll(
@@ -368,7 +368,7 @@ test "let's see how struct bytes work" {
         .version = 1,
         .flags = 2,
         .stream = 3,
-        .opcode = 4, // TODO: Opcode.AuthSuccess,
+        .opcode = Opcode.Ready,
         .length = 5,
     };
     var buf = toBytes(
@@ -378,13 +378,13 @@ test "let's see how struct bytes work" {
     );
     std.debug.assert(buf.len == sizeOfExcludingPadding(FrameHeader));
     prettyBytes(buf[0..], std.log, "frame1");
-    try std.testing.expectEqual([9]u8{ 1, 2, 0, 3, 4, 0, 0, 0, 5 }, buf);
+    try std.testing.expectEqual([9]u8{ 1, 2, 0, 3, @intFromEnum(Opcode.Ready), 0, 0, 0, 5 }, buf);
 
     var frame2 = FrameHeader{
         .version = 0,
         .flags = 0,
         .stream = 0,
-        .opcode = 4, // TODO: Opcode.Error,
+        .opcode = Opcode.Error,
         .length = 0,
     };
     fromBytes(
@@ -431,7 +431,7 @@ test "test initial cql handshake" {
                 .version = 0x66,
                 .flags = 0,
                 .stream = 0,
-                .opcode = 0x05,
+                .opcode = Opcode.Options,
                 .length = 0,
             };
             _ = try socket.writer().writeAll(
