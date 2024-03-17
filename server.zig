@@ -467,11 +467,29 @@ test "test initial cql handshake" {
 
             std.log.info("reading resonse 3", .{});
 
-            var message = try std.ArrayList(u8).initCapacity(std.testing.allocator, error_body.length);
-            defer message.deinit();
+            // TODO: why is message_arraylist.items empty even with initCapacity?
+            // var message_arraylist = try std.ArrayList(u8).initCapacity(std.testing.allocator, error_body.length);
+            // defer message_arraylist.deinit();
+            // std.log.info("error_body.length = {d}, message_arraylist.items={any}", .{ error_body.length, message_arraylist.items });
+            // // const n = try message_arraylist.writer().writeAll(socket.reader());
+            // const n = try socket.reader().read(message_arraylist.items);
+            // std.log.info("got3 ({d} bytes): {s}", .{ n, message_arraylist.items[0..n] });
 
-            const n = try socket.reader().readAtLeast(message.items, 1);
-            std.log.info("got3 ({d} bytes): {s}", .{ n, message.items[0..n] });
+            var message: [512]u8 = undefined;
+            if (error_body.length > message.len) {
+                std.log.info("Error message has length {d}, truncating to {d} and discard the remaining bytes", .{ error_body.length, message.len });
+            }
+            const n = try socket.reader().read(&message);
+            std.log.info("got3 ({d} bytes): {s}", .{ n, message });
+
+            // discard the remaining bytes
+            if (error_body.length > message.len) {
+                for (0..error_body.length - message.len) |_| {
+                    // TODO: print the discarded bytes
+                    std.log.info("reading byte", .{});
+                    _ = try socket.reader().readByte();
+                }
+            }
         }
     };
 
