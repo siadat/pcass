@@ -387,6 +387,7 @@ poetry run python -m sstable.dump test_data/cassandra3_data_want/sina_test/has_a
 }
 ```
 
-## Varint
+## Reading list
 
-See [./cassandra-varint.md](./cassandra-varint.md).
+- See [./cassandra-varint.md](./cassandra-varint.md).
+- The commit where vectors were added to Cassandra https://github.com/apache/cassandra/commit/ae537abc6494564d7254a2126465522d86b44c1e

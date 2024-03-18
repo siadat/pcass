@@ -138,6 +138,7 @@ const FrameHeader = packed struct {
     length: u32,
 };
 
+// TODO: just found this https://sourcegraph.com/github.com/datastax/python-driver@7e0923a86e6b8d55f5a88698f4c1e6ded65a348b/-/blob/cassandra/protocol.py?L127-129
 const ErrorBody = packed struct {
     code: ErrorCode,
     length: u16,
@@ -258,6 +259,12 @@ const CqlServer = struct {
         while (true) {
             std.log.info("reading bytes...", .{});
 
+            // NOTE: I thinkg this is how the client sends the initial handshake options request:
+            // https://sourcegraph.com/github.com/datastax/python-driver@7e0923a86/-/blob/cassandra/protocol.py?L490-495
+            // https://sourcegraph.com/github.com/datastax/python-driver@7e0923a86/-/blob/cassandra/connection.py?L1312-1314
+            //   - send_msg: https://sourcegraph.com/github.com/datastax/python-driver@7e0923a86e6b8d55f5a88698f4c1e6ded65a348b/-/blob/cassandra/connection.py?L1059:9-1059:17
+            // https://sourcegraph.com/github.com/datastax/python-driver@7e0923a86/-/blob/cassandra/io/asyncorereactor.py?L370:14-370:35
+            // class Connection https://sourcegraph.com/github.com/datastax/python-driver@7e0923a86e6b8d55f5a88698f4c1e6ded65a348b/-/blob/cassandra/connection.py?L661
             var buf: [sizeOfExcludingPadding(FrameHeader)]u8 = undefined;
             const n = try client.stream.reader().read(&buf);
             if (n == 0) return;

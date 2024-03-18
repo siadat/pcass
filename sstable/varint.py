@@ -3,6 +3,7 @@ import construct
 import io
 import sstable.utils
 
+# TODO: Just found this https://sourcegraph.com/github.com/datastax/python-driver@7e0923a86e6b8d55f5a88698f4c1e6ded65a348b/-/blob/cassandra/marshal.py?L47-52
 def parse(stream):
     first_byte = stream.read(1)[0]
     if not first_byte & 0b10000000:
@@ -45,6 +46,7 @@ def parse(stream):
     # print(ones_count, first_value_bits, first_value_byte, list(map(lambda b: bin(b), byts)))
     return int.from_bytes(byts, 'big')
 
+# TODO: just found this: https://sourcegraph.com/github.com/datastax/python-driver@7e0923a86e6b8d55f5a88698f4c1e6ded65a348b/-/blob/cassandra/marshal.py?L59-74
 def build(value):
     # values that are a single byte and don't start with a 1 don't need any
     # encoding, and decoders also know that because it starts with a 0.
