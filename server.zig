@@ -246,6 +246,13 @@ const CqlServer = struct {
         }
     }
 
+    // fn handleOPTIONS(self: *@This(), allocator: std.mem.Allocator, client: net.Server.Connection) !void {
+    // }
+
+    // fn read(_: *@This(), client: net.Server.Connection, buf: []u8) !usize {
+    //     return client.stream.reader().read(buf);
+    // }
+
     fn handleClient(self: *@This(), allocator: std.mem.Allocator, client: net.Server.Connection) !void {
         _ = self;
         defer client.stream.close();
