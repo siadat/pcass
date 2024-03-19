@@ -8,22 +8,22 @@ const SupportedCqlVersion = 0x05;
 
 // enum for version 4 and 5:
 const Opcode = enum(u8) {
-    Error = 0x00,
-    Startup = 0x01,
-    Ready = 0x02,
-    Authenticate = 0x03,
-    Options = 0x05,
-    Supported = 0x06,
-    Query = 0x07,
-    Result = 0x08,
-    Prepare = 0x09,
-    Execute = 0x0A,
-    Register = 0x0B,
-    Event = 0x0C,
-    Batch = 0x0D,
-    AuthChallenge = 0x0E,
-    AuthResponse = 0x0F,
-    AuthSuccess = 0x10,
+    ERROR = 0x00,
+    STARTUP = 0x01,
+    READY = 0x02,
+    AUTHENTICATE = 0x03,
+    OPTIONS = 0x05,
+    SUPPORTED = 0x06,
+    QUERY = 0x07,
+    RESULT = 0x08,
+    PREPARE = 0x09,
+    EXECUTE = 0x0A,
+    REGISTER = 0x0B,
+    EVENT = 0x0C,
+    BATCH = 0x0D,
+    AUTHCHALLENGE = 0x0E,
+    AUTHRESPONSE = 0x0F,
+    AUTHSUCCESS = 0x10,
 };
 
 const ErrorCode = enum(u32) {
@@ -299,7 +299,7 @@ const CqlServer = struct {
                 .version = SupportedCqlVersion | ResponseFlag,
                 .flags = 0x00,
                 .stream = 0,
-                .opcode = Opcode.Error,
+                .opcode = Opcode.ERROR,
                 .length = body_len,
             };
             try client.stream.writer().writeAll(
@@ -398,7 +398,7 @@ test "let's see how struct bytes work" {
         .version = 0,
         .flags = 0,
         .stream = 0,
-        .opcode = Opcode.Error,
+        .opcode = Opcode.ERROR,
         .length = 0,
     };
     fromBytes(
