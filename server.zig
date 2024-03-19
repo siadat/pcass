@@ -151,17 +151,13 @@ fn fromBytes(
     buf: []u8,
     self: *T,
 ) void {
-    switch (comptime builtin.target.cpu.arch.endian()) {
-        target_endian => self.* = std.mem.bytesAsValue(T, buf).*,
-        else => {
-            inline for (std.meta.fields(T)) |f| {
-                const s = buf[@offsetOf(T, f.name) .. @offsetOf(T, f.name) + @sizeOf(f.type)]; // TODO: if another struct is nested, @sizeOf includes padding, so we need to use sizeOfExcludingPadding
-                std.mem.reverse(u8, s);
-                @field(self, f.name) = std.mem.bytesAsValue(f.type, s).*;
-            }
-            prettyStructBytes(T, self, std.log, "fromBytes");
-        },
+    _ = target_endian;
+    inline for (std.meta.fields(T)) |f| {
+        const s = buf[@offsetOf(T, f.name) .. @offsetOf(T, f.name) + @sizeOf(f.type)]; // TODO: if another struct is nested, @sizeOf includes padding, so we need to use sizeOfExcludingPadding
+        std.mem.reverse(u8, s);
+        @field(self, f.name) = std.mem.bytesAsValue(f.type, s).*;
     }
+    prettyStructBytes(T, self, std.log, "fromBytes");
 }
 
 fn sizeOfExcludingPadding(comptime T: type) @TypeOf(@sizeOf(T)) {
@@ -178,39 +174,34 @@ fn toBytes(
     comptime struct_endian: std.builtin.Endian,
     self: *const T,
 ) [sizeOfExcludingPadding(T)]u8 {
+    _ = struct_endian;
+
     // In CQL, frame is big-endian (network byte order) https://github.com/apache/cassandra/blob/5d4bcc797af/doc/native_protocol_v5.spec#L232
     // So, we need to convert it to little-endian on little-endian machines
 
-    // The comptime switch is used to avoid the runtime overhead of checking the endianness of the machine
-    // You can verify that the other branch is not analysed by adding a @compileError
-    switch (comptime builtin.target.cpu.arch.endian()) {
-        // Note that this is toBytes, not asBytes, because we want to return an array
-        // TODO: we should not return the padding bytes
-        struct_endian => return std.mem.toBytes(self)[0..sizeOfExcludingPadding(T)].*,
-        else => return switch (@typeInfo(T)) {
-            .Pointer => {
-                // TODO: If it is a slice:
-                // TODO:   First write the length of the slice
-                // TODO:   Then write the elements of the slice
-                unreachable;
-            },
-            .Struct => {
-                prettyStructBytes(T, self, std.log, "toBytes");
-                var buf: [sizeOfExcludingPadding(T)]u8 = undefined;
-                inline for (std.meta.fields(T)) |f| {
-                    copyReverse(
-                        u8,
-                        buf[@offsetOf(T, f.name) .. @offsetOf(T, f.name) + @sizeOf(f.type)],
-                        std.mem.asBytes(&@field(self, f.name)),
-                    );
-                }
-                // prettyBytesWithAnnotatedStruct(T, buf, std.log, "toBytes");
-                // prettyBytesWithAnnotatedStruct(T, std.mem.toBytes(self), std.log, "toBytesDEBUG");
-                return buf;
-            },
-            else => unreachable,
+    return switch (@typeInfo(T)) {
+        .Pointer => {
+            // TODO: If it is a slice:
+            // TODO:   First write the length of the slice
+            // TODO:   Then write the elements of the slice
+            unreachable;
         },
-    }
+        .Struct => {
+            prettyStructBytes(T, self, std.log, "toBytes");
+            var buf: [sizeOfExcludingPadding(T)]u8 = undefined;
+            inline for (std.meta.fields(T)) |f| {
+                copyReverse(
+                    u8,
+                    buf[@offsetOf(T, f.name) .. @offsetOf(T, f.name) + @sizeOf(f.type)],
+                    std.mem.asBytes(&@field(self, f.name)),
+                );
+            }
+            // prettyBytesWithAnnotatedStruct(T, buf, std.log, "toBytes");
+            // prettyBytesWithAnnotatedStruct(T, std.mem.toBytes(self), std.log, "toBytesDEBUG");
+            return buf;
+        },
+        else => unreachable,
+    };
 }
 
 pub fn copyReverse(comptime T: type, dest: []T, source: []const T) void {
