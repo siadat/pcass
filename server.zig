@@ -4,7 +4,7 @@ const tracy = @import("tracy.zig");
 const builtin = @import("builtin");
 
 const ResponseFlag = 0x80; // == 0b10000000
-const SupportedCqlVersion = 0x05;
+const SupportedNativeCqlProtocolVersion = 0x05;
 
 // enum for version 4 and 5:
 const Opcode = enum(u8) {
@@ -254,6 +254,7 @@ const CqlServer = struct {
     // }
 
     fn handleClient(self: *@This(), allocator: std.mem.Allocator, client: net.Server.Connection) !void {
+        _ = allocator;
         _ = self;
         defer client.stream.close();
 
@@ -273,7 +274,7 @@ const CqlServer = struct {
             // https://sourcegraph.com/github.com/datastax/python-driver@7e0923a86/-/blob/cassandra/io/asyncorereactor.py?L370:14-370:35
             // class Connection https://sourcegraph.com/github.com/datastax/python-driver@7e0923a86e6b8d55f5a88698f4c1e6ded65a348b/-/blob/cassandra/connection.py?L661
             var buf: [sizeOfExcludingPadding(FrameHeader)]u8 = undefined;
-            const n = try client.stream.reader().read(&buf);
+            const n = try client.stream.reader().read(&buf); // TODO: use readAll
             if (n == 0) return;
             defer total_bytes_count += n;
 
@@ -292,59 +293,56 @@ const CqlServer = struct {
             // std.fmt.format(version_str, "received frame: {any}\n", .{req_frame.version});
             // const message = "Invalid or unsupported protocol version (" ++ version_str ++ "); the lowest supported version is 5 and the greatest is 5"; // TODO: replace ? with req_frame.version
 
-            const message = "Invalid or unsupported protocol version (66); the lowest supported version is 5 and the greatest is 5"; // TODO: replace ? with req_frame.version
-
-            const body_len = sizeOfExcludingPadding(ErrorBody) + message.len; // TODO: sizeOf includes padding, so we need to calculate it manually
-            const resp_frame = FrameHeader{
-                .version = SupportedCqlVersion | ResponseFlag,
-                .flags = 0x00,
-                .stream = 0,
-                .opcode = Opcode.ERROR,
-                .length = body_len,
-            };
-            try client.stream.writer().writeAll(
-                toBytes(
-                    FrameHeader,
-                    std.builtin.Endian.big,
-                    &resp_frame,
-                )[0..],
-            );
-
-            const error_body = ErrorBody{
-                .code = ErrorCode.PROTOCOL_ERROR,
-                .length = message.len,
-                // .message = message,
-            };
-
-            try client.stream.writer().writeAll(
-                toBytes(
-                    ErrorBody,
-                    std.builtin.Endian.big,
-                    &error_body,
-                )[0..],
-            );
-            try client.stream.writer().writeAll(message);
-
-            if (false) {
-                var write_buf = std.ArrayList(u8).init(allocator);
-                defer write_buf.deinit();
-
-                try write_buf.writer().writeAll(
+            if (req_frame.version != SupportedNativeCqlProtocolVersion) {
+                const message = "Invalid or unsupported protocol version (66); the lowest supported version is 5 and the greatest is 5"; // TODO: replace ? with req_frame.version
+                const body_len = sizeOfExcludingPadding(ErrorBody) + message.len;
+                const resp_frame = FrameHeader{
+                    .version = SupportedNativeCqlProtocolVersion | ResponseFlag,
+                    .flags = 0x00,
+                    .stream = req_frame.stream,
+                    .opcode = Opcode.ERROR,
+                    .length = body_len,
+                };
+                try client.stream.writer().writeAll(
                     toBytes(
                         FrameHeader,
                         std.builtin.Endian.big,
                         &resp_frame,
                     )[0..],
                 );
-                try write_buf.writer().writeAll(
+
+                const error_body = ErrorBody{
+                    .code = ErrorCode.PROTOCOL_ERROR,
+                    .length = message.len,
+                    // .message = message,
+                };
+
+                try client.stream.writer().writeAll(
                     toBytes(
                         ErrorBody,
                         std.builtin.Endian.big,
                         &error_body,
                     )[0..],
                 );
-                try write_buf.writer().writeAll(message);
-                try client.stream.writer().writeAll(write_buf.items);
+                try client.stream.writer().writeAll(message);
+            } else {
+                const message = "TODO";
+                const body_len = message.len;
+                const resp_frame = FrameHeader{
+                    .version = SupportedNativeCqlProtocolVersion | ResponseFlag,
+                    .flags = 0x00,
+                    .stream = req_frame.stream,
+                    .opcode = Opcode.SUPPORTED,
+                    .length = body_len,
+                };
+                try client.stream.writer().writeAll(
+                    toBytes(
+                        FrameHeader,
+                        std.builtin.Endian.big,
+                        &resp_frame,
+                    )[0..],
+                );
+                try client.stream.writer().writeAll(message);
             }
         }
     }
@@ -382,7 +380,7 @@ test "let's see how struct bytes work" {
         .version = 1,
         .flags = 2,
         .stream = 3,
-        .opcode = Opcode.Ready,
+        .opcode = Opcode.READY,
         .length = 5,
     };
     var buf = toBytes(
@@ -392,7 +390,7 @@ test "let's see how struct bytes work" {
     );
     std.debug.assert(buf.len == sizeOfExcludingPadding(FrameHeader));
     prettyBytes(buf[0..], std.log, "frame1");
-    try std.testing.expectEqual([9]u8{ 1, 2, 0, 3, @intFromEnum(Opcode.Ready), 0, 0, 0, 5 }, buf);
+    try std.testing.expectEqual([9]u8{ 1, 2, 0, 3, @intFromEnum(Opcode.READY), 0, 0, 0, 5 }, buf);
 
     var frame2 = FrameHeader{
         .version = 0,
@@ -445,7 +443,7 @@ test "test initial cql handshake" {
                 .version = 0x66,
                 .flags = 0,
                 .stream = 0,
-                .opcode = Opcode.Options,
+                .opcode = Opcode.OPTIONS,
                 .length = 0,
             };
             _ = try socket.writer().writeAll(
