@@ -169,6 +169,10 @@ fn sizeOfExcludingPadding(comptime T: type) @TypeOf(@sizeOf(T)) {
     return (@bitSizeOf(T) + 7) / 8;
 }
 
+// fn asBytes(ptr: anytype) std.mem.AsBytesReturnType(@TypeOf(ptr)) {
+//     return std.mem.asBytes(ptr);
+// }
+
 fn toBytes(
     comptime T: type,
     comptime struct_endian: std.builtin.Endian,
@@ -183,19 +187,28 @@ fn toBytes(
         // Note that this is toBytes, not asBytes, because we want to return an array
         // TODO: we should not return the padding bytes
         struct_endian => return std.mem.toBytes(self)[0..sizeOfExcludingPadding(T)].*,
-        else => {
-            prettyStructBytes(T, self, std.log, "toBytes");
-            var buf: [sizeOfExcludingPadding(T)]u8 = undefined;
-            inline for (std.meta.fields(T)) |f| {
-                copyReverse(
-                    u8,
-                    buf[@offsetOf(T, f.name) .. @offsetOf(T, f.name) + @sizeOf(f.type)],
-                    std.mem.asBytes(&@field(self, f.name)),
-                );
-            }
-            // prettyBytesWithAnnotatedStruct(T, buf, std.log, "toBytes");
-            // prettyBytesWithAnnotatedStruct(T, std.mem.toBytes(self), std.log, "toBytesDEBUG");
-            return buf;
+        else => return switch (@typeInfo(T)) {
+            .Pointer => {
+                // TODO: If it is a slice:
+                // TODO:   First write the length of the slice
+                // TODO:   Then write the elements of the slice
+                unreachable;
+            },
+            .Struct => {
+                prettyStructBytes(T, self, std.log, "toBytes");
+                var buf: [sizeOfExcludingPadding(T)]u8 = undefined;
+                inline for (std.meta.fields(T)) |f| {
+                    copyReverse(
+                        u8,
+                        buf[@offsetOf(T, f.name) .. @offsetOf(T, f.name) + @sizeOf(f.type)],
+                        std.mem.asBytes(&@field(self, f.name)),
+                    );
+                }
+                // prettyBytesWithAnnotatedStruct(T, buf, std.log, "toBytes");
+                // prettyBytesWithAnnotatedStruct(T, std.mem.toBytes(self), std.log, "toBytesDEBUG");
+                return buf;
+            },
+            else => unreachable,
         },
     }
 }
