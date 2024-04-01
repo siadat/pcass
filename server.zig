@@ -222,7 +222,7 @@ pub fn copyReverse(comptime T: type, dest: []T, source: []const T) void {
 }
 
 const ClientState = struct {
-    protocol_version: ?u8 = null,
+    negotiated_protocol_version: ?u8 = null,
 };
 
 const CqlServer = struct {
@@ -292,13 +292,13 @@ const CqlServer = struct {
         defer self.logger.debug("total bytes: {d}", .{total_bytes_count});
 
         var client_state = ClientState{
-            .protocol_version = null,
+            .negotiated_protocol_version = null,
         };
 
         while (true) {
             self.logger.debug("reading bytes...", .{});
 
-            if (client_state.protocol_version == null) {
+            if (client_state.negotiated_protocol_version == null) {
                 // NOTE: I thinkg this is how the client sends the initial handshake options request:
                 // https://sourcegraph.com/github.com/datastax/python-driver@7e0923a86/-/blob/cassandra/protocol.py?L490-495
                 // https://sourcegraph.com/github.com/datastax/python-driver@7e0923a86/-/blob/cassandra/connection.py?L1312-1314
@@ -368,7 +368,7 @@ const CqlServer = struct {
                         .opcode = Opcode.SUPPORTED,
                         .length = body_len,
                     };
-                    client_state.protocol_version = SupportedNativeCqlProtocolVersion;
+                    client_state.negotiated_protocol_version = SupportedNativeCqlProtocolVersion;
                     try writeBytes(
                         FrameHeader,
                         std.builtin.Endian.big,
@@ -379,7 +379,7 @@ const CqlServer = struct {
                     try client.stream.writer().writeAll(message);
                 }
             } else {
-                // TODO: frame messages with client_state.protocol_version
+                // TODO: frame messages with client_state.negotiated_protocol_version
             }
         }
     }
