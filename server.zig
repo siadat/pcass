@@ -229,9 +229,10 @@ const CqlServer = struct {
 
     fn newServer(allocator: std.mem.Allocator, port: u16) !CqlServer {
         const logger = Logger.init(std.log.Level.debug, "CqlServer");
+
+        // TODO: maybe receive a *std.net.Server as parameter
         const address = try net.Address.parseIp("127.0.0.1", port);
         logger.debug("Address: {}", .{address});
-        // var s = try address.listen(.{ .reuse_address = true });
         const s = try allocator.create(std.net.Server);
         s.* = try address.listen(.{ .reuse_address = true });
 
@@ -389,9 +390,6 @@ pub fn main() !void {
             std.log.err("There is memory leak\n", .{});
         }
     }
-
-    var buf = std.ArrayList(u8).init(inner_allocator);
-    defer buf.deinit();
 
     var srv = try CqlServer.newServer(inner_allocator, 9042);
     defer srv.deinit();
