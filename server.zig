@@ -298,84 +298,88 @@ const CqlServer = struct {
         while (true) {
             self.logger.debug("reading bytes...", .{});
 
-            // NOTE: I thinkg this is how the client sends the initial handshake options request:
-            // https://sourcegraph.com/github.com/datastax/python-driver@7e0923a86/-/blob/cassandra/protocol.py?L490-495
-            // https://sourcegraph.com/github.com/datastax/python-driver@7e0923a86/-/blob/cassandra/connection.py?L1312-1314
-            //   - send_msg: https://sourcegraph.com/github.com/datastax/python-driver@7e0923a86e6b8d55f5a88698f4c1e6ded65a348b/-/blob/cassandra/connection.py?L1059:9-1059:17
-            // https://sourcegraph.com/github.com/datastax/python-driver@7e0923a86/-/blob/cassandra/io/asyncorereactor.py?L370:14-370:35
-            // class Connection https://sourcegraph.com/github.com/datastax/python-driver@7e0923a86e6b8d55f5a88698f4c1e6ded65a348b/-/blob/cassandra/connection.py?L661
-            var buf: [sizeOfExcludingPadding(FrameHeader)]u8 = undefined;
-            const n = try client.stream.reader().readAll(&buf);
-            if (n == 0) return;
-            defer total_bytes_count += n;
+            if (client_state.protocol_version == null) {
+                // NOTE: I thinkg this is how the client sends the initial handshake options request:
+                // https://sourcegraph.com/github.com/datastax/python-driver@7e0923a86/-/blob/cassandra/protocol.py?L490-495
+                // https://sourcegraph.com/github.com/datastax/python-driver@7e0923a86/-/blob/cassandra/connection.py?L1312-1314
+                //   - send_msg: https://sourcegraph.com/github.com/datastax/python-driver@7e0923a86e6b8d55f5a88698f4c1e6ded65a348b/-/blob/cassandra/connection.py?L1059:9-1059:17
+                // https://sourcegraph.com/github.com/datastax/python-driver@7e0923a86/-/blob/cassandra/io/asyncorereactor.py?L370:14-370:35
+                // class Connection https://sourcegraph.com/github.com/datastax/python-driver@7e0923a86e6b8d55f5a88698f4c1e6ded65a348b/-/blob/cassandra/connection.py?L661
+                var buf: [sizeOfExcludingPadding(FrameHeader)]u8 = undefined;
+                const n = try client.stream.reader().readAll(&buf);
+                if (n == 0) return;
+                defer total_bytes_count += n;
 
-            prettyBytes(buf[0..n], self.logger, "received bytes");
+                prettyBytes(buf[0..n], self.logger, "received bytes");
 
-            var req_frame: FrameHeader = undefined;
-            fromBytes(
-                FrameHeader,
-                std.builtin.Endian.big,
-                buf[0..],
-                &req_frame,
-                self.logger,
-            );
-            self.logger.debug("received frame: {any}", .{req_frame});
-
-            // const version_str: [2]u8 = undefined;
-            // std.fmt.format(version_str, "received frame: {any}\n", .{req_frame.version});
-            // const message = "Invalid or unsupported protocol version (" ++ version_str ++ "); the lowest supported version is 5 and the greatest is 5"; // TODO: replace ? with req_frame.version
-
-            if (req_frame.version != SupportedNativeCqlProtocolVersion) {
-                const message = "Invalid or unsupported protocol version (66); the lowest supported version is 5 and the greatest is 5"; // TODO: replace ? with req_frame.version
-                const body_len = sizeOfExcludingPadding(ErrorBody) + message.len;
-                const resp_frame = FrameHeader{
-                    .version = SupportedNativeCqlProtocolVersion | ResponseFlag,
-                    .flags = 0x00,
-                    .stream = req_frame.stream,
-                    .opcode = Opcode.ERROR,
-                    .length = body_len,
-                };
-                try writeBytes(
+                var req_frame: FrameHeader = undefined;
+                fromBytes(
                     FrameHeader,
                     std.builtin.Endian.big,
-                    &resp_frame,
-                    client.stream.writer(),
+                    buf[0..],
+                    &req_frame,
                     self.logger,
                 );
+                self.logger.debug("received frame: {any}", .{req_frame});
 
-                const error_body = ErrorBody{
-                    .code = ErrorCode.PROTOCOL_ERROR,
-                    .length = message.len,
-                    // .message = message,
-                };
+                // const version_str: [2]u8 = undefined;
+                // std.fmt.format(version_str, "received frame: {any}\n", .{req_frame.version});
+                // const message = "Invalid or unsupported protocol version (" ++ version_str ++ "); the lowest supported version is 5 and the greatest is 5"; // TODO: replace ? with req_frame.version
 
-                try writeBytes(
-                    ErrorBody,
-                    std.builtin.Endian.big,
-                    &error_body,
-                    client.stream.writer(),
-                    self.logger,
-                );
-                try client.stream.writer().writeAll(message);
+                if (req_frame.version != SupportedNativeCqlProtocolVersion) {
+                    const message = "Invalid or unsupported protocol version (66); the lowest supported version is 5 and the greatest is 5"; // TODO: replace ? with req_frame.version
+                    const body_len = sizeOfExcludingPadding(ErrorBody) + message.len;
+                    const resp_frame = FrameHeader{
+                        .version = SupportedNativeCqlProtocolVersion | ResponseFlag,
+                        .flags = 0x00,
+                        .stream = req_frame.stream,
+                        .opcode = Opcode.ERROR,
+                        .length = body_len,
+                    };
+                    try writeBytes(
+                        FrameHeader,
+                        std.builtin.Endian.big,
+                        &resp_frame,
+                        client.stream.writer(),
+                        self.logger,
+                    );
+
+                    const error_body = ErrorBody{
+                        .code = ErrorCode.PROTOCOL_ERROR,
+                        .length = message.len,
+                        // .message = message,
+                    };
+
+                    try writeBytes(
+                        ErrorBody,
+                        std.builtin.Endian.big,
+                        &error_body,
+                        client.stream.writer(),
+                        self.logger,
+                    );
+                    try client.stream.writer().writeAll(message);
+                } else {
+                    const message = "TODO";
+                    const body_len = message.len;
+                    const resp_frame = FrameHeader{
+                        .version = SupportedNativeCqlProtocolVersion | ResponseFlag,
+                        .flags = 0x00,
+                        .stream = req_frame.stream,
+                        .opcode = Opcode.SUPPORTED,
+                        .length = body_len,
+                    };
+                    client_state.protocol_version = SupportedNativeCqlProtocolVersion;
+                    try writeBytes(
+                        FrameHeader,
+                        std.builtin.Endian.big,
+                        &resp_frame,
+                        client.stream.writer(),
+                        self.logger,
+                    );
+                    try client.stream.writer().writeAll(message);
+                }
             } else {
-                const message = "TODO";
-                const body_len = message.len;
-                const resp_frame = FrameHeader{
-                    .version = SupportedNativeCqlProtocolVersion | ResponseFlag,
-                    .flags = 0x00,
-                    .stream = req_frame.stream,
-                    .opcode = Opcode.SUPPORTED,
-                    .length = body_len,
-                };
-                client_state.protocol_version = SupportedNativeCqlProtocolVersion;
-                try writeBytes(
-                    FrameHeader,
-                    std.builtin.Endian.big,
-                    &resp_frame,
-                    client.stream.writer(),
-                    self.logger,
-                );
-                try client.stream.writer().writeAll(message);
+                // TODO: frame messages with client_state.protocol_version
             }
         }
     }
