@@ -261,18 +261,8 @@ const CqlServer = struct {
     ) !void {
         self.logger.debug("waiting for next client...", .{});
         var client = try self.net_server.accept();
-        self.logger.debug("got a client", .{});
-        const multi_threaded = false;
 
-        if (multi_threaded) {
-            _ = try std.Thread.spawn(
-                .{},
-                @This().handleClient,
-                .{ self, &client },
-            );
-        } else {
-            try self.handleClient(&client);
-        }
+        try self.handleClient(&client);
     }
 
     // fn handleOPTIONS(self: *@This(), allocator: std.mem.Allocator, client: net.Server.Connection) !void {
@@ -296,8 +286,6 @@ const CqlServer = struct {
         };
 
         while (true) {
-            self.logger.debug("reading bytes...", .{});
-
             if (client_state.negotiated_protocol_version == null) {
                 // NOTE: I thinkg this is how the client sends the initial handshake options request:
                 // https://sourcegraph.com/github.com/datastax/python-driver@7e0923a86/-/blob/cassandra/protocol.py?L490-495
@@ -305,6 +293,7 @@ const CqlServer = struct {
                 //   - send_msg: https://sourcegraph.com/github.com/datastax/python-driver@7e0923a86e6b8d55f5a88698f4c1e6ded65a348b/-/blob/cassandra/connection.py?L1059:9-1059:17
                 // https://sourcegraph.com/github.com/datastax/python-driver@7e0923a86/-/blob/cassandra/io/asyncorereactor.py?L370:14-370:35
                 // class Connection https://sourcegraph.com/github.com/datastax/python-driver@7e0923a86e6b8d55f5a88698f4c1e6ded65a348b/-/blob/cassandra/connection.py?L661
+                self.logger.debug("reading bytes...", .{});
                 var buf: [sizeOfExcludingPadding(FrameHeader)]u8 = undefined;
                 const n = try client.stream.reader().readAll(&buf);
                 if (n == 0) return;
@@ -380,6 +369,8 @@ const CqlServer = struct {
                 }
             } else {
                 // TODO: frame messages with client_state.negotiated_protocol_version
+                self.logger.debug("TODO: We are connected", .{});
+                return;
             }
         }
     }
