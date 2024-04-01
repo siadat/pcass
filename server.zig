@@ -221,6 +221,10 @@ pub fn copyReverse(comptime T: type, dest: []T, source: []const T) void {
     }
 }
 
+const ClientState = struct {
+    protocol_version: ?u8 = null,
+};
+
 const CqlServer = struct {
     net_server: *net.Server,
     state_machine: StateMachine,
@@ -286,6 +290,10 @@ const CqlServer = struct {
 
         var total_bytes_count: usize = 0;
         defer self.logger.debug("total bytes: {d}", .{total_bytes_count});
+
+        var client_state = ClientState{
+            .protocol_version = null,
+        };
 
         while (true) {
             self.logger.debug("reading bytes...", .{});
@@ -359,6 +367,7 @@ const CqlServer = struct {
                     .opcode = Opcode.SUPPORTED,
                     .length = body_len,
                 };
+                client_state.protocol_version = SupportedNativeCqlProtocolVersion;
                 try writeBytes(
                     FrameHeader,
                     std.builtin.Endian.big,
