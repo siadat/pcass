@@ -221,6 +221,26 @@ pub fn copyReverse(comptime T: type, dest: []T, source: []const T) void {
     }
 }
 
+const ClientConnection = struct {
+    allocator: std.mem.Allocator,
+    client: *net.Server.Connection,
+    logger: Logger,
+
+    fn init(allocator: std.mem.Allocator, client: *net.Server.Connection, logger: Logger) ClientConnection {
+        logger.debug("client connected: {any}", .{client.address});
+        return ClientConnection{
+            .logger = logger,
+            .allocator = allocator,
+            .client = client,
+        };
+    }
+
+    fn deinit(self: *ClientConnection) void {
+        self.logger.debug("client disconnected: {any}", .{self.client.address});
+        self.client.stream.close();
+    }
+};
+
 const CqlServer = struct {
     net_server: *net.Server,
     state_machine: StateMachine,
@@ -282,11 +302,8 @@ const CqlServer = struct {
     fn handleClient(self: *@This(), client: *net.Server.Connection) !void {
         self.logger.debug("debug s message", .{});
 
-        // defer std.posix.fsync(client.stream.handle) catch unreachable;
-        defer client.stream.close();
-
-        self.logger.debug("client connected: {any}", .{client.address});
-        defer self.logger.debug("client disconnected: {any}", .{client.address});
+        var client_conn = ClientConnection.init(self.allocator, client, self.logger);
+        defer client_conn.deinit();
 
         var total_bytes_count: usize = 0;
         defer self.logger.debug("total bytes: {d}", .{total_bytes_count});
