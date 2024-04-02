@@ -168,8 +168,7 @@ const ErrorBody_New = struct {
 
 fn fromBytes(
     comptime T: type,
-    buf: []u8,
-    // self: *T,
+    reader: anytype,
     allocator: std.mem.Allocator,
     logger: Logger,
 ) !T {
@@ -177,22 +176,23 @@ fn fromBytes(
         .Struct => {
             if (std.meta.hasFn(T, "fromStructBytes")) {
                 logger.debug("fromStructBytes", .{});
-                return try T.fromStructBytes(allocator, buf, logger);
+                return try T.fromStructBytes(allocator, reader, logger);
             }
             var self: T = undefined;
             inline for (std.meta.fields(T)) |f| {
-                // const s = buf[@offsetOf(T, f.name) .. @offsetOf(T, f.name) + @sizeOf(f.type)]; // TODO: if another struct is nested, @sizeOf includes padding, so we need to use sizeOfExcludingPadding
-                // std.mem.reverse(u8, s);
-                // @field(self, f.name) = std.mem.bytesAsValue(f.type, s).*;
-                const s = buf[@offsetOf(T, f.name) .. @offsetOf(T, f.name) + @sizeOf(f.type)]; // TODO: if another struct is nested, @sizeOf includes padding, so we need to use sizeOfExcludingPadding
-                @field(self, f.name) = try fromBytes(f.type, s, allocator, logger);
+                @field(self, f.name) = try fromBytes(f.type, reader, allocator, logger);
             }
             prettyStructBytes(T, &self, logger, "fromBytes");
             return self;
         },
         else => {
-            std.mem.reverse(u8, buf);
-            return std.mem.bytesAsValue(T, buf).*;
+            var buf: [@sizeOf(T)]u8 = undefined;
+            const n = try reader.readAll(&buf);
+            if (n == 0) {
+                return error.EndOfStream;
+            }
+            std.mem.reverse(u8, buf[0..]);
+            return std.mem.bytesAsValue(T, buf[0..]).*;
         },
     };
 }
@@ -272,15 +272,20 @@ fn PrefixedSlice(comptime S: type, comptime T: type) type {
             };
         }
         pub fn fromStructBytes(
-            buf: []u8,
             allocator: std.mem.Allocator,
+            reader: anytype,
             logger: Logger,
-        ) NewType {
-            const len = try fromBytes(S, buf[0..@sizeOf(S)], allocator, logger);
+        ) !NewType {
+            var buf: [@sizeOf(S)]u8 = undefined;
+            const n = try reader.readAll(&buf);
+            if (n == 0) {
+                return error.EndOfStream;
+            }
+
+            const len = try fromBytes(S, reader, allocator, logger);
             var array_list = std.ArrayList(T).init(allocator);
-            for (len) |i| {
-                const offset = @sizeOf(S) + i * @sizeOf(T);
-                const item = try fromBytes(T, buf[offset .. offset + @sizeOf(T)], allocator, logger);
+            for (len) |_| {
+                const item = try fromBytes(T, reader, allocator, logger);
                 try array_list.append(item);
             }
             return .{
@@ -378,24 +383,19 @@ const ClientConnection = struct {
         self.client.stream.close();
     }
 
-    fn handleOPTIONS(self: *@This()) !u64 {
+    fn handleOPTIONS(self: *@This()) !void {
         // NOTE: I thinkg this is how the client sends the initial handshake options request:
         // https://sourcegraph.com/github.com/datastax/python-driver@7e0923a86/-/blob/cassandra/protocol.py?L490-495
         // https://sourcegraph.com/github.com/datastax/python-driver@7e0923a86/-/blob/cassandra/connection.py?L1312-1314
         //   - send_msg: https://sourcegraph.com/github.com/datastax/python-driver@7e0923a86e6b8d55f5a88698f4c1e6ded65a348b/-/blob/cassandra/connection.py?L1059:9-1059:17
         // https://sourcegraph.com/github.com/datastax/python-driver@7e0923a86/-/blob/cassandra/io/asyncorereactor.py?L370:14-370:35
         // class Connection https://sourcegraph.com/github.com/datastax/python-driver@7e0923a86e6b8d55f5a88698f4c1e6ded65a348b/-/blob/cassandra/connection.py?L661
-        self.logger.debug("reading bytes...", .{});
-        var buf: [sizeOfExcludingPadding(FrameHeader)]u8 = undefined;
-        const n = try self.client.stream.reader().readAll(&buf);
-        if (n == 0) return 0;
-        const bytes_read: u64 = n;
 
-        prettyBytes(buf[0..n], self.logger, "received bytes");
+        self.logger.debug("reading bytes...", .{});
 
         const req_frame = try fromBytes(
             FrameHeader,
-            buf[0..],
+            self.client.stream.reader(),
             self.allocator,
             self.logger,
         );
@@ -454,7 +454,7 @@ const ClientConnection = struct {
             );
             try self.client.stream.writer().writeAll(message);
         }
-        return bytes_read;
+        return;
     }
 };
 
@@ -504,9 +504,13 @@ const CqlServer = struct {
 
         while (true) {
             if (client_conn.client_state.negotiated_protocol_version == null) {
-                if (try client_conn.handleOPTIONS() == 0) {
-                    break;
-                }
+                client_conn.handleOPTIONS() catch |err| switch (err) {
+                    error.EndOfStream => {
+                        self.logger.debug("client disconnected", .{});
+                        return;
+                    },
+                    else => unreachable,
+                };
             } else {
                 // TODO: frame messages with client_conn.client_state.negotiated_protocol_version
                 self.logger.debug("TODO: We are connected", .{});
@@ -558,6 +562,7 @@ test "let's see how struct bytes work" {
         buf.writer(),
         logger,
     );
+    var buf_reader = std.io.fixedBufferStream(buf.items);
     logger.debug("buf.items.len = {d}", .{buf.items.len});
     logger.debug("buf.items     = {x}", .{buf.items});
     try std.testing.expectEqual(sizeOfExcludingPadding(FrameHeader), buf.items.len);
@@ -566,17 +571,9 @@ test "let's see how struct bytes work" {
     const want = [9]u8{ 1, 2, 0, 3, @intFromEnum(Opcode.READY), 0, 0, 0, 5 };
     try std.testing.expect(std.mem.eql(u8, want[0..], buf.items));
 
-    // var frame2 = FrameHeader{
-    //     .version = 0,
-    //     .flags = 0,
-    //     .stream = 0,
-    //     .opcode = Opcode.ERROR,
-    //     .length = 0,
-    // };
     const frame2 = try fromBytes(
         FrameHeader,
-        buf.items[0..],
-        // &frame2,
+        buf_reader.reader(),
         std.testing.allocator,
         logger,
     );
@@ -589,22 +586,20 @@ test "let's see how struct bytes work" {
         // .message = String.init("error message here"),
         .length = 12345,
     };
-    // var error_body2: ErrorBody = undefined;
 
     var error_body_buf = std.ArrayList(u8).init(std.testing.allocator);
     defer error_body_buf.deinit();
-
     try writeBytes(
         ErrorBody,
         &error_body1,
         &error_body_buf.writer(),
         logger,
     );
+    var error_body_buf_reader = std.io.fixedBufferStream(error_body_buf.items);
     logger.debug("error_body_buf = {x}", .{error_body_buf.items});
     const error_body2 = try fromBytes(
         ErrorBody,
-        error_body_buf.items[0..],
-        // &error_body2,
+        error_body_buf_reader.reader(),
         std.testing.allocator,
         logger,
     );
@@ -670,23 +665,18 @@ test "test initial cql handshake" {
             );
 
             logger.debug("reading response 1", .{});
-            var buf: [sizeOfExcludingPadding(FrameHeader)]u8 = undefined;
-            const nread = try socket.reader().readAll(&buf);
-            logger.debug("nread={}", .{nread});
             const response_frame = try fromBytes(
                 FrameHeader,
-                buf[0..],
+                socket.reader(),
                 std.testing.allocator,
                 logger,
             );
             _ = response_frame;
 
             logger.debug("reading response 2", .{});
-            var buf2: [sizeOfExcludingPadding(ErrorBody)]u8 = undefined;
-            _ = try socket.reader().readAll(&buf2);
             const error_body = try fromBytes(
                 ErrorBody,
-                buf2[0..],
+                socket.reader(),
                 std.testing.allocator,
                 logger,
             );
@@ -713,7 +703,7 @@ test "test initial cql handshake" {
         }
     };
 
-    var srv = try CqlServer.newServer(std.testing.allocator, 0);
+    var srv = try CqlServer.newServer(std.testing.allocator, 9042);
     defer srv.deinit();
 
     const t = try std.Thread.spawn(.{}, TestCqlClient.send, .{srv.net_server.listen_address});
