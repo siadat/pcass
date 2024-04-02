@@ -169,9 +169,31 @@ fn sizeOfExcludingPadding(comptime T: type) @TypeOf(@sizeOf(T)) {
     return (@bitSizeOf(T) + 7) / 8;
 }
 
+const Int = i32;
+const Long = i64;
+const Byte = u8;
 const Short = u16;
+const String = PrefixedSlice(Short, Byte);
+const LongString = PrefixedSlice(Int, Byte);
+const UUID = [16]Byte;
+const StringList = PrefixedSlice(Short, String);
+const Bytes = PrefixedSlice(Int, Byte);
+const Value = PrefixedSlice(Int, Byte);
+const ShortBytes = PrefixedSlice(Short, Byte);
+const UnsignedVint = unreachable;
+const Vint = unreachable;
+const Option = unreachable; // PrefixedSlice(Short, Byte);
+const OptionList = PrefixedSlice(Short, Option);
+const Inet = unreachable; // one byte more byte (for port number) than size in PrefixedSlice(Byte, Byte);
+const InetAddr = PrefixedSlice(Byte, Byte);
+const Consistency = Short;
+const StringPair = struct { key: String, value: String };
+const BytePair = struct { key: String, value: String };
+const StringMap = PrefixedSlice(Short, StringPair);
+const StringMultimap = PrefixedSlice(Short, StringList);
+const BytesMap = PrefixedSlice(Short, BytePair);
 
-fn Prefixed(comptime T: type) type {
+fn PrefixedSlice(comptime S: type, comptime T: type) type {
     return struct {
         const NewType = @This();
         value: []const T,
@@ -185,9 +207,8 @@ fn Prefixed(comptime T: type) type {
             writer: anytype,
             logger: Logger,
         ) !void {
-            const len = @as(Short, @truncate(self.value.len));
-            try writeBytes(Short, &len, writer, logger);
-            // try writer.writeInt(Short, @as(Short, self.value.len));
+            const len = @as(S, @truncate(self.value.len));
+            try writeBytes(S, &len, writer, logger);
             for (self.value) |item| {
                 try writeBytes(T, &item, writer, logger);
             }
@@ -195,9 +216,8 @@ fn Prefixed(comptime T: type) type {
     };
 }
 
-test "test Prefixed" {
-    const PrefixedString = Prefixed(u8);
-    const s = PrefixedString.new("hello");
+test "test PrefixedSlice" {
+    const s = String.new("hello");
     try std.testing.expectEqual("hello", s.value);
     const logger = Logger.init(std.log.Level.debug, "unit test");
     logger.debug("s = {any}", .{s});
@@ -205,7 +225,7 @@ test "test Prefixed" {
     var buf = std.ArrayList(u8).init(std.testing.allocator);
     defer buf.deinit();
 
-    try writeBytes(Prefixed(u8), &s, buf.writer(), logger);
+    try writeBytes(String, &s, buf.writer(), logger);
     logger.debug("buf.items.len = {d}", .{buf.items.len});
     logger.debug("buf.items     = {x}", .{buf.items});
     try std.testing.expectEqual(@sizeOf(Short) + s.value.len, buf.items.len);
