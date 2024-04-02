@@ -212,17 +212,6 @@ fn writeBytes(
     };
 }
 
-pub fn copyReverse(comptime T: type, dest: []T, source: []const T) void {
-    // forked from std.mem.copyBackwards
-    @setRuntimeSafety(false);
-    std.debug.assert(dest.len >= source.len);
-    var i = source.len;
-    while (i > 0) {
-        i -= 1;
-        dest[i] = source[source.len - i - 1];
-    }
-}
-
 const ClientState = struct {
     negotiated_protocol_version: ?u8 = null,
 };
