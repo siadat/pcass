@@ -169,10 +169,6 @@ fn sizeOfExcludingPadding(comptime T: type) @TypeOf(@sizeOf(T)) {
     return (@bitSizeOf(T) + 7) / 8;
 }
 
-// fn asBytes(ptr: anytype) std.mem.AsBytesReturnType(@TypeOf(ptr)) {
-//     return std.mem.asBytes(ptr);
-// }
-
 fn writeBytes(
     comptime T: type,
     self: *const T,
