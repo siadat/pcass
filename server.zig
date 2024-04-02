@@ -426,9 +426,6 @@ test "let's see how struct bytes work" {
     );
     logger.debug("buf.items.len = {d}", .{buf.items.len});
     logger.debug("buf.items     = {x}", .{buf.items});
-    // std.debug.assert(buf.items.len == sizeOfExcludingPadding(FrameHeader));
-
-    // TODO: replace all std.debug.assert with std.testing.expectEqual
     try std.testing.expectEqual(sizeOfExcludingPadding(FrameHeader), buf.items.len);
 
     prettyBytes(buf.items[0..], std.log, "frame1");
