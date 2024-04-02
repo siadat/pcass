@@ -210,7 +210,7 @@ test "test Prefixed" {
     logger.debug("buf.items     = {x}", .{buf.items});
     try std.testing.expectEqual(@sizeOf(Short) + s.value.len, buf.items.len);
 
-    const want = [7]u8{ 0, 5, 104, 101, 108, 108, 111 };
+    const want = [7]u8{ 0, 5, 'h', 'e', 'l', 'l', 'o' };
     try std.testing.expect(std.mem.eql(u8, want[0..], buf.items));
 }
 
