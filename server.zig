@@ -152,12 +152,10 @@ const ErrorBody = packed struct {
 
 fn fromBytes(
     comptime T: type,
-    comptime target_endian: std.builtin.Endian,
     buf: []u8,
     self: *T,
     logger: Logger,
 ) void {
-    _ = target_endian;
     inline for (std.meta.fields(T)) |f| {
         const s = buf[@offsetOf(T, f.name) .. @offsetOf(T, f.name) + @sizeOf(f.type)]; // TODO: if another struct is nested, @sizeOf includes padding, so we need to use sizeOfExcludingPadding
         std.mem.reverse(u8, s);
@@ -177,7 +175,6 @@ fn sizeOfExcludingPadding(comptime T: type) @TypeOf(@sizeOf(T)) {
 
 fn writeBytes(
     comptime T: type,
-    comptime struct_endian: std.builtin.Endian,
     self: *const T,
     writer: anytype,
     logger: Logger,
@@ -199,7 +196,7 @@ fn writeBytes(
             prettyStructBytes(T, self, logger, "writeBytes");
             inline for (std.meta.fields(T)) |f| {
                 const field = @field(self, f.name);
-                try writeBytes(f.type, struct_endian, &field, writer, logger);
+                try writeBytes(f.type, &field, writer, logger);
             }
         },
         else => {
@@ -256,7 +253,6 @@ const ClientConnection = struct {
         var req_frame: FrameHeader = undefined;
         fromBytes(
             FrameHeader,
-            std.builtin.Endian.big,
             buf[0..],
             &req_frame,
             self.logger,
@@ -279,7 +275,6 @@ const ClientConnection = struct {
             };
             try writeBytes(
                 FrameHeader,
-                std.builtin.Endian.big,
                 &resp_frame,
                 self.client.stream.writer(),
                 self.logger,
@@ -293,7 +288,6 @@ const ClientConnection = struct {
 
             try writeBytes(
                 ErrorBody,
-                std.builtin.Endian.big,
                 &error_body,
                 self.client.stream.writer(),
                 self.logger,
@@ -312,7 +306,6 @@ const ClientConnection = struct {
             self.client_state.negotiated_protocol_version = SupportedNativeCqlProtocolVersion;
             try writeBytes(
                 FrameHeader,
-                std.builtin.Endian.big,
                 &resp_frame,
                 self.client.stream.writer(),
                 self.logger,
@@ -419,7 +412,6 @@ test "let's see how struct bytes work" {
 
     try writeBytes(
         FrameHeader,
-        std.builtin.Endian.big,
         &frame1,
         buf.writer(),
         logger,
@@ -441,7 +433,6 @@ test "let's see how struct bytes work" {
     };
     fromBytes(
         FrameHeader,
-        std.builtin.Endian.big,
         buf.items[0..],
         &frame2,
         logger,
@@ -461,14 +452,12 @@ test "let's see how struct bytes work" {
 
     try writeBytes(
         ErrorBody,
-        std.builtin.Endian.big,
         &error_body1,
         &error_body_buf.writer(),
         logger,
     );
     fromBytes(
         ErrorBody,
-        std.builtin.Endian.big,
         error_body_buf.items[0..],
         &error_body2,
         logger,
@@ -529,7 +518,6 @@ test "test initial cql handshake" {
             };
             try writeBytes(
                 FrameHeader,
-                std.builtin.Endian.big,
                 &request_fram,
                 socket.writer(),
                 logger,
@@ -542,7 +530,6 @@ test "test initial cql handshake" {
             var response_frame: FrameHeader = undefined;
             fromBytes(
                 FrameHeader,
-                std.builtin.Endian.big,
                 buf[0..],
                 &response_frame,
                 logger,
@@ -554,7 +541,6 @@ test "test initial cql handshake" {
             var error_body: ErrorBody = undefined;
             fromBytes(
                 ErrorBody,
-                std.builtin.Endian.big,
                 buf2[0..],
                 &error_body,
                 logger,
