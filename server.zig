@@ -169,6 +169,51 @@ fn sizeOfExcludingPadding(comptime T: type) @TypeOf(@sizeOf(T)) {
     return (@bitSizeOf(T) + 7) / 8;
 }
 
+const Short = u16;
+
+fn Prefixed(comptime T: type) type {
+    return struct {
+        const NewType = @This();
+        value: []const T,
+        fn new(items: []const T) NewType {
+            return .{
+                .value = items,
+            };
+        }
+        pub fn writeStructBytes(
+            self: *const NewType,
+            writer: anytype,
+            logger: Logger,
+        ) !void {
+            const len = @as(Short, @truncate(self.value.len));
+            try writeBytes(Short, &len, writer, logger);
+            // try writer.writeInt(Short, @as(Short, self.value.len));
+            for (self.value) |item| {
+                try writeBytes(T, &item, writer, logger);
+            }
+        }
+    };
+}
+
+test "test Prefixed" {
+    const PrefixedString = Prefixed(u8);
+    const s = PrefixedString.new("hello");
+    try std.testing.expectEqual("hello", s.value);
+    const logger = Logger.init(std.log.Level.debug, "unit test");
+    logger.debug("s = {any}", .{s});
+
+    var buf = std.ArrayList(u8).init(std.testing.allocator);
+    defer buf.deinit();
+
+    try writeBytes(Prefixed(u8), &s, buf.writer(), logger);
+    logger.debug("buf.items.len = {d}", .{buf.items.len});
+    logger.debug("buf.items     = {x}", .{buf.items});
+    try std.testing.expectEqual(@sizeOf(Short) + s.value.len, buf.items.len);
+
+    const want = [7]u8{ 0, 5, 104, 101, 108, 108, 111 };
+    try std.testing.expect(std.mem.eql(u8, want[0..], buf.items));
+}
+
 fn writeBytes(
     comptime T: type,
     self: *const T,
@@ -189,6 +234,11 @@ fn writeBytes(
         },
         .Struct => {
             logger.debug("Struct", .{});
+            if (std.meta.hasMethod(T, "writeStructBytes")) {
+                logger.debug("writeStructBytes", .{});
+                return try self.writeStructBytes(writer, logger);
+            }
+            logger.debug("no writeStructBytes", .{});
             prettyStructBytes(T, self, logger, "writeBytes");
             inline for (std.meta.fields(T)) |f| {
                 const field = @field(self, f.name);
