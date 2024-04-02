@@ -182,31 +182,33 @@ fn writeBytes(
     writer: anytype,
     logger: Logger,
 ) !void {
-    _ = struct_endian;
 
     // In CQL, frame is big-endian (network byte order) https://github.com/apache/cassandra/blob/5d4bcc797af/doc/native_protocol_v5.spec#L232
     // So, we need to convert it to little-endian on little-endian machines
 
     return switch (@typeInfo(T)) {
         .Pointer => {
+            logger.debug("Pointer", .{});
             // TODO: If it is a slice:
             // TODO:   First write the length of the slice
             // TODO:   Then write the elements of the slice
             unreachable;
         },
         .Struct => {
+            logger.debug("Struct", .{});
             prettyStructBytes(T, self, logger, "writeBytes");
             inline for (std.meta.fields(T)) |f| {
-                var bytes = std.mem.toBytes(@field(self, f.name));
-                // std.log.info("bytes before: {x}", .{bytes});
-                std.mem.reverse(u8, &bytes);
-                // std.log.info("bytes after : {x}", .{bytes});
-                try writer.writeAll(bytes[0..]);
+                const field = @field(self, f.name);
+                try writeBytes(f.type, struct_endian, &field, writer, logger);
             }
-            // prettyBytesWithAnnotatedStruct(T, buf, std.log, "writeBytes");
-            // prettyBytesWithAnnotatedStruct(T, std.mem.writeBytes(self), std.log, "toBytesDEBUG");
         },
-        else => unreachable,
+        else => {
+            logger.debug("else", .{});
+            var bytes = std.mem.toBytes(self.*);
+            logger.debug("bytes new: {x}", .{bytes});
+            std.mem.reverse(u8, &bytes);
+            try writer.writeAll(bytes[0..]);
+        },
     };
 }
 
@@ -435,7 +437,11 @@ test "let's see how struct bytes work" {
     );
     logger.debug("buf.items.len = {d}", .{buf.items.len});
     logger.debug("buf.items     = {x}", .{buf.items});
-    std.debug.assert(buf.items.len == sizeOfExcludingPadding(FrameHeader));
+    // std.debug.assert(buf.items.len == sizeOfExcludingPadding(FrameHeader));
+
+    // TODO: replace all std.debug.assert with std.testing.expectEqual
+    try std.testing.expectEqual(sizeOfExcludingPadding(FrameHeader), buf.items.len);
+
     prettyBytes(buf.items[0..], std.log, "frame1");
     const want = [9]u8{ 1, 2, 0, 3, @intFromEnum(Opcode.READY), 0, 0, 0, 5 };
     try std.testing.expect(std.mem.eql(u8, want[0..], buf.items));
