@@ -143,6 +143,17 @@ const FrameHeader = packed struct {
     length: u32,
 };
 
+fn Frame(comptime T: type) type {
+    return packed struct {
+        version: u8,
+        flags: u8,
+        stream: i16,
+        opcode: Opcode,
+        length: u32,
+        body: T,
+    };
+}
+
 // TODO: just found this https://sourcegraph.com/github.com/datastax/python-driver@7e0923a86e6b8d55f5a88698f4c1e6ded65a348b/-/blob/cassandra/protocol.py?L127-129
 const ErrorBody = packed struct {
     code: ErrorCode,
@@ -150,23 +161,51 @@ const ErrorBody = packed struct {
     // TONDO: message: []const u8,
 };
 
+const ErrorBody_New = struct {
+    code: ErrorCode,
+    message: String,
+};
+
 fn fromBytes(
     comptime T: type,
     buf: []u8,
     self: *T,
+    // allocator: std.mem.Allocator,
     logger: Logger,
 ) void {
-    inline for (std.meta.fields(T)) |f| {
-        const s = buf[@offsetOf(T, f.name) .. @offsetOf(T, f.name) + @sizeOf(f.type)]; // TODO: if another struct is nested, @sizeOf includes padding, so we need to use sizeOfExcludingPadding
-        std.mem.reverse(u8, s);
-        @field(self, f.name) = std.mem.bytesAsValue(f.type, s).*;
-    }
-    prettyStructBytes(T, self, logger, "fromBytes");
+    return switch (@typeInfo(T)) {
+        .Struct => {
+            if (std.meta.hasMethod(T, "fromStructBytes")) {
+                logger.debug("fromStructBytes", .{});
+                return try self.fromStructBytes(self, buf, logger);
+            }
+            inline for (std.meta.fields(T)) |f| {
+                // const s = buf[@offsetOf(T, f.name) .. @offsetOf(T, f.name) + @sizeOf(f.type)]; // TODO: if another struct is nested, @sizeOf includes padding, so we need to use sizeOfExcludingPadding
+                // std.mem.reverse(u8, s);
+                // @field(self, f.name) = std.mem.bytesAsValue(f.type, s).*;
+                const s = buf[@offsetOf(T, f.name) .. @offsetOf(T, f.name) + @sizeOf(f.type)]; // TODO: if another struct is nested, @sizeOf includes padding, so we need to use sizeOfExcludingPadding
+                var new_value: f.type = undefined;
+                fromBytes(f.type, s, &new_value, logger);
+                @field(self, f.name) = new_value;
+            }
+            prettyStructBytes(T, self, logger, "fromBytes");
+        },
+        else => {
+            std.mem.reverse(u8, buf);
+            self.* = std.mem.bytesAsValue(T, buf).*;
+        },
+    };
 }
 
 fn sizeOfExcludingPadding(comptime T: type) @TypeOf(@sizeOf(T)) {
     // We are adding 7 bits, in case the result is not a multiple of 8
     return (@bitSizeOf(T) + 7) / 8;
+}
+
+test "test sizeOfExcludingPadding" {
+    const want = 3;
+    const got = sizeOfExcludingPadding(u21);
+    try std.testing.expectEqual(want, got);
 }
 
 const Int = i32;
@@ -197,10 +236,17 @@ fn PrefixedSlice(comptime S: type, comptime T: type) type {
     return struct {
         const NewType = @This();
         value: []const T,
-        fn new(items: []const T) NewType {
+        // value: std.ArrayList(T),
+        fn init(items: []const T) NewType {
             return .{
                 .value = items,
             };
+        }
+        fn deinit(_: *NewType) void {
+            // self.value.deinit();
+        }
+        fn size(self: *const NewType) usize {
+            return @sizeOf(S) + self.value.len * @sizeOf(T);
         }
         pub fn writeStructBytes(
             self: *const NewType,
@@ -213,11 +259,21 @@ fn PrefixedSlice(comptime S: type, comptime T: type) type {
                 try writeBytes(T, &item, writer, logger);
             }
         }
+        pub fn fromStructBytes(
+            self: *NewType,
+            buf: []u8,
+            allocator: *std.mem.Allocator,
+            logger: Logger,
+        ) void {
+            _ = allocator;
+            // TODO
+            try fromBytes(S, buf[0..@sizeOf(S)], &self.value.len, logger);
+        }
     };
 }
 
 test "test PrefixedSlice" {
-    const s = String.new("hello");
+    const s = String.init("hello");
     try std.testing.expectEqual("hello", s.value);
     const logger = Logger.init(std.log.Level.debug, "unit test");
     logger.debug("s = {any}", .{s});
@@ -268,7 +324,7 @@ fn writeBytes(
         else => {
             logger.debug("else", .{});
             var bytes = std.mem.toBytes(self.*);
-            logger.debug("bytes new: {x}", .{bytes});
+            logger.debug("bytes init: {x}", .{bytes});
             std.mem.reverse(u8, &bytes);
             try writer.writeAll(bytes[0..]);
         },
@@ -509,6 +565,7 @@ test "let's see how struct bytes work" {
     // error body
     const error_body1 = ErrorBody{
         .code = ErrorCode.PROTOCOL_ERROR,
+        // .message = String.init("error message here"),
         .length = 12345,
     };
     var error_body2: ErrorBody = undefined;
@@ -522,6 +579,7 @@ test "let's see how struct bytes work" {
         &error_body_buf.writer(),
         logger,
     );
+    logger.debug("error_body_buf = {x}", .{error_body_buf.items});
     fromBytes(
         ErrorBody,
         error_body_buf.items[0..],
