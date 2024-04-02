@@ -169,30 +169,30 @@ const ErrorBody_New = struct {
 fn fromBytes(
     comptime T: type,
     buf: []u8,
-    self: *T,
-    // allocator: std.mem.Allocator,
+    // self: *T,
+    allocator: std.mem.Allocator,
     logger: Logger,
-) void {
+) !T {
     return switch (@typeInfo(T)) {
         .Struct => {
-            if (std.meta.hasMethod(T, "fromStructBytes")) {
+            if (std.meta.hasFn(T, "fromStructBytes")) {
                 logger.debug("fromStructBytes", .{});
-                return try self.fromStructBytes(self, buf, logger);
+                return try T.fromStructBytes(allocator, buf, logger);
             }
+            var self: T = undefined;
             inline for (std.meta.fields(T)) |f| {
                 // const s = buf[@offsetOf(T, f.name) .. @offsetOf(T, f.name) + @sizeOf(f.type)]; // TODO: if another struct is nested, @sizeOf includes padding, so we need to use sizeOfExcludingPadding
                 // std.mem.reverse(u8, s);
                 // @field(self, f.name) = std.mem.bytesAsValue(f.type, s).*;
                 const s = buf[@offsetOf(T, f.name) .. @offsetOf(T, f.name) + @sizeOf(f.type)]; // TODO: if another struct is nested, @sizeOf includes padding, so we need to use sizeOfExcludingPadding
-                var new_value: f.type = undefined;
-                fromBytes(f.type, s, &new_value, logger);
-                @field(self, f.name) = new_value;
+                @field(self, f.name) = try fromBytes(f.type, s, allocator, logger);
             }
-            prettyStructBytes(T, self, logger, "fromBytes");
+            prettyStructBytes(T, &self, logger, "fromBytes");
+            return self;
         },
         else => {
             std.mem.reverse(u8, buf);
-            self.* = std.mem.bytesAsValue(T, buf).*;
+            return std.mem.bytesAsValue(T, buf).*;
         },
     };
 }
@@ -235,46 +235,67 @@ const BytesMap = PrefixedSlice(Short, BytePair);
 fn PrefixedSlice(comptime S: type, comptime T: type) type {
     return struct {
         const NewType = @This();
-        value: []const T,
-        // value: std.ArrayList(T),
-        fn init(items: []const T) NewType {
-            return .{
-                .value = items,
-            };
-        }
-        fn deinit(_: *NewType) void {
-            // self.value.deinit();
+
+        allocator: std.mem.Allocator,
+        array_list: std.ArrayList(T),
+
+        fn deinit(self: *NewType) void {
+            for (self.array_list.items) |item| {
+                if (std.meta.hasMethod(T, "deinit")) {
+                    item.deinit();
+                }
+            }
+            self.array_list.deinit();
         }
         fn size(self: *const NewType) usize {
-            return @sizeOf(S) + self.value.len * @sizeOf(T);
+            return @sizeOf(S) + self.array_list.items.len * @sizeOf(T);
         }
         pub fn writeStructBytes(
             self: *const NewType,
             writer: anytype,
             logger: Logger,
         ) !void {
-            const len = @as(S, @truncate(self.value.len));
+            const len = @as(S, @truncate(self.array_list.items.len));
             try writeBytes(S, &len, writer, logger);
-            for (self.value) |item| {
+            for (self.array_list.items) |item| {
                 try writeBytes(T, &item, writer, logger);
             }
         }
+        fn fromSlice(allocator: std.mem.Allocator, items: []const T) !NewType {
+            var array_list = std.ArrayList(T).init(allocator);
+            for (items) |item| {
+                try array_list.append(item);
+            }
+            return .{
+                .allocator = allocator,
+                .array_list = array_list,
+            };
+        }
         pub fn fromStructBytes(
-            self: *NewType,
             buf: []u8,
-            allocator: *std.mem.Allocator,
+            allocator: std.mem.Allocator,
             logger: Logger,
-        ) void {
-            _ = allocator;
-            // TODO
-            try fromBytes(S, buf[0..@sizeOf(S)], &self.value.len, logger);
+        ) NewType {
+            const len = try fromBytes(S, buf[0..@sizeOf(S)], allocator, logger);
+            var array_list = std.ArrayList(T).init(allocator);
+            for (len) |i| {
+                const offset = @sizeOf(S) + i * @sizeOf(T);
+                const item = try fromBytes(T, buf[offset .. offset + @sizeOf(T)], allocator, logger);
+                try array_list.append(item);
+            }
+            return .{
+                .allocator = allocator,
+                .array_list = array_list,
+            };
         }
     };
 }
 
 test "test PrefixedSlice" {
-    const s = String.init("hello");
-    try std.testing.expectEqual("hello", s.value);
+    var s = try String.fromSlice(std.testing.allocator, "hello");
+    defer s.deinit();
+
+    try std.testing.expect(std.mem.eql(u8, "hello", s.array_list.items));
     const logger = Logger.init(std.log.Level.debug, "unit test");
     logger.debug("s = {any}", .{s});
 
@@ -284,7 +305,7 @@ test "test PrefixedSlice" {
     try writeBytes(String, &s, buf.writer(), logger);
     logger.debug("buf.items.len = {d}", .{buf.items.len});
     logger.debug("buf.items     = {x}", .{buf.items});
-    try std.testing.expectEqual(@sizeOf(Short) + s.value.len, buf.items.len);
+    try std.testing.expectEqual(@sizeOf(Short) + s.array_list.items.len, buf.items.len);
 
     const want = [7]u8{ 0, 5, 'h', 'e', 'l', 'l', 'o' };
     try std.testing.expect(std.mem.eql(u8, want[0..], buf.items));
@@ -372,11 +393,10 @@ const ClientConnection = struct {
 
         prettyBytes(buf[0..n], self.logger, "received bytes");
 
-        var req_frame: FrameHeader = undefined;
-        fromBytes(
+        const req_frame = try fromBytes(
             FrameHeader,
             buf[0..],
-            &req_frame,
+            self.allocator,
             self.logger,
         );
         self.logger.debug("received frame: {any}", .{req_frame});
@@ -546,17 +566,18 @@ test "let's see how struct bytes work" {
     const want = [9]u8{ 1, 2, 0, 3, @intFromEnum(Opcode.READY), 0, 0, 0, 5 };
     try std.testing.expect(std.mem.eql(u8, want[0..], buf.items));
 
-    var frame2 = FrameHeader{
-        .version = 0,
-        .flags = 0,
-        .stream = 0,
-        .opcode = Opcode.ERROR,
-        .length = 0,
-    };
-    fromBytes(
+    // var frame2 = FrameHeader{
+    //     .version = 0,
+    //     .flags = 0,
+    //     .stream = 0,
+    //     .opcode = Opcode.ERROR,
+    //     .length = 0,
+    // };
+    const frame2 = try fromBytes(
         FrameHeader,
         buf.items[0..],
-        &frame2,
+        // &frame2,
+        std.testing.allocator,
         logger,
     );
     logger.debug("frame2: {any}", .{frame2});
@@ -568,7 +589,7 @@ test "let's see how struct bytes work" {
         // .message = String.init("error message here"),
         .length = 12345,
     };
-    var error_body2: ErrorBody = undefined;
+    // var error_body2: ErrorBody = undefined;
 
     var error_body_buf = std.ArrayList(u8).init(std.testing.allocator);
     defer error_body_buf.deinit();
@@ -580,10 +601,11 @@ test "let's see how struct bytes work" {
         logger,
     );
     logger.debug("error_body_buf = {x}", .{error_body_buf.items});
-    fromBytes(
+    const error_body2 = try fromBytes(
         ErrorBody,
         error_body_buf.items[0..],
-        &error_body2,
+        // &error_body2,
+        std.testing.allocator,
         logger,
     );
     try std.testing.expectEqual(error_body1, error_body2);
@@ -651,22 +673,21 @@ test "test initial cql handshake" {
             var buf: [sizeOfExcludingPadding(FrameHeader)]u8 = undefined;
             const nread = try socket.reader().readAll(&buf);
             logger.debug("nread={}", .{nread});
-            var response_frame: FrameHeader = undefined;
-            fromBytes(
+            const response_frame = try fromBytes(
                 FrameHeader,
                 buf[0..],
-                &response_frame,
+                std.testing.allocator,
                 logger,
             );
+            _ = response_frame;
 
             logger.debug("reading response 2", .{});
             var buf2: [sizeOfExcludingPadding(ErrorBody)]u8 = undefined;
             _ = try socket.reader().readAll(&buf2);
-            var error_body: ErrorBody = undefined;
-            fromBytes(
+            const error_body = try fromBytes(
                 ErrorBody,
                 buf2[0..],
-                &error_body,
+                std.testing.allocator,
                 logger,
             );
             logger.debug("error_body={}", .{error_body});
