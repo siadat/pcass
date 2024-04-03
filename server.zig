@@ -398,6 +398,7 @@ fn writeBytes(
             prettyStructBytes(T, self, logger, "writeBytes");
             inline for (std.meta.fields(T)) |f| {
                 const field = @field(self, f.name);
+                // TODO: maybe optimize bytes slices?
                 try writeBytes(f.type, &field, writer, logger);
             }
         },
@@ -461,7 +462,10 @@ const ClientConnection = struct {
         defer bw.flush() catch unreachable;
 
         if (req_frame.version != SupportedNativeCqlProtocolVersion) {
-            const message = "Invalid or unsupported protocol version (66); the lowest supported version is 5 and the greatest is 5"; // TODO: replace ? with req_frame.version
+            var msg_buf = std.ArrayList(u8).init(allocator);
+            defer msg_buf.deinit();
+            try std.fmt.format(msg_buf.writer(), "Invalid or unsupported protocol version ({d}); the lowest supported version is 5 and the greatest is 5", .{req_frame.version});
+
             var resp_frame = Frame(ErrorBody){
                 .version = SupportedNativeCqlProtocolVersion | ResponseFlag,
                 .flags = 0x00,
@@ -469,7 +473,7 @@ const ClientConnection = struct {
                 .opcode = Opcode.ERROR,
                 .body = PrefixedTypedBytes(u32, ErrorBody).fromValue(ErrorBody{
                     .code = ErrorCode.PROTOCOL_ERROR,
-                    .message = try String.fromSlice(allocator, message[0..]),
+                    .message = try String.fromSlice(allocator, msg_buf.items[0..]),
                 }),
             };
 
@@ -724,7 +728,7 @@ test "test initial cql handshake" {
                 allocator,
                 logger,
             );
-            try std.testing.expect(std.mem.eql(u8, "Invalid or unsupported protocol version (66); the lowest supported version is 5 and the greatest is 5", response.body.value.message.array_list.items));
+            try std.testing.expect(std.mem.eql(u8, "Invalid or unsupported protocol version (102); the lowest supported version is 5 and the greatest is 5", response.body.value.message.array_list.items));
         }
     };
 
