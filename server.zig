@@ -158,6 +158,10 @@ fn Frame(comptime T: type) type {
 const ErrorBody = struct {
     code: ErrorCode,
     message: String,
+
+    fn size(self: *const ErrorBody) usize {
+        return sizeOfExcludingPadding(ErrorCode) + self.message.size();
+    }
 };
 
 fn fromBytes(
@@ -172,9 +176,10 @@ fn fromBytes(
                 logger.debug("fromStructBytes", .{});
                 return try T.fromStructBytes(reader, allocator, logger);
             }
-            logger.debug("no fromStructBytes", .{});
+            logger.debug("no fromStructBytes for {any}", .{T});
             var self: T = undefined;
             inline for (std.meta.fields(T)) |f| {
+                logger.debug("field: {s}", .{f.name});
                 @field(self, f.name) = try fromBytes(f.type, reader, allocator, logger);
             }
             prettyStructBytes(T, &self, logger, "fromBytes");
@@ -183,7 +188,7 @@ fn fromBytes(
         else => {
             var buf: [@sizeOf(T)]u8 = undefined;
             const n = try reader.readAll(&buf);
-            if (n == 0) {
+            if (n < buf.len) {
                 return error.EndOfStream;
             }
             std.mem.reverse(u8, buf[0..]);
@@ -398,7 +403,7 @@ const ClientConnection = struct {
         // https://sourcegraph.com/github.com/datastax/python-driver@7e0923a86/-/blob/cassandra/io/asyncorereactor.py?L370:14-370:35
         // class Connection https://sourcegraph.com/github.com/datastax/python-driver@7e0923a86e6b8d55f5a88698f4c1e6ded65a348b/-/blob/cassandra/connection.py?L661
 
-        self.logger.debug("reading bytes...", .{});
+        self.logger.debug("handleOPTIONS...", .{});
 
         const req_frame = try fromBytes(
             FrameHeader,
@@ -408,30 +413,30 @@ const ClientConnection = struct {
         );
         self.logger.debug("received frame: {any}", .{req_frame});
 
-        // const version_str: [2]u8 = undefined;
-        // std.fmt.format(version_str, "received frame: {any}\n", .{req_frame.version});
-        // const message = "Invalid or unsupported protocol version (" ++ version_str ++ "); the lowest supported version is 5 and the greatest is 5"; // TODO: replace ? with req_frame.version
+        var bw = std.io.bufferedWriter(self.client.stream.writer());
+        defer bw.flush() catch unreachable;
 
         if (req_frame.version != SupportedNativeCqlProtocolVersion) {
             const message = "Invalid or unsupported protocol version (66); the lowest supported version is 5 and the greatest is 5"; // TODO: replace ? with req_frame.version
-            const body_len = sizeOfExcludingPadding(ErrorBody) + message.len;
+            var msg = try String.fromSlice(self.allocator, message[0..]);
+            const body = ErrorBody{
+                .code = ErrorCode.PROTOCOL_ERROR,
+                .message = msg,
+            };
             var resp_frame = Frame(ErrorBody){
                 .version = SupportedNativeCqlProtocolVersion | ResponseFlag,
                 .flags = 0x00,
                 .stream = req_frame.stream,
                 .opcode = Opcode.ERROR,
-                .length = body_len,
-                .body = ErrorBody{
-                    .code = ErrorCode.PROTOCOL_ERROR,
-                    .message = try String.fromSlice(self.allocator, message[0..]),
-                },
+                .length = @truncate(body.size()),
+                .body = body,
             };
-            defer resp_frame.body.message.deinit();
+            defer msg.deinit();
 
             try writeBytes(
                 Frame(ErrorBody),
                 &resp_frame,
-                self.client.stream.writer(),
+                bw.writer(),
                 self.logger,
             );
         } else {
@@ -448,10 +453,9 @@ const ClientConnection = struct {
             try writeBytes(
                 FrameHeader,
                 &resp_frame,
-                self.client.stream.writer(),
+                bw.writer(),
                 self.logger,
             );
-            try self.client.stream.writer().writeAll(message);
         }
         return;
     }
