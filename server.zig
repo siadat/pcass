@@ -149,8 +149,7 @@ fn Frame(comptime T: type) type {
         flags: u8,
         stream: i16,
         opcode: Opcode,
-        length: u32,
-        body: T,
+        body: PrefixedTypedBytes(u32, T),
     };
 }
 
@@ -231,6 +230,47 @@ const BytePair = struct { key: String, value: String };
 const StringMap = PrefixedSlice(Short, StringPair);
 const StringMultimap = PrefixedSlice(Short, StringList);
 const BytesMap = PrefixedSlice(Short, BytePair);
+
+// TODO: add unit a test for this
+fn PrefixedTypedBytes(comptime S: type, comptime T: type) type {
+    return struct {
+        const NewType = @This();
+        // length: S,
+        value: T,
+
+        fn size(self: *const NewType) usize {
+            // NOTE: this size includes the size of the length field
+            // This method is not used anywhere yet as of writing this comment.
+            return @sizeOf(S) + self.value.size();
+        }
+        pub fn fromValue(value: T) NewType {
+            return .{
+                .value = value,
+            };
+        }
+        pub fn writeStructBytes(
+            self: *const NewType,
+            writer: anytype,
+            logger: Logger,
+        ) !void {
+            // NOTE: len does not include the size of the length field itself
+            const len = @as(S, @truncate(self.value.size()));
+            try writeBytes(S, &len, writer, logger);
+            try writeBytes(T, &self.value, writer, logger);
+        }
+
+        pub fn fromStructBytes(
+            reader: anytype,
+            allocator: std.mem.Allocator,
+            logger: Logger,
+        ) !NewType {
+            _ = try fromBytes(S, reader, allocator, logger);
+            return .{
+                .value = try fromBytes(T, reader, allocator, logger),
+            };
+        }
+    };
+}
 
 fn PrefixedSlice(comptime S: type, comptime T: type) type {
     return struct {
@@ -422,17 +462,15 @@ const ClientConnection = struct {
 
         if (req_frame.version != SupportedNativeCqlProtocolVersion) {
             const message = "Invalid or unsupported protocol version (66); the lowest supported version is 5 and the greatest is 5"; // TODO: replace ? with req_frame.version
-            const body = ErrorBody{
-                .code = ErrorCode.PROTOCOL_ERROR,
-                .message = try String.fromSlice(allocator, message[0..]),
-            };
             var resp_frame = Frame(ErrorBody){
                 .version = SupportedNativeCqlProtocolVersion | ResponseFlag,
                 .flags = 0x00,
                 .stream = req_frame.stream,
                 .opcode = Opcode.ERROR,
-                .length = @truncate(body.size()),
-                .body = body,
+                .body = PrefixedTypedBytes(u32, ErrorBody).fromValue(ErrorBody{
+                    .code = ErrorCode.PROTOCOL_ERROR,
+                    .message = try String.fromSlice(allocator, message[0..]),
+                }),
             };
 
             try writeBytes(
@@ -686,7 +724,7 @@ test "test initial cql handshake" {
                 allocator,
                 logger,
             );
-            try std.testing.expect(std.mem.eql(u8, "Invalid or unsupported protocol version (66); the lowest supported version is 5 and the greatest is 5", response.body.message.array_list.items));
+            try std.testing.expect(std.mem.eql(u8, "Invalid or unsupported protocol version (66); the lowest supported version is 5 and the greatest is 5", response.body.value.message.array_list.items));
         }
     };
 
