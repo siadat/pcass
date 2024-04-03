@@ -21,7 +21,7 @@ if __name__ == "__main__":
     parser.add_argument("-p", "--port", type=int, default=9042, help="The port to connect to.")
     args = parser.parse_args()
 
-    cluster = Cluster(contact_points=[args.host], port=args.port) # , protocol_version=ProtocolVersion.V4)
+    cluster = Cluster(contact_points=[args.host], port=args.port, compression=False) # , protocol_version=ProtocolVersion.V4)
     session = cluster.connect()
     # print(cluster.metadata.keyspaces)
 

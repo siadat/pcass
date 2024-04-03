@@ -152,6 +152,9 @@ const ErrorBody = struct {
     }
 };
 
+// Spec: "[STARTUP] must be the first message of the connection, except for OPTIONS"
+const StartupBody = StringMap;
+
 fn fromBytes(
     comptime T: type,
     reader: anytype,
@@ -165,7 +168,7 @@ fn fromBytes(
             }
             var self: T = undefined;
             inline for (std.meta.fields(T)) |f| {
-                logger.debug("field: {s}", .{f.name});
+                logger.debug("field: {s} ({any})", .{ f.name, f.type });
                 @field(self, f.name) = try fromBytes(f.type, reader, allocator, logger);
             }
             return self;
@@ -466,6 +469,43 @@ const ClientConnection = struct {
         self.client.stream.close();
     }
 
+    fn handleSTARTUP(self: *@This()) !void {
+        self.logger.debug("handleSTARTUP...", .{});
+
+        var arena = std.heap.ArenaAllocator.init(self.allocator);
+        defer arena.deinit();
+        const allocator = arena.allocator();
+
+        const req_frame = try fromBytes(
+            Frame(StartupBody),
+            self.client.stream.reader(),
+            allocator,
+            self.logger,
+        );
+
+        for (req_frame.body.value.array_list.items) |item| {
+            self.logger.debug("STARTUP keyvalue {s}={s}", .{ item.key.array_list.items, item.value.array_list.items });
+        }
+
+        var bw = std.io.bufferedWriter(self.client.stream.writer());
+        defer bw.flush() catch unreachable;
+
+        var resp_frame = FrameHeader{
+            .version = SupportedNativeCqlProtocolVersion | ResponseFlag,
+            .flags = 0x00,
+            .stream = req_frame.stream,
+            .opcode = Opcode.READY,
+            .length = 0,
+        };
+
+        try writeBytes(
+            FrameHeader,
+            &resp_frame,
+            bw.writer(),
+            self.logger,
+        );
+    }
+
     fn handleOPTIONS(self: *@This()) !void {
         // NOTE: I thinkg this is how the client sends the initial handshake options request:
         // https://sourcegraph.com/github.com/datastax/python-driver@7e0923a86/-/blob/cassandra/protocol.py?L490-495
@@ -612,8 +652,16 @@ const CqlServer = struct {
                     else => unreachable,
                 };
             } else {
+                client_conn.handleSTARTUP() catch |err| switch (err) {
+                    error.EndOfStream => {
+                        self.logger.debug("client disconnected", .{});
+                        return;
+                    },
+                    else => unreachable,
+                };
                 // TODO: frame messages with client_conn.client_state.negotiated_protocol_version
                 self.logger.debug("TODO: We are connected", .{});
+
                 return;
             }
         }
