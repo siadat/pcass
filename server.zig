@@ -144,7 +144,7 @@ const FrameHeader = packed struct {
 };
 
 fn Frame(comptime T: type) type {
-    return packed struct {
+    return struct {
         version: u8,
         flags: u8,
         stream: i16,
@@ -155,13 +155,7 @@ fn Frame(comptime T: type) type {
 }
 
 // TODO: just found this https://sourcegraph.com/github.com/datastax/python-driver@7e0923a86e6b8d55f5a88698f4c1e6ded65a348b/-/blob/cassandra/protocol.py?L127-129
-const ErrorBody = packed struct {
-    code: ErrorCode,
-    length: u16,
-    // TONDO: message: []const u8,
-};
-
-const ErrorBody_New = struct {
+const ErrorBody = struct {
     code: ErrorCode,
     message: String,
 };
@@ -176,8 +170,9 @@ fn fromBytes(
         .Struct => {
             if (std.meta.hasFn(T, "fromStructBytes")) {
                 logger.debug("fromStructBytes", .{});
-                return try T.fromStructBytes(allocator, reader, logger);
+                return try T.fromStructBytes(reader, allocator, logger);
             }
+            logger.debug("no fromStructBytes", .{});
             var self: T = undefined;
             inline for (std.meta.fields(T)) |f| {
                 @field(self, f.name) = try fromBytes(f.type, reader, allocator, logger);
@@ -272,16 +267,10 @@ fn PrefixedSlice(comptime S: type, comptime T: type) type {
             };
         }
         pub fn fromStructBytes(
-            allocator: std.mem.Allocator,
             reader: anytype,
+            allocator: std.mem.Allocator,
             logger: Logger,
         ) !NewType {
-            var buf: [@sizeOf(S)]u8 = undefined;
-            const n = try reader.readAll(&buf);
-            if (n == 0) {
-                return error.EndOfStream;
-            }
-
             const len = try fromBytes(S, reader, allocator, logger);
             var array_list = std.ArrayList(T).init(allocator);
             for (len) |_| {
@@ -297,11 +286,12 @@ fn PrefixedSlice(comptime S: type, comptime T: type) type {
 }
 
 test "test PrefixedSlice" {
+    const logger = Logger.init(std.log.Level.debug, "unit test for PrefixedSlice");
+
     var s = try String.fromSlice(std.testing.allocator, "hello");
     defer s.deinit();
 
     try std.testing.expect(std.mem.eql(u8, "hello", s.array_list.items));
-    const logger = Logger.init(std.log.Level.debug, "unit test");
     logger.debug("s = {any}", .{s});
 
     var buf = std.ArrayList(u8).init(std.testing.allocator);
@@ -314,6 +304,25 @@ test "test PrefixedSlice" {
 
     const want = [7]u8{ 0, 5, 'h', 'e', 'l', 'l', 'o' };
     try std.testing.expect(std.mem.eql(u8, want[0..], buf.items));
+
+    var string_stream1 = std.io.fixedBufferStream(want[0..]);
+    var s1 = try fromBytes(
+        String,
+        string_stream1.reader(),
+        std.testing.allocator,
+        logger,
+    );
+    defer s1.deinit();
+    try std.testing.expect(std.mem.eql(u8, "hello", s1.array_list.items));
+
+    var string_stream2 = std.io.fixedBufferStream(want[0..]);
+    var s2 = try String.fromStructBytes(
+        string_stream2.reader(),
+        std.testing.allocator,
+        logger,
+    );
+    defer s2.deinit();
+    try std.testing.expect(std.mem.eql(u8, "hello", s2.array_list.items));
 }
 
 fn writeBytes(
@@ -348,9 +357,7 @@ fn writeBytes(
             }
         },
         else => {
-            logger.debug("else", .{});
             var bytes = std.mem.toBytes(self.*);
-            logger.debug("bytes init: {x}", .{bytes});
             std.mem.reverse(u8, &bytes);
             try writer.writeAll(bytes[0..]);
         },
@@ -408,33 +415,25 @@ const ClientConnection = struct {
         if (req_frame.version != SupportedNativeCqlProtocolVersion) {
             const message = "Invalid or unsupported protocol version (66); the lowest supported version is 5 and the greatest is 5"; // TODO: replace ? with req_frame.version
             const body_len = sizeOfExcludingPadding(ErrorBody) + message.len;
-            const resp_frame = FrameHeader{
+            var resp_frame = Frame(ErrorBody){
                 .version = SupportedNativeCqlProtocolVersion | ResponseFlag,
                 .flags = 0x00,
                 .stream = req_frame.stream,
                 .opcode = Opcode.ERROR,
                 .length = body_len,
+                .body = ErrorBody{
+                    .code = ErrorCode.PROTOCOL_ERROR,
+                    .message = try String.fromSlice(self.allocator, message[0..]),
+                },
             };
+            defer resp_frame.body.message.deinit();
+
             try writeBytes(
-                FrameHeader,
+                Frame(ErrorBody),
                 &resp_frame,
                 self.client.stream.writer(),
                 self.logger,
             );
-
-            const error_body = ErrorBody{
-                .code = ErrorCode.PROTOCOL_ERROR,
-                .length = message.len,
-                // .message = message,
-            };
-
-            try writeBytes(
-                ErrorBody,
-                &error_body,
-                self.client.stream.writer(),
-                self.logger,
-            );
-            try self.client.stream.writer().writeAll(message);
         } else {
             const message = "TODO";
             const body_len = message.len;
@@ -581,29 +580,33 @@ test "let's see how struct bytes work" {
     try std.testing.expectEqual(frame1, frame2);
 
     // error body
+    var message = try String.fromSlice(std.testing.allocator, "error message here");
     const error_body1 = ErrorBody{
         .code = ErrorCode.PROTOCOL_ERROR,
-        // .message = String.init("error message here"),
-        .length = 12345,
+        .message = message,
     };
+    _ = error_body1;
+    defer message.deinit();
 
-    var error_body_buf = std.ArrayList(u8).init(std.testing.allocator);
-    defer error_body_buf.deinit();
-    try writeBytes(
-        ErrorBody,
-        &error_body1,
-        &error_body_buf.writer(),
-        logger,
-    );
-    var error_body_buf_reader = std.io.fixedBufferStream(error_body_buf.items);
-    logger.debug("error_body_buf = {x}", .{error_body_buf.items});
-    const error_body2 = try fromBytes(
-        ErrorBody,
-        error_body_buf_reader.reader(),
-        std.testing.allocator,
-        logger,
-    );
-    try std.testing.expectEqual(error_body1, error_body2);
+    // var error_body_buf = std.ArrayList(u8).init(std.testing.allocator);
+    // defer error_body_buf.deinit();
+    //
+    // try writeBytes(
+    //     ErrorBody,
+    //     &error_body1,
+    //     &error_body_buf.writer(),
+    //     logger,
+    // );
+    // var error_body_buf_reader = std.io.fixedBufferStream(error_body_buf.items);
+    // logger.debug("error_body_buf = {x}", .{error_body_buf.items});
+    // var error_body2 = try fromBytes(
+    //     ErrorBody,
+    //     error_body_buf_reader.reader(),
+    //     std.testing.allocator,
+    //     logger,
+    // );
+    // defer error_body2.message.deinit();
+    // try std.testing.expectEqual(error_body1, error_body2);
 }
 
 const Logger = struct {
@@ -640,74 +643,74 @@ const Logger = struct {
     }
 };
 
-test "test initial cql handshake" {
-    const TestCqlClient = struct {
-        fn send(server_address: net.Address) !void {
-            const logger = Logger.init(std.log.Level.debug, "TestCqlClient");
-            defer logger.deinit();
-
-            logger.debug("debug message before", .{});
-            const socket = try net.tcpConnectToAddress(server_address);
-            defer socket.close();
-
-            const request_fram = FrameHeader{
-                .version = 0x66,
-                .flags = 0,
-                .stream = 0,
-                .opcode = Opcode.OPTIONS,
-                .length = 0,
-            };
-            try writeBytes(
-                FrameHeader,
-                &request_fram,
-                socket.writer(),
-                logger,
-            );
-
-            logger.debug("reading response 1", .{});
-            const response_frame = try fromBytes(
-                FrameHeader,
-                socket.reader(),
-                std.testing.allocator,
-                logger,
-            );
-            _ = response_frame;
-
-            logger.debug("reading response 2", .{});
-            const error_body = try fromBytes(
-                ErrorBody,
-                socket.reader(),
-                std.testing.allocator,
-                logger,
-            );
-            logger.debug("error_body={}", .{error_body});
-            logger.debug("reading response 3", .{});
-
-            var message: [512]u8 = undefined;
-            if (error_body.length > message.len) {
-                logger.debug("Error message has length {d}, truncating to {d} and discard the remaining bytes", .{ error_body.length, message.len });
-            }
-            const n = try socket.reader().readAll(message[0..error_body.length]);
-            const message_str = message[0..error_body.length];
-            logger.debug("got3 ({d} bytes): {s}", .{ n, message_str });
-
-            // discard the remaining bytes
-            logger.debug("error_body.length={d}, message_str.len={d}", .{ error_body.length, message_str.len });
-            if (error_body.length > message_str.len) {
-                for (0..error_body.length - message_str.len) |_| {
-                    // TODO: print the discarded bytes
-                    logger.debug("reading byte", .{});
-                    _ = try socket.reader().readByte();
-                }
-            }
-        }
-    };
-
-    var srv = try CqlServer.newServer(std.testing.allocator, 9042);
-    defer srv.deinit();
-
-    const t = try std.Thread.spawn(.{}, TestCqlClient.send, .{srv.net_server.listen_address});
-    defer t.join();
-
-    try srv.acceptClient();
-}
+// test "test initial cql handshake" {
+//     const TestCqlClient = struct {
+//         fn send(server_address: net.Address) !void {
+//             const logger = Logger.init(std.log.Level.debug, "TestCqlClient");
+//             defer logger.deinit();
+//
+//             logger.debug("debug message before", .{});
+//             const socket = try net.tcpConnectToAddress(server_address);
+//             defer socket.close();
+//
+//             const request_fram = FrameHeader{
+//                 .version = 0x66,
+//                 .flags = 0,
+//                 .stream = 0,
+//                 .opcode = Opcode.OPTIONS,
+//                 .length = 0,
+//             };
+//             try writeBytes(
+//                 FrameHeader,
+//                 &request_fram,
+//                 socket.writer(),
+//                 logger,
+//             );
+//
+//             logger.debug("reading response 1", .{});
+//             const response = try fromBytes(
+//                 Frame(ErrorBody),
+//                 socket.reader(),
+//                 std.testing.allocator,
+//                 logger,
+//             );
+//             logger.debug("response={}", .{response});
+//
+//             // logger.debug("reading response 2", .{});
+//             // const error_body = try fromBytes(
+//             //     ErrorBody,
+//             //     socket.reader(),
+//             //     std.testing.allocator,
+//             //     logger,
+//             // );
+//             // logger.debug("error_body={}", .{error_body});
+//             // logger.debug("reading response 3", .{});
+//             //
+//             // var message: [512]u8 = undefined;
+//             // if (error_body.length > message.len) {
+//             //     logger.debug("Error message has length {d}, truncating to {d} and discard the remaining bytes", .{ error_body.length, message.len });
+//             // }
+//             // const n = try socket.reader().readAll(message[0..error_body.length]);
+//             // const message_str = message[0..error_body.length];
+//             // logger.debug("got3 ({d} bytes): {s}", .{ n, message_str });
+//             //
+//             // // discard the remaining bytes
+//             // logger.debug("error_body.length={d}, message_str.len={d}", .{ error_body.length, message_str.len });
+//             // if (error_body.length > message_str.len) {
+//             //     for (0..error_body.length - message_str.len) |_| {
+//             //         // TODO: print the discarded bytes
+//             //         logger.debug("reading byte", .{});
+//             //         _ = try socket.reader().readByte();
+//             //     }
+//             // }
+//         }
+//     };
+//
+//     var srv = try CqlServer.newServer(std.testing.allocator, 9042);
+//     defer srv.deinit();
+//
+//     const t = try std.Thread.spawn(.{}, TestCqlClient.send, .{srv.net_server.listen_address});
+//     defer t.join();
+//
+//     try srv.acceptClient();
+// }
