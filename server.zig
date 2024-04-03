@@ -585,28 +585,30 @@ test "let's see how struct bytes work" {
         .code = ErrorCode.PROTOCOL_ERROR,
         .message = message,
     };
-    _ = error_body1;
     defer message.deinit();
 
-    // var error_body_buf = std.ArrayList(u8).init(std.testing.allocator);
-    // defer error_body_buf.deinit();
-    //
-    // try writeBytes(
-    //     ErrorBody,
-    //     &error_body1,
-    //     &error_body_buf.writer(),
-    //     logger,
-    // );
-    // var error_body_buf_reader = std.io.fixedBufferStream(error_body_buf.items);
-    // logger.debug("error_body_buf = {x}", .{error_body_buf.items});
-    // var error_body2 = try fromBytes(
-    //     ErrorBody,
-    //     error_body_buf_reader.reader(),
-    //     std.testing.allocator,
-    //     logger,
-    // );
-    // defer error_body2.message.deinit();
-    // try std.testing.expectEqual(error_body1, error_body2);
+    var error_body_buf = std.ArrayList(u8).init(std.testing.allocator);
+    defer error_body_buf.deinit();
+
+    try writeBytes(
+        ErrorBody,
+        &error_body1,
+        error_body_buf.writer(),
+        logger,
+    );
+    var error_body_buf_reader = std.io.fixedBufferStream(error_body_buf.items);
+    logger.debug("error_body_buf = {x}", .{error_body_buf.items});
+    var error_body2 = try fromBytes(
+        ErrorBody,
+        error_body_buf_reader.reader(),
+        std.testing.allocator,
+        logger,
+    );
+    defer error_body2.message.deinit();
+    logger.debug("error_body2: {any}", .{error_body2});
+    logger.debug("error_body1: {any}", .{error_body1});
+    try std.testing.expectEqual(error_body1.code, error_body2.code);
+    try std.testing.expect(std.mem.eql(u8, error_body1.message.array_list.items, error_body2.message.array_list.items));
 }
 
 const Logger = struct {
