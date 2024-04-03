@@ -525,7 +525,22 @@ const ClientConnection = struct {
                         .{
                             .key = try String.fromSlice(allocator, "PROTOCOL_VERSIONS"),
                             .value = try StringList.fromSlice(allocator, &[_]String{
+                                // Spec: 'The body of a SUPPORTED message ... also includes "PROTOCOL_VERSIONS"':
                                 try String.fromSlice(allocator, "5/v5"),
+                            }),
+                        },
+                        .{
+                            .key = try String.fromSlice(allocator, "CQL_VERSION"),
+                            .value = try StringList.fromSlice(allocator, &[_]String{
+                                // Spec: 'This option is mandatory and currently the only version supported is "3.0.0"'
+                                try String.fromSlice(allocator, "3.0.0"),
+                            }),
+                        },
+                        .{
+                            .key = try String.fromSlice(allocator, "COMPRESSION"),
+                            .value = try StringList.fromSlice(allocator, &[_]String{
+                                // Spec: "As of v5 of the protocol, the only compression available is lz4"
+                                try String.fromSlice(allocator, "lz4"),
                             }),
                         },
                     },
