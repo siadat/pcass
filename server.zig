@@ -405,10 +405,14 @@ const ClientConnection = struct {
 
         self.logger.debug("handleOPTIONS...", .{});
 
+        var arena = std.heap.ArenaAllocator.init(self.allocator);
+        defer arena.deinit();
+        const allocator = arena.allocator();
+
         const req_frame = try fromBytes(
             FrameHeader,
             self.client.stream.reader(),
-            self.allocator,
+            allocator,
             self.logger,
         );
         self.logger.debug("received frame: {any}", .{req_frame});
@@ -418,10 +422,9 @@ const ClientConnection = struct {
 
         if (req_frame.version != SupportedNativeCqlProtocolVersion) {
             const message = "Invalid or unsupported protocol version (66); the lowest supported version is 5 and the greatest is 5"; // TODO: replace ? with req_frame.version
-            var msg = try String.fromSlice(self.allocator, message[0..]);
             const body = ErrorBody{
                 .code = ErrorCode.PROTOCOL_ERROR,
-                .message = msg,
+                .message = try String.fromSlice(allocator, message[0..]),
             };
             var resp_frame = Frame(ErrorBody){
                 .version = SupportedNativeCqlProtocolVersion | ResponseFlag,
@@ -431,7 +434,6 @@ const ClientConnection = struct {
                 .length = @truncate(body.size()),
                 .body = body,
             };
-            defer msg.deinit();
 
             try writeBytes(
                 Frame(ErrorBody),
@@ -673,14 +675,17 @@ test "test initial cql handshake" {
                 logger,
             );
 
+            var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
+            defer arena.deinit();
+            const allocator = arena.allocator();
+
             logger.debug("reading response 1", .{});
-            var response = try fromBytes(
+            const response = try fromBytes(
                 Frame(ErrorBody),
                 socket.reader(),
-                std.testing.allocator,
+                allocator,
                 logger,
             );
-            defer response.body.message.deinit();
             try std.testing.expect(std.mem.eql(u8, "Invalid or unsupported protocol version (66); the lowest supported version is 5 and the greatest is 5", response.body.message.array_list.items));
         }
     };
