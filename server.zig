@@ -83,31 +83,20 @@ fn prettyBytesWithAnnotatedStruct(comptime T: type, buf: [sizeOfExcludingPadding
 
 fn prettyStructBytes(
     comptime T: type,
-    self: *const T,
+    bytes: []const u8,
     logger: Logger,
     prefix: []const u8,
 ) void {
-    // writer.print("BEGIN\n", .{}) catch unreachable;
-    // defer writer.print("END\n", .{}) catch unreachable;
-    const buf = std.mem.sliceAsBytes(@as(*const [1]T, self)[0..1]);
-    const last_field = std.meta.fields(T)[std.meta.fields(T).len - 1];
-    comptime var i = 0;
-    inline for (std.meta.fields(T)) |f| {
-        inline for (1.., buf[@offsetOf(T, f.name) .. @offsetOf(T, f.name) + @sizeOf(f.type)]) |fi, c| {
-            i += 1;
-            logger.debug("{s} {d: >2}/{d}: 0x{x:0>2} {d: >3} {s} {s}.{s} {d}/{d}", .{
-                prefix,
-                i,
-                @offsetOf(T, last_field.name) + @sizeOf(last_field.type),
-                c,
-                c,
-                prettyByte(c),
-                @typeName(T),
-                f.name,
-                fi,
-                @sizeOf(f.type),
-            });
-        }
+    for (bytes, 0..) |c, i| {
+        logger.debug("{s} {d: >2}/{d}: 0x{x:0>2} {d: >3} {s} {s}", .{
+            prefix,
+            i + 1,
+            bytes.len,
+            c,
+            c,
+            prettyByte(c),
+            @typeName(T),
+        });
     }
 }
 
@@ -158,8 +147,8 @@ const ErrorBody = struct {
     code: ErrorCode,
     message: String,
 
-    fn size(self: *const ErrorBody) usize {
-        return sizeOfExcludingPadding(ErrorCode) + self.message.size();
+    fn byteCount(self: *const ErrorBody) usize {
+        return sizeOfExcludingPadding(ErrorCode) + self.message.byteCount();
     }
 };
 
@@ -172,16 +161,13 @@ fn fromBytes(
     return switch (@typeInfo(T)) {
         .Struct => {
             if (std.meta.hasFn(T, "fromStructBytes")) {
-                logger.debug("fromStructBytes", .{});
                 return try T.fromStructBytes(reader, allocator, logger);
             }
-            logger.debug("no fromStructBytes for {any}", .{T});
             var self: T = undefined;
             inline for (std.meta.fields(T)) |f| {
                 logger.debug("field: {s}", .{f.name});
                 @field(self, f.name) = try fromBytes(f.type, reader, allocator, logger);
             }
-            prettyStructBytes(T, &self, logger, "fromBytes");
             return self;
         },
         else => {
@@ -190,6 +176,7 @@ fn fromBytes(
             if (n < buf.len) {
                 return error.EndOfStream;
             }
+            prettyStructBytes(T, buf[0..], logger, "fromBytes");
             std.mem.reverse(u8, buf[0..]);
             return std.mem.bytesAsValue(T, buf[0..]).*;
         },
@@ -225,11 +212,44 @@ const OptionList = PrefixedSlice(Short, Option);
 const Inet = unreachable; // one byte more byte (for port number) than size in PrefixedSlice(Byte, Byte);
 const InetAddr = PrefixedSlice(Byte, Byte);
 const Consistency = Short;
-const StringPair = struct { key: String, value: String };
-const BytePair = struct { key: String, value: String };
+const StringListPair = Pair(String, StringList);
+const StringPair = Pair(String, String);
+const BytePair = Pair(String, String);
 const StringMap = PrefixedSlice(Short, StringPair);
-const StringMultimap = PrefixedSlice(Short, StringList);
+const StringMultimap = PrefixedSlice(Short, StringListPair);
 const BytesMap = PrefixedSlice(Short, BytePair);
+
+fn Pair(comptime K: type, comptime V: type) type {
+    return struct {
+        const Self = @This();
+        key: K,
+        value: V,
+
+        fn byteCount(self: *const Self) usize {
+            return getByteCount(self.key) + getByteCount(self.value);
+        }
+
+        pub fn writeStructBytes(
+            self: *const Self,
+            writer: anytype,
+            logger: Logger,
+        ) !void {
+            try writeBytes(K, &self.key, writer, logger);
+            try writeBytes(V, &self.value, writer, logger);
+        }
+
+        pub fn fromStructBytes(
+            reader: anytype,
+            allocator: std.mem.Allocator,
+            logger: Logger,
+        ) !Self {
+            return .{
+                .key = try fromBytes(K, reader, allocator, logger),
+                .value = try fromBytes(V, reader, allocator, logger),
+            };
+        }
+    };
+}
 
 // TODO: add unit a test for this
 fn PrefixedTypedBytes(comptime S: type, comptime T: type) type {
@@ -238,11 +258,12 @@ fn PrefixedTypedBytes(comptime S: type, comptime T: type) type {
         // length: S,
         value: T,
 
-        fn size(self: *const NewType) usize {
+        fn byteCount(self: *const NewType) usize {
             // NOTE: this size includes the size of the length field
             // This method is not used anywhere yet as of writing this comment.
-            return @sizeOf(S) + self.value.size();
+            return @sizeOf(S) + getByteCount(self.value);
         }
+
         pub fn fromValue(value: T) NewType {
             return .{
                 .value = value,
@@ -254,7 +275,7 @@ fn PrefixedTypedBytes(comptime S: type, comptime T: type) type {
             logger: Logger,
         ) !void {
             // NOTE: len does not include the size of the length field itself
-            const len = @as(S, @truncate(self.value.size()));
+            const len = @as(S, @truncate(getByteCount(self.value)));
             try writeBytes(S, &len, writer, logger);
             try writeBytes(T, &self.value, writer, logger);
         }
@@ -287,8 +308,12 @@ fn PrefixedSlice(comptime S: type, comptime T: type) type {
             }
             self.array_list.deinit();
         }
-        fn size(self: *const NewType) usize {
-            return @sizeOf(S) + self.array_list.items.len * @sizeOf(T);
+        fn byteCount(self: *const NewType) usize {
+            var count: usize = 0;
+            for (self.array_list.items) |item| {
+                count += getByteCount(item);
+            }
+            return @sizeOf(S) + count;
         }
         pub fn writeStructBytes(
             self: *const NewType,
@@ -370,6 +395,13 @@ test "test PrefixedSlice" {
     try std.testing.expect(std.mem.eql(u8, "hello", s2.array_list.items));
 }
 
+fn getByteCount(value: anytype) usize {
+    return switch (@typeInfo(@TypeOf(value))) {
+        .Struct => return value.byteCount(),
+        else => return @sizeOf(@TypeOf(value)),
+    };
+}
+
 fn writeBytes(
     comptime T: type,
     self: *const T,
@@ -391,11 +423,8 @@ fn writeBytes(
         .Struct => {
             logger.debug("Struct", .{});
             if (std.meta.hasMethod(T, "writeStructBytes")) {
-                logger.debug("writeStructBytes", .{});
                 return try self.writeStructBytes(writer, logger);
             }
-            logger.debug("no writeStructBytes", .{});
-            prettyStructBytes(T, self, logger, "writeBytes");
             inline for (std.meta.fields(T)) |f| {
                 const field = @field(self, f.name);
                 // TODO: maybe optimize bytes slices?
@@ -406,6 +435,7 @@ fn writeBytes(
             var bytes = std.mem.toBytes(self.*);
             std.mem.reverse(u8, &bytes);
             try writer.writeAll(bytes[0..]);
+            prettyStructBytes(T, bytes[0..], logger, "writeBytes");
         },
     };
 }
@@ -484,18 +514,26 @@ const ClientConnection = struct {
                 self.logger,
             );
         } else {
-            const message = "TODO";
-            const body_len = message.len;
-            const resp_frame = FrameHeader{
+            const resp_frame = Frame(StringMultimap){
                 .version = SupportedNativeCqlProtocolVersion | ResponseFlag,
                 .flags = 0x00,
                 .stream = req_frame.stream,
                 .opcode = Opcode.SUPPORTED,
-                .length = body_len,
+                .body = PrefixedTypedBytes(u32, StringMultimap).fromValue(try StringMultimap.fromSlice(
+                    allocator,
+                    &[_]StringListPair{
+                        .{
+                            .key = try String.fromSlice(allocator, "PROTOCOL_VERSIONS"),
+                            .value = try StringList.fromSlice(allocator, &[_]String{
+                                try String.fromSlice(allocator, "5/v5"),
+                            }),
+                        },
+                    },
+                )),
             };
             self.client_state.negotiated_protocol_version = SupportedNativeCqlProtocolVersion;
             try writeBytes(
-                FrameHeader,
+                Frame(StringMultimap),
                 &resp_frame,
                 bw.writer(),
                 self.logger,
