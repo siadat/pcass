@@ -645,74 +645,47 @@ const Logger = struct {
     }
 };
 
-// test "test initial cql handshake" {
-//     const TestCqlClient = struct {
-//         fn send(server_address: net.Address) !void {
-//             const logger = Logger.init(std.log.Level.debug, "TestCqlClient");
-//             defer logger.deinit();
-//
-//             logger.debug("debug message before", .{});
-//             const socket = try net.tcpConnectToAddress(server_address);
-//             defer socket.close();
-//
-//             const request_fram = FrameHeader{
-//                 .version = 0x66,
-//                 .flags = 0,
-//                 .stream = 0,
-//                 .opcode = Opcode.OPTIONS,
-//                 .length = 0,
-//             };
-//             try writeBytes(
-//                 FrameHeader,
-//                 &request_fram,
-//                 socket.writer(),
-//                 logger,
-//             );
-//
-//             logger.debug("reading response 1", .{});
-//             const response = try fromBytes(
-//                 Frame(ErrorBody),
-//                 socket.reader(),
-//                 std.testing.allocator,
-//                 logger,
-//             );
-//             logger.debug("response={}", .{response});
-//
-//             // logger.debug("reading response 2", .{});
-//             // const error_body = try fromBytes(
-//             //     ErrorBody,
-//             //     socket.reader(),
-//             //     std.testing.allocator,
-//             //     logger,
-//             // );
-//             // logger.debug("error_body={}", .{error_body});
-//             // logger.debug("reading response 3", .{});
-//             //
-//             // var message: [512]u8 = undefined;
-//             // if (error_body.length > message.len) {
-//             //     logger.debug("Error message has length {d}, truncating to {d} and discard the remaining bytes", .{ error_body.length, message.len });
-//             // }
-//             // const n = try socket.reader().readAll(message[0..error_body.length]);
-//             // const message_str = message[0..error_body.length];
-//             // logger.debug("got3 ({d} bytes): {s}", .{ n, message_str });
-//             //
-//             // // discard the remaining bytes
-//             // logger.debug("error_body.length={d}, message_str.len={d}", .{ error_body.length, message_str.len });
-//             // if (error_body.length > message_str.len) {
-//             //     for (0..error_body.length - message_str.len) |_| {
-//             //         // TODO: print the discarded bytes
-//             //         logger.debug("reading byte", .{});
-//             //         _ = try socket.reader().readByte();
-//             //     }
-//             // }
-//         }
-//     };
-//
-//     var srv = try CqlServer.newServer(std.testing.allocator, 9042);
-//     defer srv.deinit();
-//
-//     const t = try std.Thread.spawn(.{}, TestCqlClient.send, .{srv.net_server.listen_address});
-//     defer t.join();
-//
-//     try srv.acceptClient();
-// }
+test "test initial cql handshake" {
+    const TestCqlClient = struct {
+        fn send(server_address: net.Address) !void {
+            const logger = Logger.init(std.log.Level.debug, "TestCqlClient");
+            defer logger.deinit();
+
+            logger.debug("debug message before", .{});
+            const socket = try net.tcpConnectToAddress(server_address);
+            defer socket.close();
+
+            const request_fram = FrameHeader{
+                .version = 0x66,
+                .flags = 0,
+                .stream = 0,
+                .opcode = Opcode.OPTIONS,
+                .length = 0,
+            };
+            try writeBytes(
+                FrameHeader,
+                &request_fram,
+                socket.writer(),
+                logger,
+            );
+
+            logger.debug("reading response 1", .{});
+            var response = try fromBytes(
+                Frame(ErrorBody),
+                socket.reader(),
+                std.testing.allocator,
+                logger,
+            );
+            defer response.body.message.deinit();
+            try std.testing.expect(std.mem.eql(u8, "Invalid or unsupported protocol version (66); the lowest supported version is 5 and the greatest is 5", response.body.message.array_list.items));
+        }
+    };
+
+    var srv = try CqlServer.newServer(std.testing.allocator, 9042);
+    defer srv.deinit();
+
+    const t = try std.Thread.spawn(.{}, TestCqlClient.send, .{srv.net_server.listen_address});
+    defer t.join();
+
+    try srv.acceptClient();
+}
