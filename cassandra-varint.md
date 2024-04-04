@@ -1,9 +1,11 @@
 ## Cassandra 3.0 SSTable unsigned varint
 Cassandra'a unsigned varint is an efficient way to encode uint64 (long) values in 1 to 9 bytes.
 
+I could describe it, but seeing some examples is usually more helpful:
+
 ## Examples
 
-|     value | hex            | encoding
+|     value | hex            | unsigned varint encoding
 |-----------|----------------|--------------------
 |         1 | 0x01           |  `00000001`
 |         2 | 0x02           |  `00000010`
