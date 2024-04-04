@@ -81,7 +81,7 @@ fn prettyBytesWithAnnotatedStruct(comptime T: type, buf: [sizeOfExcludingPadding
     }
 }
 
-fn prettyStructBytes(
+fn prettyBufBytes(
     comptime T: type,
     bytes: []const u8,
     logger: Logger,
@@ -132,6 +132,93 @@ const FrameHeader = packed struct {
     length: u32,
 };
 
+const V5Frame = struct {
+    const Self = @This();
+
+    // payload_length: u17,
+    is_self_contained_flag: u1,
+    // payload: T,
+    raw_bytes: std.ArrayList(u8),
+    frame_header: FrameHeader,
+
+    pub fn writeStructBytes(
+        // NOTE: this is different from other writeStructBytes, this diverged because
+        // when parsing with fromStructBytes, I don't know the type of the payload,
+        // but I do know it when writing with writeStructBytes.
+        comptime T: type,
+        payload: T,
+        self: *const Self,
+        writer: anytype,
+        logger: Logger,
+    ) !void {
+        const payload_length: u17 = @truncate(getByteCount(payload));
+        const header_padding: u6 = 0;
+        const header_crc24: u24 = 0; // TODO
+        const payload_crc24: u24 = 0; // TODO
+
+        try writeBytes(u17, &payload_length, writer, logger);
+        try writeBytes(u1, &self.is_self_contained_flag, writer, logger);
+        try writeBytes(u6, &header_padding, writer, logger);
+        try writeBytes(u24, &header_crc24, writer, logger);
+        try writeBytes(T, &payload, writer, logger);
+        try writeBytes(u32, &payload_crc24, writer, logger);
+    }
+
+    fn deinit(self: *const Self) void {
+        self.raw_bytes.deinit();
+    }
+
+    pub fn fromStructBytes(
+        reader: anytype,
+        allocator: std.mem.Allocator,
+        logger: Logger,
+    ) !Self {
+        // because streams are read byte-by-byte, we read multiple fields at once
+        // and because the value is little-endian, we don't use the `fromBytes` function
+        // (because fromBytes assumes everything is big-endian and reverses the bytes before converting them to the value)
+        var first_three_bytes: [3]u8 = undefined;
+        const n = try reader.readAll(&first_three_bytes);
+        if (n < first_three_bytes.len) {
+            return error.EndOfStream;
+        }
+        for (first_three_bytes) |c| {
+            logger.debug("first_three_bytes: 0x{x:0>2} 0b{b:0>8}", .{ c, c });
+        }
+
+        // const T = packed struct(u) {}
+        // std.mem.bytesAsValue(T, buf[0..]).*;
+        const payload_length = std.mem.readPackedInt(u17, &first_three_bytes, 0, std.builtin.Endian.little);
+        const is_self_contained_flag = std.mem.readPackedInt(u1, &first_three_bytes, @bitSizeOf(@TypeOf(payload_length)), std.builtin.Endian.little);
+        // NTOE: we discard header_padding
+
+        logger.debug("length: {d}", .{payload_length});
+        logger.debug("is_self_contained_flag: {d}", .{is_self_contained_flag});
+
+        const header_crc24 = try fromBytes(u24, reader, allocator, logger);
+        logger.debug("header_crc24: {x}", .{header_crc24});
+
+        const frame_header = try fromBytes(FrameHeader, reader, allocator, logger);
+        logger.debug("frame_header: {any}", .{frame_header});
+
+        var raw_bytes = std.ArrayList(u8).init(allocator);
+        try raw_bytes.resize(frame_header.length);
+
+        const raw_payload_n = try reader.readAll(raw_bytes.items);
+        if (raw_payload_n < frame_header.length) {
+            return error.EndOfStream;
+        }
+        prettyBufBytes(u8, raw_bytes.items, logger, "raw_bytes");
+
+        const payload_crc24 = try fromBytes(u32, reader, allocator, logger);
+        _ = payload_crc24;
+        return .{
+            .is_self_contained_flag = is_self_contained_flag,
+            .raw_bytes = raw_bytes,
+            .frame_header = frame_header,
+        };
+    }
+};
+
 fn Frame(comptime T: type) type {
     return struct {
         version: u8,
@@ -174,12 +261,18 @@ fn fromBytes(
             return self;
         },
         else => {
-            var buf: [@sizeOf(T)]u8 = undefined;
+            // NOTE: we use sizeOfExcludingPadding so that u24 is read as 3 bytes
+            // instead of 4 bytes as it would be if we used @sizeOf
+            // NOTE: this function only supports byte-by-byte reading, if the
+            // bit size of the type is not divisible by 8, then you should either read a multiple
+            // of 8 bits and parse your values from that.
+            var buf: [sizeOfExcludingPadding(T)]u8 = undefined;
+
             const n = try reader.readAll(&buf);
             if (n < buf.len) {
                 return error.EndOfStream;
             }
-            prettyStructBytes(T, buf[0..], logger, "fromBytes");
+            prettyBufBytes(T, buf[0..], logger, "fromBytes");
             std.mem.reverse(u8, buf[0..]);
             return std.mem.bytesAsValue(T, buf[0..]).*;
         },
@@ -221,6 +314,36 @@ const BytePair = Pair(String, String);
 const StringMap = PrefixedSlice(Short, StringPair);
 const StringMultimap = PrefixedSlice(Short, StringListPair);
 const BytesMap = PrefixedSlice(Short, BytePair);
+
+const RawBytes = struct {
+    const Self = @This();
+    bytes: []const u8,
+
+    fn byteCount(self: *const Self) usize {
+        return self.bytes.len;
+    }
+
+    pub fn writeStructBytes(
+        self: *const Self,
+        writer: anytype,
+        _: Logger,
+    ) !void {
+        try writer.writeAll(self.bytes);
+    }
+
+    pub fn fromStructBytes(
+        reader: anytype,
+        allocator: std.mem.Allocator,
+        _: Logger,
+    ) !Self {
+        var buf = std.ArrayList(u8).init(allocator);
+        defer buf.deinit();
+        try reader.readAll(buf.writer());
+        return .{
+            .bytes = buf.items,
+        };
+    }
+};
 
 fn Pair(comptime K: type, comptime V: type) type {
     return struct {
@@ -438,7 +561,7 @@ fn writeBytes(
             var bytes = std.mem.toBytes(self.*);
             std.mem.reverse(u8, &bytes);
             try writer.writeAll(bytes[0..]);
-            prettyStructBytes(T, bytes[0..], logger, "writeBytes");
+            prettyBufBytes(T, bytes[0..], logger, "writeBytes");
         },
     };
 }
@@ -661,6 +784,39 @@ const CqlServer = struct {
                 };
                 // TODO: frame messages with client_conn.client_state.negotiated_protocol_version
                 self.logger.debug("TODO: We are connected", .{});
+
+                {
+                    // check header of next message
+                    var arena = std.heap.ArenaAllocator.init(self.allocator);
+                    defer arena.deinit();
+                    const allocator = arena.allocator();
+
+                    const req_frame = try fromBytes(
+                        V5Frame,
+                        client.stream.reader(),
+                        allocator,
+                        self.logger,
+                    );
+                    self.logger.debug("received V5Frame: {any}", .{req_frame});
+                    // TODO: depending on the opcode, parse req_frame.raw_bytes
+                    var stream = std.io.fixedBufferStream(req_frame.raw_bytes.items);
+                    switch (req_frame.frame_header.opcode) {
+                        Opcode.REGISTER => {
+                            self.logger.debug("opcode: REGISTER", .{});
+                            const register_body = try fromBytes(
+                                StringList,
+                                stream.reader(),
+                                allocator,
+                                self.logger,
+                            );
+                            self.logger.debug("register_body: {any}", .{register_body});
+                            for (register_body.array_list.items) |item| {
+                                self.logger.debug("REGISTER {s}", .{item.array_list.items});
+                            }
+                        },
+                        else => unreachable,
+                    }
+                }
 
                 return;
             }
