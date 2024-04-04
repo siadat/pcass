@@ -5,7 +5,7 @@ I could describe it, but seeing some examples is usually more helpful:
 
 ## Examples
 
-|     value | hex            | unsigned varint encoding
+|     Value | Hex            | Unsigned varint encoding
 |-----------|----------------|--------------------
 |         1 | 0x01           |  `00000001`
 |         2 | 0x02           |  `00000010`
