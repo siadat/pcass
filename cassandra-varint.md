@@ -72,3 +72,5 @@ $ poetry run python
 * https://opensource.docs.scylladb.com/stable/architecture/sstable/sstable3/sstables-3-data-file-format.html#
 * https://haaawk.github.io/2018/02/26/sstables-variant-integers.html
 * https://github.com/apache/cassandra/blob/cassandra-3.0/src/java/org/apache/cassandra/utils/vint/VIntCoding.java#L220
+* Official python marshaler https://github.com/datastax/python-driver/blob/7e0923a86e6b8d55f5a88698f4c1e6ded65a348b/cassandra/marshal.py#L59-L74
+* Official python unmarshaler https://github.com/datastax/python-driver/blob/7e0923a86e6b8d55f5a88698f4c1e6ded65a348b/cassandra/marshal.py#L47-L52
