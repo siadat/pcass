@@ -1,3 +1,6 @@
+This is a WIP.
+This readme is not intended to be read by others.
+
 ![bits](https://github.com/siadat/public/blob/main/bytes.png)
 
 ## How to run
