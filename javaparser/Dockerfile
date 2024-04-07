@@ -12,4 +12,12 @@ RUN /work/tree-sitter/target/release/tree-sitter init-config
 
 WORKDIR /work/tree-sitter-java
 RUN /work/tree-sitter/target/release/tree-sitter generate
-ENTRYPOINT ["/work/tree-sitter/target/release/tree-sitter"]
+
+WORKDIR /work
+RUN git clone --depth=1 https://github.com/apache/cassandra.git
+
+COPY parse.bash /work/parse.bash
+WORKDIR /work/tree-sitter-java
+RUN sh /work/parse.bash
+
+WORKDIR /work/tree-sitter-java

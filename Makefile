@@ -9,6 +9,9 @@ test:
 	$(POETRY) run python -m sstable.dump test_data/cassandra3_data_want/sina_test/sina_table-*/ | jq -s 'if length != 7 then error("Length is not 7, it is \(length)") else "7 rows dumped" end'
 	$(POETRY) run python -m sstable.dump test_data/cassandra3_data_want/sina_test/has_all_types-*/ | jq -s 'if length != 5 then error("Length is not 5, it is \(length)") else "5 rows dumped" end'
 
+build_javaparser:
+	docker build -f javaparser/Dockerfile -t javaparser javaparser/.
+
 run_all:
 	# :Shell is https://github.com/shellpad/shellpad.nvim
 	# The problem with NeoVim's pty is that it breaks lines and it is not a
