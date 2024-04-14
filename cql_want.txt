@@ -1,6 +1,4 @@
-~/src/commitlog-reader-zig $ tmux clear-history
-~/src/commitlog-reader-zig $ sudo bash tshark.bash 
-Running as user "root" and group "root". This could be dangerous.
++ tshark -l -i lo -Y 'tcp.port == 9042' -T fields -d tcp.port==9042,echo -e ip.src -e tcp.srcport -e ip.dst -e tcp.dstport -e tcp.len -e tcp.seq -e tcp.stream -e echo.data
 Capturing on 'Loopback: lo'
  ** (tshark:2110302) 00:13:28.211033 [Main MESSAGE] -- Capture started.
  ** (tshark:2110302) 00:13:28.211339 [Main MESSAGE] -- File: "/tmp/wireshark_loD8SGG2.pcapng"
