@@ -1,6 +1,7 @@
 ![bits](https://github.com/siadat/public/blob/main/bytes.png)
 
-## This is WIP. This readme is not intended to be read by others.
+## This is WIP and for learning only.
+## This readme is not intended to be read by others.
 
 ## Zig server (WIP)
 
