@@ -1,9 +1,14 @@
-This is a WIP.
-This readme is not intended to be read by others.
-
 ![bits](https://github.com/siadat/public/blob/main/bytes.png)
 
-## How to run
+## This is WIP.
+
+This readme is not intended to be read by others.
+
+## Zig server (WIP)
+
+The Zig version is work in progress in [./server.zig](./server.zig). I might get back to it if I have time.
+
+## How to generate SSTables with Cassandra
 
 ![tests](https://github.com/siadat/pcass/actions/workflows/makefile.yml/badge.svg)
 
