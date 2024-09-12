@@ -5,7 +5,7 @@ pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const exe = b.addExecutable(.{
         .name = "server",
-        .root_source_file = .{ .path = "server.zig" },
+        .root_source_file = b.path("server.zig"),
         .target = target, // b.host,
     });
 
@@ -56,7 +56,7 @@ pub fn build(b: *std.Build) void {
     b.installArtifact(exe);
 
     const unit_tests = b.addTest(.{
-        .root_source_file = .{ .path = "server.zig" },
+        .root_source_file = b.path("server.zig"),
         .target = target,
     });
     const run_unit_tests = b.addRunArtifact(unit_tests);
