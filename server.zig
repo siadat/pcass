@@ -134,7 +134,6 @@ const FrameHeader = packed struct {
 
 const V5Frame = struct {
     const Self = @This();
-
     // payload_length: u17,
     is_self_contained_flag: u1,
     // payload: T,
@@ -142,25 +141,21 @@ const V5Frame = struct {
     frame_header: FrameHeader,
 
     pub fn writeStructBytes(
-        // NOTE: this is different from other writeStructBytes, this diverged because
-        // when parsing with fromStructBytes, I don't know the type of the payload,
-        // but I do know it when writing with writeStructBytes.
-        comptime T: type,
-        payload: T,
         self: *const Self,
         writer: anytype,
         logger: Logger,
     ) !void {
-        const payload_length: u17 = @truncate(getByteCount(payload));
+        // TODO: is this working/tested?
+        const payload_length: u17 = @truncate(getByteCount(self.raw_bytes.items)); // TODO: maybe simply get the size of raw_bytes ArrayList?
         const header_padding: u6 = 0;
         const header_crc24: u24 = 0; // TODO
-        const payload_crc24: u24 = 0; // TODO
+        const payload_crc24: u32 = 0; // TODO
 
         try writeBytes(u17, &payload_length, writer, logger);
         try writeBytes(u1, &self.is_self_contained_flag, writer, logger);
         try writeBytes(u6, &header_padding, writer, logger);
         try writeBytes(u24, &header_crc24, writer, logger);
-        try writeBytes(T, &payload, writer, logger);
+        try writer.writeAll(self.raw_bytes.items);
         try writeBytes(u32, &payload_crc24, writer, logger);
     }
 
@@ -785,7 +780,7 @@ const CqlServer = struct {
                 // TODO: frame messages with client_conn.client_state.negotiated_protocol_version
                 self.logger.debug("TODO: We are connected", .{});
 
-                {
+                while (true) {
                     // check header of next message
                     var arena = std.heap.ArenaAllocator.init(self.allocator);
                     defer arena.deinit();
@@ -813,8 +808,34 @@ const CqlServer = struct {
                             for (register_body.array_list.items) |item| {
                                 self.logger.debug("REGISTER {s}", .{item.array_list.items});
                             }
+
+                            // respond:
+                            var bw = std.io.bufferedWriter(client.stream.writer());
+                            defer bw.flush() catch unreachable;
+
+                            const resp_frame = V5Frame{
+                                // TODO: more fields
+                                .raw_bytes = std.ArrayList(u8).init(allocator),
+                                .is_self_contained_flag = 0,
+                                .frame_header = .{
+                                    .version = SupportedNativeCqlProtocolVersion | ResponseFlag,
+                                    .flags = 0x00,
+                                    .stream = req_frame.frame_header.stream,
+                                    .opcode = Opcode.READY,
+                                    .length = 0,
+                                },
+                            };
+                            try writeBytes(
+                                V5Frame,
+                                &resp_frame,
+                                bw.writer(),
+                                self.logger,
+                            );
                         },
-                        else => unreachable,
+                        else => {
+                            self.logger.debug("opcode: {any}", .{req_frame.frame_header.opcode});
+                            unreachable;
+                        },
                     }
                 }
 
