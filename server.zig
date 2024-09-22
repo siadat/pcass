@@ -134,29 +134,75 @@ const FrameHeader = packed struct {
 
 const V5Frame = struct {
     const Self = @This();
-    // payload_length: u17,
     is_self_contained_flag: u1,
-    // payload: T,
     raw_bytes: std.ArrayList(u8),
     frame_header: FrameHeader,
+
+    // https//sourcegraph.com/github.com/datastax/python-driver@6e2ffd4e1ddc/-/blob/cassandra/segment.py?L39-51
+    // Called by:
+    // root
+    // ...
+    //   * connect()
+    //     * asd()
+    //       - asdsdsad()
+    //       * asdsad()     ---YOU ARE HERE
+    //       asd()
+    //         asdsdsad()
+    //         asdsad()
+    //            ...
+    // Calls:
+    //   @truncate() --
+    //     asd()
+    fn computeCrc24Slice(data: []const u8) u24 {
+        const CRC24_INIT: u32 = 0x875060;
+        const CRC24_POLY: u32 = 0x1974F0B;
+        var crc: u32 = CRC24_INIT;
+        for (data) |c| {
+            const tmp1: u32 = c & 0xff;
+            const tmp2: u32 = tmp1 << 16;
+            crc ^= tmp2;
+            // crc ^= (c & 0xff) << 16;
+            for (0..8) |_| {
+                crc <<= 1;
+                if (crc & 0x1000000 != 0) {
+                    crc ^= CRC24_POLY;
+                }
+            }
+        }
+        return @truncate(crc);
+    }
+
+    fn computeCrc24Int(input: u64, len: usize) u24 {
+        const data = std.mem.asBytes(&input)[0..len];
+        return computeCrc24Slice(data);
+    }
 
     pub fn writeStructBytes(
         self: *const Self,
         writer: anytype,
         logger: Logger,
     ) !void {
-        // TODO: is this working/tested?
+        // TODO: is this working/tested? is payload_length correct? maybe use bitwise operations instead.
         const payload_length: u17 = @truncate(getByteCount(self.raw_bytes.items)); // TODO: maybe simply get the size of raw_bytes ArrayList?
         const header_padding: u6 = 0;
-        const header_crc24: u24 = 0; // TODO
-        const payload_crc24: u32 = 0; // TODO
 
-        try writeBytes(u17, &payload_length, writer, logger);
-        try writeBytes(u1, &self.is_self_contained_flag, writer, logger);
-        try writeBytes(u6, &header_padding, writer, logger);
-        try writeBytes(u24, &header_crc24, writer, logger);
+        // "frame header"
+        var header_bytes = [3]u8{ 0, 0, 0 };
+        std.mem.writePackedInt(u17, &header_bytes, 0, payload_length, std.builtin.Endian.little);
+        std.mem.writePackedInt(u1, &header_bytes, 17, self.is_self_contained_flag, std.builtin.Endian.little);
+        std.mem.writePackedInt(u6, &header_bytes, 18, header_padding, std.builtin.Endian.little);
+        // prettyBytes(header_bytes[0..], logger, "header_bytes");
+
+        try writeBytes([3]u8, &header_bytes, writer, logger);
+
+        std.mem.reverse(u8, header_bytes[0..]);
+        const crc24 = computeCrc24Slice(header_bytes[0..]);
+        const crc24_bytes = std.mem.toBytes(crc24)[0..3];
+        try writer.writeAll(crc24_bytes); // TODO: because this is not using my writeBytes() function, we are not printing the bytes. The reason we are not using writeBytes is because we don't want to reverse the bytes.
         try writer.writeAll(self.raw_bytes.items);
-        try writeBytes(u32, &payload_crc24, writer, logger);
+
+        const payload_crc32: u32 = 1; // TODO
+        try writeBytes(u32, &payload_crc32, writer, logger);
     }
 
     fn deinit(self: *const Self) void {
@@ -204,8 +250,8 @@ const V5Frame = struct {
         }
         prettyBufBytes(u8, raw_bytes.items, logger, "raw_bytes");
 
-        const payload_crc24 = try fromBytes(u32, reader, allocator, logger);
-        _ = payload_crc24;
+        const payload_crc32 = try fromBytes(u32, reader, allocator, logger);
+        _ = payload_crc32;
         return .{
             .is_self_contained_flag = is_self_contained_flag,
             .raw_bytes = raw_bytes,
@@ -283,6 +329,22 @@ test "test sizeOfExcludingPadding" {
     const want = 3;
     const got = sizeOfExcludingPadding(u21);
     try std.testing.expectEqual(want, got);
+}
+
+test "test computeCrc24Int and computeCrc24Slice" {
+    // >>> from cassandra import segment
+    // >>> hex(segment.compute_crc24(0x1_23_45, 3))
+    // '0x8bc640'
+    try std.testing.expectEqual(0x875060, V5Frame.computeCrc24Int(0x0, 0));
+    try std.testing.expectEqual(0x7de777, V5Frame.computeCrc24Int(0x0, 3));
+    try std.testing.expectEqual(0x8bc640, V5Frame.computeCrc24Int(0x1_23_45, 3));
+
+    try std.testing.expectEqual(0xf5230f, V5Frame.computeCrc24Int(0xAA_12_34_56, 3));
+    try std.testing.expectEqual(0xf5230f, V5Frame.computeCrc24Int(0xBB_12_34_56, 3));
+
+    try std.testing.expectEqual(0x875060, V5Frame.computeCrc24Slice(&[0]u8{}));
+    try std.testing.expectEqual(0x7de777, V5Frame.computeCrc24Slice(&[3]u8{ 0, 0, 0 }));
+    try std.testing.expectEqual(0xf5230f, V5Frame.computeCrc24Slice(&[3]u8{ 0x56, 0x34, 0x12 }));
 }
 
 const Int = i32;
@@ -535,14 +597,14 @@ fn writeBytes(
 
     return switch (@typeInfo(T)) {
         .Pointer => {
-            logger.debug("Pointer", .{});
+            logger.debug("writeBytes:Pointer", .{});
             // TODO: If it is a slice:
             // TODO:   First write the length of the slice
             // TODO:   Then write the elements of the slice
             unreachable;
         },
         .Struct => {
-            logger.debug("Struct", .{});
+            logger.debug("writeBytes:Struct", .{});
             if (std.meta.hasMethod(T, "writeStructBytes")) {
                 return try self.writeStructBytes(writer, logger);
             }
@@ -553,8 +615,9 @@ fn writeBytes(
             }
         },
         else => {
+            const size = sizeOfExcludingPadding(T);
             var bytes = std.mem.toBytes(self.*);
-            std.mem.reverse(u8, &bytes);
+            std.mem.reverse(u8, bytes[0..size]);
             try writer.writeAll(bytes[0..]);
             prettyBufBytes(T, bytes[0..], logger, "writeBytes");
         },
@@ -761,6 +824,7 @@ const CqlServer = struct {
         defer client_conn.deinit();
 
         while (true) {
+            // std.time.sleep(2 * 1000 * 1000 * 1000);
             if (client_conn.client_state.negotiated_protocol_version == null) {
                 client_conn.handleOPTIONS() catch |err| switch (err) {
                     error.EndOfStream => {
