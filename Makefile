@@ -50,7 +50,7 @@ docker-compose-restart-debug:
 test-zig:
 	zig build test --summary all --verbose -freference-trace # --verbose-llvm-ir
 
-zig-run:
+zig-run: tracy
 	TRACY_NO_INVARIANT_CHECK=1 \
 	TRACY_PORT=5454 \
 	TRACY_CALLSTACK=1 \
@@ -77,6 +77,9 @@ test-tracy:
 	cd tracy && make -C test/ clean all
 	./test/tracy_test
 
+tracy:
+	git clone git@github.com:wolfpld/tracy.git
+
 send-test-bytes:
 	yes 'hello world!' | head -c 20 | nc -N localhost 9042
 
@@ -88,6 +91,9 @@ cql_server:
 	$(POETRY) run python -m cql_server
 
 cql_client:
+	# apt install python3.10
+	# poetry env use python3.10
+	# poetry install
 	bash wait_until_cassandra_is_up.bash
 	$(POETRY) run python -m cql_client
 
