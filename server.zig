@@ -138,8 +138,8 @@ const V5Frame = struct {
     const Self = @This();
 
     is_self_contained_flag: u1,
-    raw_bytes: std.ArrayList(u8),
-    frame_header: FrameHeader,
+    payload_raw_bytes: std.ArrayList(u8),
+    payload_fram_header: FrameHeader,
 
     // https://sourcegraph.com/github.com/datastax/python-driver@6e2ffd4e1ddc/-/blob/cassandra/segment.py?L39-51
     // Called by:
@@ -193,7 +193,7 @@ const V5Frame = struct {
         logger: Logger,
     ) !void {
         // TODO: is this working/tested? is payload_length correct? maybe use bitwise operations instead.
-        const payload_length: u17 = @truncate(getByteCount(self.raw_bytes.items)); // TODO: maybe simply get the size of raw_bytes ArrayList?
+        const payload_length: u17 = @truncate(getByteCount(self.payload_raw_bytes.items)); // TODO: maybe simply get the size of payload_raw_bytes ArrayList?
         const header_padding: u6 = 0;
 
         // "frame header"
@@ -202,7 +202,7 @@ const V5Frame = struct {
         std.mem.writePackedInt(u1, &header_bytes, 17, self.is_self_contained_flag, std.builtin.Endian.little);
         std.mem.writePackedInt(u6, &header_bytes, 18, header_padding, std.builtin.Endian.little);
         prettyBytes(header_bytes[0..], logger, "header_bytes");
-        prettyBytes(self.raw_bytes.items[0..], logger, "raw_bytes");
+        prettyBytes(self.payload_raw_bytes.items[0..], logger, "payload_raw_bytes");
 
         try writeBytes([3]u8, &header_bytes, writer, logger);
 
@@ -210,15 +210,15 @@ const V5Frame = struct {
         const crc24 = computeCrc24Slice(header_bytes[0..]);
         const crc24_bytes = std.mem.toBytes(crc24)[0..3];
         try writer.writeAll(crc24_bytes);
-        try writer.writeAll(self.raw_bytes.items);
+        try writer.writeAll(self.payload_raw_bytes.items);
 
-        const payload_crc32: u32 = computeCrc32Slice(self.raw_bytes.items);
+        const payload_crc32: u32 = computeCrc32Slice(self.payload_raw_bytes.items);
         var payload_crc32_bytes = std.mem.toBytes(payload_crc32);
         try writer.writeAll(payload_crc32_bytes[0..]);
     }
 
     fn deinit(self: *const Self) void {
-        self.raw_bytes.deinit();
+        self.payload_raw_bytes.deinit();
     }
 
     pub fn fromStructBytes(
@@ -250,24 +250,24 @@ const V5Frame = struct {
         const header_crc24 = try fromBytes(u24, reader, allocator, logger);
         logger.debug("header_crc24: {x}", .{header_crc24});
 
-        const frame_header = try fromBytes(FrameHeader, reader, allocator, logger);
-        logger.debug("frame_header: {any}", .{frame_header});
+        const payload_fram_header = try fromBytes(FrameHeader, reader, allocator, logger);
+        logger.debug("payload_fram_header: {any}", .{payload_fram_header});
 
-        var raw_bytes = std.ArrayList(u8).init(allocator);
-        try raw_bytes.resize(frame_header.length);
+        var payload_raw_bytes = std.ArrayList(u8).init(allocator);
+        try payload_raw_bytes.resize(payload_fram_header.length);
 
-        const raw_payload_n = try reader.readAll(raw_bytes.items);
-        if (raw_payload_n < frame_header.length) {
+        const raw_payload_n = try reader.readAll(payload_raw_bytes.items);
+        if (raw_payload_n < payload_fram_header.length) {
             return error.EndOfStream;
         }
-        prettyBufBytes(u8, raw_bytes.items, logger, "raw_bytes");
+        prettyBufBytes(u8, payload_raw_bytes.items, logger, "payload_raw_bytes");
 
         const payload_crc32 = try fromBytes(u32, reader, allocator, logger);
         _ = payload_crc32;
         return .{
             .is_self_contained_flag = is_self_contained_flag,
-            .raw_bytes = raw_bytes,
-            .frame_header = frame_header,
+            .payload_raw_bytes = payload_raw_bytes,
+            .payload_fram_header = payload_fram_header,
         };
     }
 };
@@ -882,10 +882,10 @@ const CqlServer = struct {
                     },
                     else => unreachable,
                 };
-                // TODO: frame messages with client_conn.client_state.negotiated_protocol_version
                 self.logger.debug("TODO: We are connected", .{});
 
                 while (true) {
+                    self.logger.debug("expecting V5Frame", .{});
                     // check header of next message
                     var arena = std.heap.ArenaAllocator.init(self.allocator);
                     defer arena.deinit();
@@ -898,9 +898,9 @@ const CqlServer = struct {
                         self.logger,
                     );
                     self.logger.debug("received V5Frame: {any}", .{req_frame});
-                    // TODO: depending on the opcode, parse req_frame.raw_bytes
-                    var stream = std.io.fixedBufferStream(req_frame.raw_bytes.items);
-                    switch (req_frame.frame_header.opcode) {
+                    // TODO: depending on the opcode, parse req_frame.payload_raw_bytes
+                    var stream = std.io.fixedBufferStream(req_frame.payload_raw_bytes.items);
+                    switch (req_frame.payload_fram_header.opcode) {
                         Opcode.REGISTER => {
                             self.logger.debug("opcode: REGISTER", .{});
                             const register_body = try fromBytes(
@@ -920,15 +920,15 @@ const CqlServer = struct {
 
                             const resp_frame = V5Frame{
                                 // TODO: more fields
-                                .raw_bytes = std.ArrayList(u8).init(allocator),
                                 .is_self_contained_flag = 0,
-                                .frame_header = .{
-                                    .version = SupportedNativeCqlProtocolVersion | ResponseFlag,
+                                .payload_fram_header = .{
+                                    .version = client_conn.client_state.negotiated_protocol_version.? | ResponseFlag, // .version = SupportedNativeCqlProtocolVersion | ResponseFlag,
                                     .flags = 0x00,
-                                    .stream = req_frame.frame_header.stream,
+                                    .stream = req_frame.payload_fram_header.stream,
                                     .opcode = Opcode.READY,
                                     .length = 0,
                                 },
+                                .payload_raw_bytes = std.ArrayList(u8).init(allocator),
                             };
                             try writeBytes(
                                 V5Frame,
@@ -938,7 +938,7 @@ const CqlServer = struct {
                             );
                         },
                         else => {
-                            self.logger.debug("opcode: {any}", .{req_frame.frame_header.opcode});
+                            self.logger.debug("opcode: {any}", .{req_frame.payload_fram_header.opcode});
                             unreachable;
                         },
                     }
