@@ -3,8 +3,10 @@ const net = std.net;
 const tracy = @import("tracy.zig");
 const builtin = @import("builtin");
 
+const assert = std.debug.assert;
 const ResponseFlag = 0x80; // == 0b10000000
 const SupportedNativeCqlProtocolVersion = 0x05;
+const CRC32_INITIAL_BYTES = [_]u8{ 0xfa, 0x2d, 0x55, 0xca };
 
 // enum for version 4 and 5:
 const Opcode = enum(u8) {
@@ -134,11 +136,12 @@ const FrameHeader = packed struct {
 
 const V5Frame = struct {
     const Self = @This();
+
     is_self_contained_flag: u1,
     raw_bytes: std.ArrayList(u8),
     frame_header: FrameHeader,
 
-    // https//sourcegraph.com/github.com/datastax/python-driver@6e2ffd4e1ddc/-/blob/cassandra/segment.py?L39-51
+    // https://sourcegraph.com/github.com/datastax/python-driver@6e2ffd4e1ddc/-/blob/cassandra/segment.py?L39-51
     // Called by:
     // root
     // ...
@@ -172,6 +175,13 @@ const V5Frame = struct {
         return @truncate(crc);
     }
 
+    fn computeCrc32Slice(data: []const u8) u32 {
+        var c = std.hash.Crc32.init();
+        c.update(&CRC32_INITIAL_BYTES);
+        c.update(data);
+        return c.final();
+    }
+
     fn computeCrc24Int(input: u64, len: usize) u24 {
         const data = std.mem.asBytes(&input)[0..len];
         return computeCrc24Slice(data);
@@ -191,18 +201,20 @@ const V5Frame = struct {
         std.mem.writePackedInt(u17, &header_bytes, 0, payload_length, std.builtin.Endian.little);
         std.mem.writePackedInt(u1, &header_bytes, 17, self.is_self_contained_flag, std.builtin.Endian.little);
         std.mem.writePackedInt(u6, &header_bytes, 18, header_padding, std.builtin.Endian.little);
-        // prettyBytes(header_bytes[0..], logger, "header_bytes");
+        prettyBytes(header_bytes[0..], logger, "header_bytes");
+        prettyBytes(self.raw_bytes.items[0..], logger, "raw_bytes");
 
         try writeBytes([3]u8, &header_bytes, writer, logger);
 
         std.mem.reverse(u8, header_bytes[0..]);
         const crc24 = computeCrc24Slice(header_bytes[0..]);
         const crc24_bytes = std.mem.toBytes(crc24)[0..3];
-        try writer.writeAll(crc24_bytes); // TODO: because this is not using my writeBytes() function, we are not printing the bytes. The reason we are not using writeBytes is because we don't want to reverse the bytes.
+        try writer.writeAll(crc24_bytes);
         try writer.writeAll(self.raw_bytes.items);
 
-        const payload_crc32: u32 = 1; // TODO
-        try writeBytes(u32, &payload_crc32, writer, logger);
+        const payload_crc32: u32 = computeCrc32Slice(self.raw_bytes.items);
+        var payload_crc32_bytes = std.mem.toBytes(payload_crc32);
+        try writer.writeAll(payload_crc32_bytes[0..]);
     }
 
     fn deinit(self: *const Self) void {
@@ -345,6 +357,35 @@ test "test computeCrc24Int and computeCrc24Slice" {
     try std.testing.expectEqual(0x875060, V5Frame.computeCrc24Slice(&[0]u8{}));
     try std.testing.expectEqual(0x7de777, V5Frame.computeCrc24Slice(&[3]u8{ 0, 0, 0 }));
     try std.testing.expectEqual(0xf5230f, V5Frame.computeCrc24Slice(&[3]u8{ 0x56, 0x34, 0x12 }));
+}
+
+test "test computeCrc32Slice" {
+    // >>> from cassandra import segment
+    // >>> hex(segment.compute_crc32(b"\xab\xcd", 0xfa_2d_55_ca))
+    // '0xc3eba942'
+    {
+        var c = std.hash.Crc32.init();
+        c.update(&[_]u8{ 0xfa, 0x2d, 0x55, 0xca });
+        try std.testing.expectEqual(@as(u32, 0x44777ed3), c.final());
+    }
+    {
+        var c = std.hash.Crc32.init();
+        c.update(&[_]u8{ 0xfa, 0x2d, 0x55, 0xca });
+        c.update(&[_]u8{0x00});
+        try std.testing.expectEqual(@as(u32, 0xcd9c1b9d), c.final());
+    }
+
+    {
+        var c = std.hash.Crc32.init();
+        c.update(&[_]u8{ 0xfa, 0x2d, 0x55, 0xca, 0x00 });
+        try std.testing.expectEqual(@as(u32, 0xcd9c1b9d), c.final());
+    }
+    {
+        var c = std.hash.Crc32.init();
+        c.update(&[_]u8{ 0xfa, 0x2d, 0x55, 0xca });
+        c.update("abc");
+        try std.testing.expectEqual(@as(u32, 0xc5367a08), c.final());
+    }
 }
 
 const Int = i32;
