@@ -175,13 +175,6 @@ const V5Frame = struct {
         return @truncate(crc);
     }
 
-    fn computeCrc32Slice(data: []const u8) u32 {
-        var c = std.hash.Crc32.init();
-        c.update(&CRC32_INITIAL_BYTES);
-        c.update(data);
-        return c.final();
-    }
-
     fn computeCrc24Int(input: u64, len: usize) u24 {
         const data = std.mem.asBytes(&input)[0..len];
         return computeCrc24Slice(data);
@@ -192,8 +185,8 @@ const V5Frame = struct {
         writer: anytype,
         logger: Logger,
     ) !void {
-        // TODO: is this working/tested? is payload_length correct? maybe use bitwise operations instead.
-        const payload_length: u17 = @truncate(getByteCount(self.payload_raw_bytes.items)); // TODO: maybe simply get the size of payload_raw_bytes ArrayList?
+        logger.debug("payload size {d} + {d}", .{ sizeOfExcludingPadding(FrameHeader), self.payload_raw_bytes.items.len });
+        const payload_length: u17 = @truncate(sizeOfExcludingPadding(FrameHeader) + self.payload_raw_bytes.items.len);
         const header_padding: u6 = 0;
 
         // "frame header"
@@ -203,16 +196,41 @@ const V5Frame = struct {
         std.mem.writePackedInt(u6, &header_bytes, 18, header_padding, std.builtin.Endian.little);
         prettyBytes(header_bytes[0..], logger, "header_bytes");
         prettyBytes(self.payload_raw_bytes.items[0..], logger, "payload_raw_bytes");
+        for (header_bytes) |c| {
+            logger.debug("first_three_bytes: 0x{x:0>2} 0b{b:0>8}", .{ c, c });
+        }
 
+        std.mem.reverse(u8, header_bytes[0..]);
         try writeBytes([3]u8, &header_bytes, writer, logger);
 
+        // crc24
         std.mem.reverse(u8, header_bytes[0..]);
         const crc24 = computeCrc24Slice(header_bytes[0..]);
         const crc24_bytes = std.mem.toBytes(crc24)[0..3];
         try writer.writeAll(crc24_bytes);
+
+        // payload header:
+        var payload_header_buf: [sizeOfExcludingPadding(FrameHeader)]u8 = undefined;
+        var payload_header_stream = std.io.fixedBufferStream(&payload_header_buf);
+        var multiwriter_stream = std.io.multiWriter(.{
+            payload_header_stream.writer(),
+            writer,
+        });
+        try writeBytes(
+            FrameHeader,
+            &self.payload_fram_header,
+            multiwriter_stream.writer(),
+            logger,
+        );
+        // payload bytes
         try writer.writeAll(self.payload_raw_bytes.items);
 
-        const payload_crc32: u32 = computeCrc32Slice(self.payload_raw_bytes.items);
+        var c = std.hash.Crc32.init();
+        c.update(&CRC32_INITIAL_BYTES);
+        c.update(&payload_header_buf);
+        c.update(self.payload_raw_bytes.items);
+        const payload_crc32 = c.final();
+
         var payload_crc32_bytes = std.mem.toBytes(payload_crc32);
         try writer.writeAll(payload_crc32_bytes[0..]);
     }
@@ -235,7 +253,7 @@ const V5Frame = struct {
             return error.EndOfStream;
         }
         for (first_three_bytes) |c| {
-            logger.debug("first_three_bytes: 0x{x:0>2} 0b{b:0>8}", .{ c, c });
+            logger.debug("read_first_three_bytes: 0x{x:0>2} 0b{b:0>8}", .{ c, c });
         }
 
         // const T = packed struct(u) {}
@@ -243,6 +261,7 @@ const V5Frame = struct {
         const payload_length = std.mem.readPackedInt(u17, &first_three_bytes, 0, std.builtin.Endian.little);
         const is_self_contained_flag = std.mem.readPackedInt(u1, &first_three_bytes, @bitSizeOf(@TypeOf(payload_length)), std.builtin.Endian.little);
         // NTOE: we discard header_padding
+        prettyBytes(first_three_bytes[0..], logger, "read_header_bytes");
 
         logger.debug("length: {d}", .{payload_length});
         logger.debug("is_self_contained_flag: {d}", .{is_self_contained_flag});
@@ -359,7 +378,7 @@ test "test computeCrc24Int and computeCrc24Slice" {
     try std.testing.expectEqual(0xf5230f, V5Frame.computeCrc24Slice(&[3]u8{ 0x56, 0x34, 0x12 }));
 }
 
-test "test computeCrc32Slice" {
+test "test crc32" {
     // >>> from cassandra import segment
     // >>> hex(segment.compute_crc32(b"\xab\xcd", 0xfa_2d_55_ca))
     // '0xc3eba942'
@@ -920,7 +939,7 @@ const CqlServer = struct {
 
                             const resp_frame = V5Frame{
                                 // TODO: more fields
-                                .is_self_contained_flag = 0,
+                                .is_self_contained_flag = 1,
                                 .payload_fram_header = .{
                                     .version = client_conn.client_state.negotiated_protocol_version.? | ResponseFlag, // .version = SupportedNativeCqlProtocolVersion | ResponseFlag,
                                     .flags = 0x00,
