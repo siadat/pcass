@@ -138,6 +138,9 @@ const V5Frame = struct {
     const Self = @This();
 
     is_self_contained_flag: u1,
+
+    // TODO: there could be multiple "envelopes" inside the payload. Can we use an std.ArrayList(Frame)?
+    //       For example: payload: std.ArrayList(Frame),
     payload_raw_bytes: std.ArrayList(u8),
     payload_fram_header: FrameHeader,
 
