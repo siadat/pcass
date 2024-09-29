@@ -720,15 +720,11 @@ fn PrefixedSlice(comptime S: type, comptime T: type) type {
             };
         }
         pub fn format(self: NewType, comptime fmt: []const u8, options: std.fmt.FormatOptions, writer: anytype) !void {
-            // _ = options;
-            // _ = fmt;
             if (T == u8) {
-                // try writer.writeAll(, .{self.array_list.items});
                 try std.fmt.format(writer, "\"{s}\"", .{self.array_list.items});
             } else {
                 for (self.array_list.items) |item| {
                     try item.format(fmt, options, writer);
-                    // try writer.writeAll("{s}", .{item});
                 }
             }
         }
