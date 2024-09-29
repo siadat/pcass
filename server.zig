@@ -497,6 +497,126 @@ fn Pair(comptime K: type, comptime V: type) type {
     };
 }
 
+const QueryParameters = struct {
+    const QueryMasks = enum(Int) {
+        WITH_VALUES = 0x0001, // If set, values are provided for bound variables in the query.
+        WITH_SKIP_METADATA = 0x0002, // If set, the result set will have the NO_METADATA flag.
+        WITH_RESULT_PAGE_SIZE = 0x0004, // If set, <result_page_size> controls the desired page size.
+        WITH_PAGING_STATE = 0x0008, // If set, <paging_state> should be present.
+        WITH_SERIAL_CONSISTENCY = 0x0010, // If set, <serial_consistency> should be present.
+        WITH_TIMESTAMP = 0x0020, // If set, <timestamp> must be present.
+        WITH_NAMES_FOR_VALUES = 0x0040, // Only makes sense if WITH_VALUES is set; values are preceded by names.
+        WITH_KEYSPACE = 0x0080, // If set, <keyspace> must be present, overriding the connection's keyspace.
+        WITH_NOW_IN_SECONDS = 0x0100, // If set, <now_in_seconds> must be present, used for testing.
+    };
+
+    const Self = @This();
+
+    consistency: Consistency,
+    flags: Int,
+
+    values: ?PrefixedSlice(Short, Value) = null,
+    result_page_size: ?Int = null,
+    paging_state: ?Bytes = null,
+    serial_consistency: ?Consistency = null,
+    timestamp: ?Long = null,
+    keyspace: ?String = null,
+    now_in_seconds: ?Int = null,
+
+    fn byteCount(self: *const Self) usize {
+        var count = 0;
+        count += @sizeOf(self.Consistency);
+        count += @sizeOf(self.flags);
+        if (self.values) |x| count += x.byteCount();
+        if (self.result_page_size) |x| count += @sizeOf(x);
+        if (self.paging_state) |x| count += x.byteCount();
+        if (self.serial_consistency) |x| count += @sizeOf(x);
+        if (self.timestamp) |x| count += @sizeOf(x);
+        if (self.keyspace) |x| count += x.byteCount();
+        if (self.now_in_seconds) |x| count += @sizeOf(x);
+        return count;
+    }
+
+    pub fn writeStructBytes(
+        self: *const Self,
+        writer: anytype,
+        logger: Logger,
+    ) !void {
+        try writeBytes(Consistency, &self.consistency, writer, logger);
+        try writeBytes(Int, &self.flags, writer, logger);
+        if (self.values) |x| try writeBytes(PrefixedSlice(Short, Value), &x, writer, logger);
+        if (self.result_page_size) |x| try writeBytes(Int, &x, writer, logger);
+        if (self.paging_state) |x| try writeBytes(Bytes, &x, writer, logger);
+        if (self.serial_consistency) |x| try writeBytes(Consistency, &x, writer, logger);
+        if (self.timestamp) |x| try writeBytes(Long, &x, writer, logger);
+        if (self.keyspace) |x| try writeBytes(String, &x, writer, logger);
+        if (self.now_in_seconds) |x| try writeBytes(Int, &x, writer, logger);
+    }
+
+    pub fn fromStructBytes(
+        reader: anytype,
+        allocator: std.mem.Allocator,
+        logger: Logger,
+    ) !Self {
+        var self = Self{
+            .consistency = try fromBytes(Consistency, reader, allocator, logger),
+            .flags = try fromBytes(Int, reader, allocator, logger),
+        };
+        if (self.flags & @intFromEnum(QueryMasks.WITH_VALUES) != 0) {
+            self.values = try fromBytes(PrefixedSlice(Short, Value), reader, allocator, logger);
+        }
+        if (self.flags & @intFromEnum(QueryMasks.WITH_RESULT_PAGE_SIZE) != 0) {
+            self.result_page_size = try fromBytes(Int, reader, allocator, logger);
+        }
+        if (self.flags & @intFromEnum(QueryMasks.WITH_PAGING_STATE) != 0) {
+            self.paging_state = try fromBytes(Bytes, reader, allocator, logger);
+        }
+        if (self.flags & @intFromEnum(QueryMasks.WITH_SERIAL_CONSISTENCY) != 0) {
+            self.serial_consistency = try fromBytes(Consistency, reader, allocator, logger);
+        }
+        if (self.flags & @intFromEnum(QueryMasks.WITH_TIMESTAMP) != 0) {
+            self.timestamp = try fromBytes(Long, reader, allocator, logger);
+        }
+        if (self.flags & @intFromEnum(QueryMasks.WITH_KEYSPACE) != 0) {
+            self.keyspace = try fromBytes(String, reader, allocator, logger);
+        }
+        if (self.flags & @intFromEnum(QueryMasks.WITH_NOW_IN_SECONDS) != 0) {
+            self.now_in_seconds = try fromBytes(Int, reader, allocator, logger);
+        }
+        return self;
+    }
+};
+
+const Query = struct {
+    const Self = @This();
+    query_string: String,
+    query_parameters: QueryParameters,
+
+    fn byteCount(self: *const Self) usize {
+        return self.query_string.byteCount() + self.query_parameters.byteCount();
+    }
+
+    pub fn writeStructBytes(
+        self: *const Self,
+        writer: anytype,
+        logger: Logger,
+    ) !void {
+        try writeBytes(String, &self.query_string, writer, logger);
+        try writeBytes(QueryParameters, &self.query_parameters, writer, logger);
+    }
+
+    pub fn fromStructBytes(
+        reader: anytype,
+        allocator: std.mem.Allocator,
+        logger: Logger,
+    ) !Self {
+        return .{
+            .query_string = try fromBytes(String, reader, allocator, logger),
+            .query_parameters = try fromBytes(QueryParameters, reader, allocator, logger),
+        };
+    }
+};
+
 // TODO: add unit a test for this
 fn PrefixedTypedBytes(comptime S: type, comptime T: type) type {
     return struct {
@@ -589,7 +709,7 @@ fn PrefixedSlice(comptime S: type, comptime T: type) type {
         ) !NewType {
             const len = try fromBytes(S, reader, allocator, logger);
             var array_list = std.ArrayList(T).init(allocator);
-            for (len) |_| {
+            for (0..@intCast(len)) |_| {
                 const item = try fromBytes(T, reader, allocator, logger);
                 try array_list.append(item);
             }
@@ -923,6 +1043,15 @@ const CqlServer = struct {
                     // TODO: depending on the opcode, parse req_frame.payload_raw_bytes
                     var stream = std.io.fixedBufferStream(req_frame.payload_raw_bytes.items);
                     switch (req_frame.payload_fram_header.opcode) {
+                        Opcode.QUERY => {
+                            const query_body = try fromBytes(
+                                Query,
+                                stream.reader(),
+                                allocator,
+                                self.logger,
+                            );
+                            self.logger.debug("received QUERY: {any}", .{query_body});
+                        },
                         Opcode.REGISTER => {
                             self.logger.debug("opcode: REGISTER", .{});
                             const register_body = try fromBytes(
