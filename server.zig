@@ -562,6 +562,7 @@ const QueryParameters = struct {
             .consistency = try fromBytes(Consistency, reader, allocator, logger),
             .flags = try fromBytes(Int, reader, allocator, logger),
         };
+        logger.debug("flags = {any}", .{self.flags});
         if (self.flags & @intFromEnum(QueryMasks.WITH_VALUES) != 0) {
             self.values = try fromBytes(PrefixedSlice(Short, Value), reader, allocator, logger);
         }
@@ -589,7 +590,7 @@ const QueryParameters = struct {
 
 const Query = struct {
     const Self = @This();
-    query_string: String,
+    query_string: LongString,
     query_parameters: QueryParameters,
 
     fn byteCount(self: *const Self) usize {
@@ -611,7 +612,7 @@ const Query = struct {
         logger: Logger,
     ) !Self {
         return .{
-            .query_string = try fromBytes(String, reader, allocator, logger),
+            .query_string = try fromBytes(LongString, reader, allocator, logger),
             .query_parameters = try fromBytes(QueryParameters, reader, allocator, logger),
         };
     }
@@ -717,6 +718,19 @@ fn PrefixedSlice(comptime S: type, comptime T: type) type {
                 .allocator = allocator,
                 .array_list = array_list,
             };
+        }
+        pub fn format(self: NewType, comptime fmt: []const u8, options: std.fmt.FormatOptions, writer: anytype) !void {
+            // _ = options;
+            // _ = fmt;
+            if (T == u8) {
+                // try writer.writeAll(, .{self.array_list.items});
+                try std.fmt.format(writer, "\"{s}\"", .{self.array_list.items});
+            } else {
+                for (self.array_list.items) |item| {
+                    try item.format(fmt, options, writer);
+                    // try writer.writeAll("{s}", .{item});
+                }
+            }
         }
     };
 }
