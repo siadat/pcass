@@ -2,7 +2,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-grammar Cql;
+grammar ScyllaCql;
 
 options {
     language = Cpp;
