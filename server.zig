@@ -134,6 +134,69 @@ const FrameHeader = packed struct {
     length: u32,
 };
 
+const Result = struct {
+    kind: Int,
+    result_body: ResultBody,
+};
+
+const ResultBody = union {
+    rows: unreachable,
+    set_keyspace: unreachable,
+    prepared: unreachable,
+    schema_change: unreachable,
+};
+
+const ResultRowContent = PrefixedSlice(Int, Bytes); // columns
+
+const ColumnSpec = struct {
+    const Self = @This();
+    keyspace_and_table: ?KeyspaceAndTable,
+    column_name: String,
+    column_type: Option,
+};
+
+const KeyspaceAndTable = struct {
+    keyspace: String,
+    table: String,
+};
+
+const ResultRows = struct {
+    const Self = @This();
+    metadata_flags: Int,
+    metadata_column_count: Int,
+    metadata_paging_state: ?Bytes,
+    metadata_new_metadata_id: ?Int,
+    metadata_global_table_spec_keyspace_and_table: ?KeyspaceAndTable,
+    metadata_col_specs: std.ArrayList(ColumnSpec),
+    rows: PrefixedSlice(Int, ResultRowContent), // 'rows' is <rows_count><rows_content>
+
+    pub fn writeStructBytes(
+        self: *const Self,
+        writer: anytype,
+        logger: Logger,
+    ) !void {
+        try writeBytes(Self, &self.metadata_flags, writer, logger);
+        try writeBytes(Self, &self.metadata_column_count, writer, logger);
+        if (self.metadata_paging_state) |x| try writeBytes(Bytes, &x, writer, logger);
+        if (self.metadata_new_metadata_id) |x| try writeBytes(Int, &x, writer, logger);
+        if (self.metadata_global_table_spec_keyspace_and_table) |x| try writeBytes(KeyspaceAndTable, &x, writer, logger);
+        for (self.rows.array_list.items) |row| {
+            try writeBytes(ResultRowContent, &row, writer, logger);
+        }
+    }
+
+    pub fn fromStructBytes(
+        reader: anytype,
+        allocator: std.mem.Allocator,
+        logger: Logger,
+    ) !Self {
+        _ = reader;
+        _ = allocator;
+        _ = logger;
+        unreachable;
+    }
+};
+
 const V5Frame = struct {
     const Self = @This();
 
@@ -423,7 +486,7 @@ const Value = PrefixedSlice(Int, Byte);
 const ShortBytes = PrefixedSlice(Short, Byte);
 const UnsignedVint = unreachable;
 const Vint = unreachable;
-const Option = unreachable; // PrefixedSlice(Short, Byte);
+const Option = PrefixedSlice(Short, OptionValue);
 const OptionList = PrefixedSlice(Short, Option);
 const Inet = unreachable; // one byte more byte (for port number) than size in PrefixedSlice(Byte, Byte);
 const InetAddr = PrefixedSlice(Byte, Byte);
@@ -434,6 +497,38 @@ const BytePair = Pair(String, String);
 const StringMap = PrefixedSlice(Short, StringPair);
 const StringMultimap = PrefixedSlice(Short, StringListPair);
 const BytesMap = PrefixedSlice(Short, BytePair);
+const Varint = unreachable;
+const Duration = unreachable;
+const UDT = unreachable;
+const Tuple = unreachable;
+
+const OptionValue = union {
+    ascii: String,
+    bigint: Long,
+    blob: Bytes,
+    boolean: Byte,
+    counter: Long,
+    decimal: Bytes,
+    double: f64,
+    float: f32,
+    int: Int,
+    timestamp: Long,
+    uuid: UUID,
+    varchar: String,
+    varint: Varint,
+    timeuuid: UUID,
+    inet: Inet,
+    date: Int,
+    time: Long,
+    smallint: Short,
+    tinyint: Byte,
+    duration: Duration,
+    list: Option,
+    map: Pair(Option, Option),
+    set: Option,
+    udt: UDT,
+    tuple: Tuple,
+};
 
 const RawBytes = struct {
     const Self = @This();
@@ -1061,6 +1156,29 @@ const CqlServer = struct {
                                 self.logger,
                             );
                             self.logger.debug("received QUERY: {any}", .{query_body});
+
+                            // respond:
+                            var bw = std.io.bufferedWriter(client.stream.writer());
+                            defer bw.flush() catch unreachable;
+
+                            const resp_frame = V5Frame{
+                                // TODO: more fields
+                                .is_self_contained_flag = 1,
+                                .payload_fram_header = .{
+                                    .version = client_conn.client_state.negotiated_protocol_version.? | ResponseFlag,
+                                    .flags = 0x00,
+                                    .stream = req_frame.payload_fram_header.stream,
+                                    .opcode = Opcode.RESULT,
+                                    .length = 0,
+                                },
+                                .payload_raw_bytes = std.ArrayList(u8).init(allocator),
+                            };
+                            try writeBytes(
+                                V5Frame,
+                                &resp_frame,
+                                bw.writer(),
+                                self.logger,
+                            );
                         },
                         Opcode.REGISTER => {
                             self.logger.debug("opcode: REGISTER", .{});
@@ -1083,7 +1201,7 @@ const CqlServer = struct {
                                 // TODO: more fields
                                 .is_self_contained_flag = 1,
                                 .payload_fram_header = .{
-                                    .version = client_conn.client_state.negotiated_protocol_version.? | ResponseFlag, // .version = SupportedNativeCqlProtocolVersion | ResponseFlag,
+                                    .version = client_conn.client_state.negotiated_protocol_version.? | ResponseFlag,
                                     .flags = 0x00,
                                     .stream = req_frame.payload_fram_header.stream,
                                     .opcode = Opcode.READY,
