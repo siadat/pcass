@@ -207,7 +207,7 @@ const V5Frame = struct {
     // TODO: there could be multiple "envelopes" inside the payload. Can we use an std.ArrayList(Frame)?
     //       For example: payload: std.ArrayList(Frame),
     payload_raw_bytes: std.ArrayList(u8),
-    payload_fram_header: FrameHeader,
+    payload_frame_header: FrameHeader,
 
     // https://sourcegraph.com/github.com/datastax/python-driver@6e2ffd4e1ddc/-/blob/cassandra/segment.py?L39-51
     // Called by:
@@ -286,7 +286,7 @@ const V5Frame = struct {
         });
         try writeBytes(
             FrameHeader,
-            &self.payload_fram_header,
+            &self.payload_frame_header,
             multiwriter_stream.writer(),
             logger,
         );
@@ -337,14 +337,14 @@ const V5Frame = struct {
         const header_crc24 = try fromBytes(u24, reader, allocator, logger);
         logger.debug("header_crc24: {x}", .{header_crc24});
 
-        const payload_fram_header = try fromBytes(FrameHeader, reader, allocator, logger);
-        logger.debug("payload_fram_header: {any}", .{payload_fram_header});
+        const payload_frame_header = try fromBytes(FrameHeader, reader, allocator, logger);
+        logger.debug("payload_frame_header: {any}", .{payload_frame_header});
 
         var payload_raw_bytes = std.ArrayList(u8).init(allocator);
-        try payload_raw_bytes.resize(payload_fram_header.length);
+        try payload_raw_bytes.resize(payload_frame_header.length);
 
         const raw_payload_n = try reader.readAll(payload_raw_bytes.items);
-        if (raw_payload_n < payload_fram_header.length) {
+        if (raw_payload_n < payload_frame_header.length) {
             return error.EndOfStream;
         }
         prettyBufBytes(u8, payload_raw_bytes.items, logger, "payload_raw_bytes");
@@ -354,7 +354,7 @@ const V5Frame = struct {
         return .{
             .is_self_contained_flag = is_self_contained_flag,
             .payload_raw_bytes = payload_raw_bytes,
-            .payload_fram_header = payload_fram_header,
+            .payload_frame_header = payload_frame_header,
         };
     }
 };
@@ -1149,7 +1149,7 @@ const CqlServer = struct {
                     self.logger.debug("received V5Frame: {any}", .{req_frame});
                     // TODO: depending on the opcode, parse req_frame.payload_raw_bytes
                     var stream = std.io.fixedBufferStream(req_frame.payload_raw_bytes.items);
-                    switch (req_frame.payload_fram_header.opcode) {
+                    switch (req_frame.payload_frame_header.opcode) {
                         Opcode.QUERY => {
                             const query_body = try fromBytes(
                                 Query,
@@ -1166,10 +1166,10 @@ const CqlServer = struct {
                             const resp_frame = V5Frame{
                                 // TODO: more fields
                                 .is_self_contained_flag = 1,
-                                .payload_fram_header = .{
+                                .payload_frame_header = .{
                                     .version = client_conn.client_state.negotiated_protocol_version.? | ResponseFlag,
                                     .flags = 0x00,
-                                    .stream = req_frame.payload_fram_header.stream,
+                                    .stream = req_frame.payload_frame_header.stream,
                                     .opcode = Opcode.RESULT,
                                     .length = 0,
                                 },
@@ -1202,10 +1202,10 @@ const CqlServer = struct {
                             const resp_frame = V5Frame{
                                 // TODO: more fields
                                 .is_self_contained_flag = 1,
-                                .payload_fram_header = .{
+                                .payload_frame_header = .{
                                     .version = client_conn.client_state.negotiated_protocol_version.? | ResponseFlag,
                                     .flags = 0x00,
-                                    .stream = req_frame.payload_fram_header.stream,
+                                    .stream = req_frame.payload_frame_header.stream,
                                     .opcode = Opcode.READY,
                                     .length = 0,
                                 },
@@ -1219,7 +1219,7 @@ const CqlServer = struct {
                             );
                         },
                         else => {
-                            self.logger.debug("opcode: {any}", .{req_frame.payload_fram_header.opcode});
+                            self.logger.debug("opcode: {any}", .{req_frame.payload_frame_header.opcode});
                             unreachable;
                         },
                     }
