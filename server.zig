@@ -146,7 +146,9 @@ const ResultBody = union {
     schema_change: unreachable,
 };
 
-const ResultRowContent = PrefixedSlice(Int, Bytes); // columns
+const Column = Bytes;
+
+const ResultRowContent = PrefixedSlice(Int, Column);
 
 const ColumnSpec = struct {
     const Self = @This();
