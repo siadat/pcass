@@ -356,10 +356,6 @@ cqlStatement returns [std::unique_ptr<raw::parsed_statement> stmt]
     | st20=alterUserStatement          { $stmt = std::move(st20); }
     | st21=dropUserStatement           { $stmt = std::move(st21); }
     | st22=listUsersStatement          { $stmt = std::move(st22); }
-#if 0
-    | st23=createTriggerStatement      { $stmt = st23; }
-    | st24=dropTriggerStatement        { $stmt = st24; }
-#endif
     | st25=createTypeStatement         { $stmt = std::move(st25); }
     | st26=alterTypeStatement          { $stmt = std::move(st26); }
     | st27=dropTypeStatement           { $stmt = std::move(st27); }
@@ -966,30 +962,6 @@ createViewStatement returns [std::unique_ptr<create_view_statement> expr]
         }
         ( K_WITH cfamProperty[{ $expr->properties() }] ( K_AND cfamProperty[{ $expr->properties() }] )*)?
     ;
-
-#if 0
-/**
- * CREATE TRIGGER triggerName ON columnFamily USING 'triggerClass';
- */
-createTriggerStatement returns [CreateTriggerStatement expr]
-    @init {
-        boolean ifNotExists = false;
-    }
-    : K_CREATE K_TRIGGER (K_IF K_NOT K_EXISTS { ifNotExists = true; } )? (name=cident)
-        K_ON cf=columnFamilyName K_USING cls=STRING_LITERAL
-      { $expr = new CreateTriggerStatement(cf, name.toString(), $cls.text, ifNotExists); }
-    ;
-
-/**
- * DROP TRIGGER [IF EXISTS] triggerName ON columnFamily;
- */
-dropTriggerStatement returns [DropTriggerStatement expr]
-     @init { boolean ifExists = false; }
-    : K_DROP K_TRIGGER (K_IF K_EXISTS { ifExists = true; } )? (name=cident) K_ON cf=columnFamilyName
-      { $expr = new DropTriggerStatement(cf, name.toString(), ifExists); }
-    ;
-
-#endif
 
 /**
  * ALTER KEYSPACE <KS> WITH <property> = <value>;
@@ -1945,18 +1917,6 @@ comparator_type [bool internal] returns [shared_ptr<cql3_type::raw> t]
             add_recognition_error(e.what());
         }
       }
-#if 0
-    | s=STRING_LITERAL
-      {
-        try {
-            $t = CQL3Type.Raw.from(new CQL3Type.Custom($s.text));
-        } catch (SyntaxException e) {
-            addRecognitionError("Cannot parse type " + $s.text + ": " + e.getMessage());
-        } catch (ConfigurationException e) {
-            addRecognitionError("Error setting type " + $s.text + ": " + e.getMessage());
-        }
-      }
-#endif
     ;
 
 native_or_internal_type [bool internal] returns [data_type t]
