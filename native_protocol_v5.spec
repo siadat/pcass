@@ -823,16 +823,16 @@ Table of Contents
           (unique) keyspace name and table name the columns belong to.
         - <col_spec_i> specifies the columns returned in the query. There are
           <column_count> such column specifications that are composed of:
-            (<ksname><tablename>)?<name><type>
+            (<ksname><tablename>)?<column_name><column_type>
           The initial <ksname> and <tablename> are two [string] and are only present
           if the Global_tables_spec flag is not set. The <column_name> is a
-          [string] and <type> is an [option] that corresponds to the description
+          [string] and <column_type> is an [option] that corresponds to the description
           (what this description is depends a bit on the context: in results to
           selects, this will be either the user chosen alias or the selection used
           (often a colum name, but it can be a function call too). In results to
           a PREPARE, this will be either the name of the corresponding bind variable
           or the column name for the variable if it is "anonymous") and type of
-          the corresponding result. The option for <type> is either a native
+          the corresponding result. The option for <column_type> is either a native
           type (see below), in which case the option has no value, or a
           'custom' type, in which case the value is a [string] representing
           the fully qualified class name of the type represented. Valid option
