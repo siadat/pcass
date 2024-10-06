@@ -1404,3 +1404,275 @@ test "test initial cql handshake" {
 
     try srv.acceptClient();
 }
+
+const TokenType = enum {
+    ILLEGAL,
+    EOF,
+    NEWLINE,
+
+    literal_beg,
+    IDENTIFIER, // table1
+    INTEGER, // 12345
+    FLOAT, // 123.45
+    STRING, // 'abc'
+    literal_end,
+
+    operator_beg,
+    EQ, // =
+    NEQ, // !=
+    LEQ, // <=
+    GEQ, // >=
+    LSS, // <
+    GTR, // >
+    STAR, // *
+    DOT, // .
+    operator_end,
+
+    keyword_beg,
+    SELECT,
+    INSERT,
+    UPDATE,
+    DELETE,
+    FROM,
+    WHERE,
+    AND,
+    OR,
+    IN,
+    NOT,
+    keyword_end,
+};
+
+const EndOfInput = 0;
+
+const Token = struct {
+    typ: TokenType,
+    pos: u64,
+    lit: []const u8,
+};
+
+const Scanner = struct {
+    const Self = @This();
+    input: []const u8,
+
+    currentPosition: u64 = 0,
+    nextPosition: u64 = 0,
+
+    currentChar: u8 = 0,
+    nextChar: u8 = 0,
+
+    currentToken: Token = Token{
+        .typ = TokenType.ILLEGAL,
+        .pos = 0,
+        .lit = "",
+    },
+
+    fn init(self: *Self) void {
+        self.readChar();
+    }
+
+    fn isNumericalStart(current: u8) bool {
+        return current >= '1' and current <= '9';
+    }
+
+    fn isNumericalMiddle(current: u8) bool {
+        return current >= '0' and current <= '9';
+    }
+
+    fn isIdentifierStart(current: u8) bool {
+        return (current >= 'a' and current <= 'z') or (current >= 'A' and current <= 'Z') or current == '_';
+    }
+
+    fn isIdentifierMiddle(current: u8) bool {
+        return isIdentifierStart(current) or (current >= '0' and current <= '9');
+    }
+
+    fn readChar(self: *Self) void {
+        if (self.nextPosition >= self.input.len) {
+            self.currentChar = EndOfInput;
+        } else {
+            self.currentChar = self.input[self.nextPosition];
+        }
+
+        self.currentPosition = self.nextPosition;
+        self.nextPosition += 1;
+
+        if (self.nextPosition >= self.input.len) {
+            self.nextChar = EndOfInput;
+        } else {
+            self.nextChar = self.input[self.nextPosition];
+        }
+    }
+
+    fn scanIdentifier(self: *Self) !Token {
+        const start = self.currentPosition;
+        while (true) {
+            self.readChar();
+            const current = self.input[self.currentPosition];
+            if (!Scanner.isIdentifierMiddle(current)) {
+                break;
+            }
+        }
+
+        const lit = self.input[start..self.currentPosition];
+
+        if (std.mem.eql(u8, "SELECT", lit)) {
+            return Token{
+                .typ = TokenType.SELECT,
+                .pos = start,
+                .lit = lit,
+            };
+        } else if (std.mem.eql(u8, "FROM", lit)) {
+            return Token{
+                .typ = TokenType.FROM,
+                .pos = start,
+                .lit = lit,
+            };
+        } else if (std.mem.eql(u8, "WHERE", lit)) {
+            return Token{
+                .typ = TokenType.WHERE,
+                .pos = start,
+                .lit = lit,
+            };
+        } else {
+            return Token{
+                .typ = TokenType.IDENTIFIER,
+                .pos = start,
+                .lit = lit,
+            };
+        }
+    }
+
+    fn scan(self: *Self) !Token {
+        switch (self.currentChar) {
+            ' ' => {
+                while (self.currentChar == ' ') {
+                    self.readChar();
+                }
+                return self.scan();
+            },
+            '*' => {
+                const token = Token{
+                    .typ = TokenType.STAR,
+                    .pos = self.currentPosition,
+                    .lit = "*",
+                };
+                self.readChar();
+                return token;
+            },
+            '.' => {
+                const token = Token{
+                    .typ = TokenType.DOT,
+                    .pos = self.currentPosition,
+                    .lit = ".",
+                };
+                self.readChar();
+                return token;
+            },
+            '=' => {
+                const token = Token{
+                    .typ = TokenType.EQ,
+                    .pos = self.currentPosition,
+                    .lit = "=",
+                };
+                self.readChar();
+                return token;
+            },
+            else => {
+                if (Scanner.isIdentifierStart(self.currentChar)) {
+                    return self.scanIdentifier();
+                } else if (Scanner.isNumericalStart(self.currentChar)) {
+                    const start = self.currentPosition;
+                    while (Scanner.isNumericalMiddle(self.currentChar)) {
+                        self.readChar();
+                    }
+                    const lit = self.input[start..self.currentPosition];
+                    return Token{
+                        .typ = TokenType.INTEGER,
+                        .pos = start,
+                        .lit = lit,
+                    };
+                }
+            },
+        }
+
+        return Token{
+            .typ = TokenType.EOF,
+            .pos = self.currentPosition,
+            .lit = "",
+        };
+    }
+};
+
+test "test scanning a SELECT statement" {
+    var scanner = Scanner{
+        .input = "SELECT * FROM ks.users WHERE id = 1",
+    };
+    scanner.init();
+
+    var token = try scanner.scan();
+    try std.testing.expectEqual(TokenType.SELECT, token.typ);
+
+    token = try scanner.scan();
+    try std.testing.expectEqual(TokenType.STAR, token.typ);
+
+    token = try scanner.scan();
+    try std.testing.expectEqual(TokenType.FROM, token.typ);
+
+    token = try scanner.scan();
+    try std.testing.expectEqual(TokenType.IDENTIFIER, token.typ);
+
+    token = try scanner.scan();
+    try std.testing.expectEqual(TokenType.DOT, token.typ);
+
+    token = try scanner.scan();
+    try std.testing.expectEqual(TokenType.IDENTIFIER, token.typ);
+
+    token = try scanner.scan();
+    try std.testing.expectEqual(TokenType.WHERE, token.typ);
+
+    token = try scanner.scan();
+    try std.testing.expectEqual(TokenType.IDENTIFIER, token.typ);
+
+    token = try scanner.scan();
+    try std.testing.expectEqual(TokenType.EQ, token.typ);
+
+    token = try scanner.scan();
+    try std.testing.expectEqual(TokenType.INTEGER, token.typ);
+
+    token = try scanner.scan();
+    try std.testing.expectEqual(TokenType.EOF, token.typ);
+
+    token = try scanner.scan();
+    try std.testing.expectEqual(TokenType.EOF, token.typ);
+}
+
+const Parser = struct {
+    const Self = @This();
+
+    // input: std.io.FixedBufferStream([]const u8),
+    input: []const u8,
+    logger: Logger = Logger.init(std.log.Level.debug, "Parser"),
+    allocator: std.mem.Allocator,
+
+    fn parseLiteral(self: *const Self, literal: []const u8) !void {
+        self.logger.debug("parseQuery: {s}", .{literal});
+        // TODO
+    }
+
+    fn parseQuery(self: *const Self) !void {
+        try self.parseLiteral("SELECT");
+        // try self.parseSelectClause();
+        // try self.parseLiteral("FROM");
+        // try self.parseTable();
+        // try self.parseLiteral("WHERE");
+        // try self.parseWhereClause();
+    }
+};
+
+test "test parsing a SELECT statement" {
+    const parser = Parser{
+        .input = "SELECT * FROM ks.users WHERE id = 1",
+        .allocator = std.testing.allocator,
+    };
+    try parser.parseQuery();
+}
