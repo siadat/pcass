@@ -1669,11 +1669,18 @@ const Parser = struct {
     fn init(self: *Self) void {
         self.scanner.init();
     }
+    fn parseSelectClause(self: *Self) !std.ArrayList(SelectClause) {
+        const token = try self.scanner.scan();
+        try std.testing.expectEqual(TokenType.STAR, token.typ);
+        // return token;
+        unreachable;
+    }
 
     fn parse(self: *Self) !ParserResult {
         const token = try self.scanner.scan();
         switch (token.typ) {
             TokenType.SELECT => {
+                // const selectClauseToken = try self.parseSelectClause();
                 const selectClauseToken = try self.scanner.scan();
                 assert(std.mem.eql(u8, "*", selectClauseToken.lit));
 
@@ -1697,6 +1704,7 @@ const Parser = struct {
 
                 return ParserResult{
                     .SelectQuery = SelectQuery{
+                        // .select_clause = selectClauseToken,
                         .keyspace = keyspaceLit,
                         .table = tableLit,
                     },
@@ -1707,26 +1715,42 @@ const Parser = struct {
     }
 };
 
+const SelectClause = struct {
+    const Self = @This();
+
+    column: std.ArrayList(u8),
+
+    fn deinit(self: *Self) void {
+        self.column.deinit();
+    }
+};
+
 const ParserResult = union {
     SelectQuery: SelectQuery,
     InsertQuery: InsertQuery,
 };
 
 const SelectQuery = struct {
+    const Self = @This();
+
+    // select_clause: std.ArrayList(SelectClause),
     keyspace: std.ArrayList(u8),
     table: std.ArrayList(u8),
 
-    fn deinit(self: *SelectQuery) void {
+    fn deinit(self: *Self) void {
         self.keyspace.deinit();
         self.table.deinit();
     }
 };
 
 const InsertQuery = struct {
+    const Self = @This();
+
+    select_clause: std.ArrayList(SelectClause),
     keyspace: std.ArrayList(u8),
     table: std.ArrayList(u8),
 
-    fn deinit(self: *SelectQuery) void {
+    fn deinit(self: *Self) void {
         self.keyspace.deinit();
         self.table.deinit();
     }
