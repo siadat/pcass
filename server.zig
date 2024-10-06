@@ -1669,20 +1669,29 @@ const Parser = struct {
     fn init(self: *Self) void {
         self.scanner.init();
     }
-    fn parseSelectClause(self: *Self) !std.ArrayList(ParserResult.SelectClause) {
+
+    fn parseSelectClause(self: *Self) !std.ArrayList(*ParserResult.Selector) {
         const token = try self.scanner.scan();
-        try std.testing.expectEqual(TokenType.STAR, token.typ);
-        // return token;
-        unreachable;
+        switch (token.typ) {
+            TokenType.STAR => {
+                var selectors = std.ArrayList(*ParserResult.Selector).init(self.allocator);
+                const selector = try self.allocator.create(ParserResult.Selector);
+                selector.* = ParserResult.Selector{
+                    .column = std.ArrayList(u8).init(self.allocator),
+                };
+                try selector.column.writer().writeAll(token.lit);
+                try selectors.append(selector);
+                return selectors;
+            },
+            else => unreachable,
+        }
     }
 
     fn parse(self: *Self) !ParserResult {
         const token = try self.scanner.scan();
         switch (token.typ) {
             TokenType.SELECT => {
-                // const selectClauseToken = try self.parseSelectClause();
-                const selectClauseToken = try self.scanner.scan();
-                assert(std.mem.eql(u8, "*", selectClauseToken.lit));
+                const selectClauseToken = try self.parseSelectClause();
 
                 const fromToken = try self.scanner.scan();
                 assert(TokenType.FROM == fromToken.typ);
@@ -1704,7 +1713,7 @@ const Parser = struct {
 
                 return ParserResult{
                     .SelectQuery = ParserResult.SelectQueryNode{
-                        // .select_clause = selectClauseToken,
+                        .select_clause = selectClauseToken,
                         .keyspace = keyspaceLit,
                         .table = tableLit,
                     },
@@ -1719,28 +1728,34 @@ const ParserResult = union(enum) {
     SelectQuery: SelectQueryNode,
     InsertQuery: InsertQueryNode,
 
-    fn deinit(self: *ParserResult) void {
+    fn deinit(self: *ParserResult, allocator: std.mem.Allocator) void {
         switch (self.*) {
-            ParserResult.SelectQuery => self.SelectQuery.deinit(),
-            ParserResult.InsertQuery => self.InsertQuery.deinit(),
+            ParserResult.SelectQuery => self.SelectQuery.deinit(allocator),
+            ParserResult.InsertQuery => self.InsertQuery.deinit(allocator),
         }
     }
 
     const SelectQueryNode = struct {
-        // select_clause: std.ArrayList(SelectClause),
+        select_clause: std.ArrayList(*Selector),
         keyspace: std.ArrayList(u8),
         table: std.ArrayList(u8),
 
-        fn deinit(self: *SelectQueryNode) void {
+        fn deinit(self: *SelectQueryNode, allocator: std.mem.Allocator) void {
+            for (self.select_clause.items) |selector| {
+                selector.deinit(allocator);
+                allocator.destroy(selector);
+            }
+            self.select_clause.deinit();
+
             self.keyspace.deinit();
             self.table.deinit();
         }
     };
 
-    const SelectClause = struct {
+    const Selector = struct {
         column: std.ArrayList(u8),
 
-        fn deinit(self: *SelectClause) void {
+        fn deinit(self: *Selector, _: std.mem.Allocator) void {
             self.column.deinit();
         }
     };
@@ -1749,7 +1764,7 @@ const ParserResult = union(enum) {
         keyspace: std.ArrayList(u8),
         table: std.ArrayList(u8),
 
-        fn deinit(self: *InsertQueryNode) void {
+        fn deinit(self: *InsertQueryNode, _: std.mem.Allocator) void {
             self.keyspace.deinit();
             self.table.deinit();
         }
@@ -1767,7 +1782,7 @@ test "test parsing a SELECT statement" {
     parser.init();
 
     var got = try parser.parse();
-    defer got.deinit();
+    defer got.deinit(std.testing.allocator);
 
     assert(std.mem.eql(u8, "ks", got.SelectQuery.keyspace.items));
     assert(std.mem.eql(u8, "users", got.SelectQuery.table.items));
