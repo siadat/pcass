@@ -1670,13 +1670,13 @@ const Parser = struct {
         self.scanner.init();
     }
 
-    fn parseSelectClause(self: *Self) !std.ArrayList(*ParserResult.Selector) {
+    fn parseSelectClause(self: *Self) !std.ArrayList(*ParserResult.SelectQueryNode.Selector) {
         const token = try self.scanner.scan();
         switch (token.typ) {
             TokenType.STAR => {
-                var selectors = std.ArrayList(*ParserResult.Selector).init(self.allocator);
-                const selector = try self.allocator.create(ParserResult.Selector);
-                selector.* = ParserResult.Selector{
+                var selectors = std.ArrayList(*ParserResult.SelectQueryNode.Selector).init(self.allocator);
+                const selector = try self.allocator.create(ParserResult.SelectQueryNode.Selector);
+                selector.* = ParserResult.SelectQueryNode.Selector{
                     .column = std.ArrayList(u8).init(self.allocator),
                 };
                 try selector.column.writer().writeAll(token.lit);
@@ -1743,21 +1743,21 @@ const ParserResult = union(enum) {
         fn deinit(self: *SelectQueryNode, allocator: std.mem.Allocator) void {
             for (self.select_clause.items) |selector| {
                 selector.deinit(allocator);
-                allocator.destroy(selector);
             }
             self.select_clause.deinit();
 
             self.keyspace.deinit();
             self.table.deinit();
         }
-    };
 
-    const Selector = struct {
-        column: std.ArrayList(u8),
+        const Selector = struct {
+            column: std.ArrayList(u8),
 
-        fn deinit(self: *Selector, _: std.mem.Allocator) void {
-            self.column.deinit();
-        }
+            fn deinit(self: *Selector, allocator: std.mem.Allocator) void {
+                defer allocator.destroy(self);
+                self.column.deinit();
+            }
+        };
     };
 
     const InsertQueryNode = struct {
