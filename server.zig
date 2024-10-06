@@ -1605,39 +1605,49 @@ const Scanner = struct {
 
 test "test scanning a SELECT statement" {
     var scanner = Scanner{
-        .input = "SELECT * FROM ks.users WHERE id = 1",
+        .input = "SELECT * FROM ks.users WHERE id = 12",
     };
     scanner.init();
 
     var token = try scanner.scan();
     try std.testing.expectEqual(TokenType.SELECT, token.typ);
+    assert(std.mem.eql(u8, "SELECT", token.lit));
 
     token = try scanner.scan();
     try std.testing.expectEqual(TokenType.STAR, token.typ);
+    assert(std.mem.eql(u8, "*", token.lit));
 
     token = try scanner.scan();
     try std.testing.expectEqual(TokenType.FROM, token.typ);
+    assert(std.mem.eql(u8, "FROM", token.lit));
 
     token = try scanner.scan();
     try std.testing.expectEqual(TokenType.IDENTIFIER, token.typ);
+    assert(std.mem.eql(u8, "ks", token.lit));
 
     token = try scanner.scan();
     try std.testing.expectEqual(TokenType.DOT, token.typ);
+    assert(std.mem.eql(u8, ".", token.lit));
 
     token = try scanner.scan();
     try std.testing.expectEqual(TokenType.IDENTIFIER, token.typ);
+    assert(std.mem.eql(u8, "users", token.lit));
 
     token = try scanner.scan();
     try std.testing.expectEqual(TokenType.WHERE, token.typ);
+    assert(std.mem.eql(u8, "WHERE", token.lit));
 
     token = try scanner.scan();
     try std.testing.expectEqual(TokenType.IDENTIFIER, token.typ);
+    assert(std.mem.eql(u8, "id", token.lit));
 
     token = try scanner.scan();
     try std.testing.expectEqual(TokenType.EQ, token.typ);
+    assert(std.mem.eql(u8, "=", token.lit));
 
     token = try scanner.scan();
     try std.testing.expectEqual(TokenType.INTEGER, token.typ);
+    assert(std.mem.eql(u8, "12", token.lit));
 
     token = try scanner.scan();
     try std.testing.expectEqual(TokenType.EOF, token.typ);
