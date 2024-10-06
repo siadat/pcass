@@ -1163,6 +1163,9 @@ const CqlServer = struct {
                             var bw = std.io.bufferedWriter(client.stream.writer());
                             defer bw.flush() catch unreachable;
 
+                            // TODO: parse query_body.query_string
+                            const payload = std.ArrayList(u8).init(allocator); // TODO: fill this with the response payload
+
                             const resp_frame = V5Frame{
                                 // TODO: more fields
                                 .is_self_contained_flag = 1,
@@ -1171,9 +1174,9 @@ const CqlServer = struct {
                                     .flags = 0x00,
                                     .stream = req_frame.payload_frame_header.stream,
                                     .opcode = Opcode.RESULT,
-                                    .length = 0,
+                                    .length = @intCast(payload.items.len),
                                 },
-                                .payload_raw_bytes = std.ArrayList(u8).init(allocator),
+                                .payload_raw_bytes = payload,
                             };
                             try writeBytes(
                                 V5Frame,
