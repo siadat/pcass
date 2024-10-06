@@ -1669,7 +1669,7 @@ const Parser = struct {
     fn init(self: *Self) void {
         self.scanner.init();
     }
-    fn parseSelectClause(self: *Self) !std.ArrayList(SelectClause) {
+    fn parseSelectClause(self: *Self) !std.ArrayList(ParserResult.SelectClause) {
         const token = try self.scanner.scan();
         try std.testing.expectEqual(TokenType.STAR, token.typ);
         // return token;
@@ -1703,7 +1703,7 @@ const Parser = struct {
                 try tableLit.writer().writeAll(tableToken.lit);
 
                 return ParserResult{
-                    .SelectQuery = SelectQuery{
+                    .SelectQuery = ParserResult.SelectQuery{
                         // .select_clause = selectClauseToken,
                         .keyspace = keyspaceLit,
                         .table = tableLit,
@@ -1715,38 +1715,38 @@ const Parser = struct {
     }
 };
 
-const SelectClause = struct {
-    const Self = @This();
-
-    column: std.ArrayList(u8),
-
-    fn deinit(self: *Self) void {
-        self.column.deinit();
-    }
-};
-
 const ParserResult = union {
     SelectQuery: SelectQuery,
     InsertQuery: InsertQuery,
-};
 
-const SelectQuery = struct {
-    const Self = @This();
+    const SelectQuery = struct {
+        const Self = @This();
 
-    // select_clause: std.ArrayList(SelectClause),
-    keyspace: std.ArrayList(u8),
-    table: std.ArrayList(u8),
+        // select_clause: std.ArrayList(SelectClause),
+        keyspace: std.ArrayList(u8),
+        table: std.ArrayList(u8),
 
-    fn deinit(self: *Self) void {
-        self.keyspace.deinit();
-        self.table.deinit();
-    }
+        fn deinit(self: *Self) void {
+            self.keyspace.deinit();
+            self.table.deinit();
+        }
+    };
+
+    const SelectClause = struct {
+        const Self = @This();
+
+        column: std.ArrayList(u8),
+
+        fn deinit(self: *Self) void {
+            self.column.deinit();
+        }
+    };
 };
 
 const InsertQuery = struct {
     const Self = @This();
 
-    select_clause: std.ArrayList(SelectClause),
+    select_clause: std.ArrayList(ParserResult.SelectClause),
     keyspace: std.ArrayList(u8),
     table: std.ArrayList(u8),
 
