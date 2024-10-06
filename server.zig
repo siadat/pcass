@@ -1659,30 +1659,90 @@ test "test scanning a SELECT statement" {
 const Parser = struct {
     const Self = @This();
 
-    // input: std.io.FixedBufferStream([]const u8),
-    input: []const u8,
+    scanner: *Scanner,
     logger: Logger = Logger.init(std.log.Level.debug, "Parser"),
     allocator: std.mem.Allocator,
 
-    fn parseLiteral(self: *const Self, literal: []const u8) !void {
-        self.logger.debug("parseQuery: {s}", .{literal});
-        // TODO
+    fn init(self: *Self) void {
+        self.scanner.init();
     }
 
-    fn parseQuery(self: *const Self) !void {
-        try self.parseLiteral("SELECT");
-        // try self.parseSelectClause();
-        // try self.parseLiteral("FROM");
-        // try self.parseTable();
-        // try self.parseLiteral("WHERE");
-        // try self.parseWhereClause();
+    fn parse(self: *Self) !ParserResult {
+        const token = try self.scanner.scan();
+        switch (token.typ) {
+            TokenType.SELECT => {
+                const selectClauseToken = try self.scanner.scan();
+                assert(std.mem.eql(u8, "*", selectClauseToken.lit));
+
+                const fromToken = try self.scanner.scan();
+                assert(TokenType.FROM == fromToken.typ);
+
+                const keyspaceToken = try self.scanner.scan();
+                assert(TokenType.IDENTIFIER == keyspaceToken.typ);
+
+                var keyspaceLit = std.ArrayList(u8).init(self.allocator);
+                try keyspaceLit.writer().writeAll(keyspaceToken.lit);
+
+                const periodToken = try self.scanner.scan();
+                assert(TokenType.DOT == periodToken.typ);
+
+                const tableToken = try self.scanner.scan();
+                assert(TokenType.IDENTIFIER == tableToken.typ);
+
+                var tableLit = std.ArrayList(u8).init(self.allocator);
+                try tableLit.writer().writeAll(tableToken.lit);
+
+                return ParserResult{
+                    .SelectQuery = SelectQuery{
+                        .keyspace = keyspaceLit,
+                        .table = tableLit,
+                    },
+                };
+            },
+            else => unreachable,
+        }
+    }
+};
+
+const ParserResult = union {
+    SelectQuery: SelectQuery,
+    InsertQuery: InsertQuery,
+};
+
+const SelectQuery = struct {
+    keyspace: std.ArrayList(u8),
+    table: std.ArrayList(u8),
+
+    fn deinit(self: *SelectQuery) void {
+        self.keyspace.deinit();
+        self.table.deinit();
+    }
+};
+
+const InsertQuery = struct {
+    keyspace: std.ArrayList(u8),
+    table: std.ArrayList(u8),
+
+    fn deinit(self: *SelectQuery) void {
+        self.keyspace.deinit();
+        self.table.deinit();
     }
 };
 
 test "test parsing a SELECT statement" {
-    const parser = Parser{
-        .input = "SELECT * FROM ks.users WHERE id = 1",
+    var scanner = Scanner{
+        .input = "SELECT * FROM ks.users WHERE id = 12",
+    };
+    var parser = Parser{
+        .scanner = &scanner,
         .allocator = std.testing.allocator,
     };
-    try parser.parseQuery();
+    parser.init();
+
+    var got = try parser.parse();
+    defer got.SelectQuery.deinit();
+
+    std.debug.print("got={any}\n", .{got.SelectQuery});
+    assert(std.mem.eql(u8, "ks", got.SelectQuery.keyspace.items));
+    assert(std.mem.eql(u8, "users", got.SelectQuery.table.items));
 }
