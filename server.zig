@@ -1746,7 +1746,6 @@ const ParserResult = union(enum) {
     };
 
     const InsertQueryNode = struct {
-        select_clause: std.ArrayList(ParserResult.SelectClause),
         keyspace: std.ArrayList(u8),
         table: std.ArrayList(u8),
 
@@ -1770,7 +1769,6 @@ test "test parsing a SELECT statement" {
     var got = try parser.parse();
     defer got.deinit();
 
-    std.debug.print("got={any}\n", .{got.SelectQuery});
     assert(std.mem.eql(u8, "ks", got.SelectQuery.keyspace.items));
     assert(std.mem.eql(u8, "users", got.SelectQuery.table.items));
 }
