@@ -1703,7 +1703,7 @@ const Parser = struct {
                 try tableLit.writer().writeAll(tableToken.lit);
 
                 return ParserResult{
-                    .SelectQuery = ParserResult.SelectQuery{
+                    .SelectQuery = ParserResult.SelectQueryNode{
                         // .select_clause = selectClauseToken,
                         .keyspace = keyspaceLit,
                         .table = tableLit,
@@ -1715,45 +1715,46 @@ const Parser = struct {
     }
 };
 
-const ParserResult = union {
-    SelectQuery: SelectQuery,
-    InsertQuery: InsertQuery,
+const ParserResult = union(enum) {
+    SelectQuery: SelectQueryNode,
+    InsertQuery: InsertQueryNode,
 
-    const SelectQuery = struct {
-        const Self = @This();
+    fn deinit(self: *ParserResult) void {
+        switch (self.*) {
+            ParserResult.SelectQuery => self.SelectQuery.deinit(),
+            ParserResult.InsertQuery => self.InsertQuery.deinit(),
+        }
+    }
 
+    const SelectQueryNode = struct {
         // select_clause: std.ArrayList(SelectClause),
         keyspace: std.ArrayList(u8),
         table: std.ArrayList(u8),
 
-        fn deinit(self: *Self) void {
+        fn deinit(self: *SelectQueryNode) void {
             self.keyspace.deinit();
             self.table.deinit();
         }
     };
 
     const SelectClause = struct {
-        const Self = @This();
-
         column: std.ArrayList(u8),
 
-        fn deinit(self: *Self) void {
+        fn deinit(self: *SelectClause) void {
             self.column.deinit();
         }
     };
-};
 
-const InsertQuery = struct {
-    const Self = @This();
+    const InsertQueryNode = struct {
+        select_clause: std.ArrayList(ParserResult.SelectClause),
+        keyspace: std.ArrayList(u8),
+        table: std.ArrayList(u8),
 
-    select_clause: std.ArrayList(ParserResult.SelectClause),
-    keyspace: std.ArrayList(u8),
-    table: std.ArrayList(u8),
-
-    fn deinit(self: *Self) void {
-        self.keyspace.deinit();
-        self.table.deinit();
-    }
+        fn deinit(self: *InsertQueryNode) void {
+            self.keyspace.deinit();
+            self.table.deinit();
+        }
+    };
 };
 
 test "test parsing a SELECT statement" {
@@ -1767,7 +1768,7 @@ test "test parsing a SELECT statement" {
     parser.init();
 
     var got = try parser.parse();
-    defer got.SelectQuery.deinit();
+    defer got.deinit();
 
     std.debug.print("got={any}\n", .{got.SelectQuery});
     assert(std.mem.eql(u8, "ks", got.SelectQuery.keyspace.items));
